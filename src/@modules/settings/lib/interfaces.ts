@@ -1,50 +1,33 @@
-import { IBaseEntity, IBaseResponse } from '@base/interfaces';
+import { IBaseResponse } from '@base/interfaces';
 
-export interface ISettingsIdentitySocialUrls {
-  facebook: string;
-  twitter: string;
-  instagram: string;
-  youtube: string;
+export interface ISettingsSocialUrls {
+  facebook?: string;
+  twitter?: string;
+  instagram?: string;
+  youtube?: string;
 }
 
-export interface ISettingsIdentity {
+export interface ISettings {
   name: string;
+  initialName: string;
+  icon?: string;
+  logo?: string;
   themePrimaryColor: string;
   themeSecondayColor: string;
-  description: string;
-  logo: string;
-  icon: string;
-  email: string;
-  phone: string;
-  address: string;
-  socialUrls: ISettingsIdentitySocialUrls;
   phoneCode: string;
   currency: string;
-  initialName: string;
-  needWebView: boolean;
+  description?: string;
+  phone?: string;
+  address?: string;
+  socialUrls?: ISettingsSocialUrls;
   allowUserRegistration: boolean;
   userRegistrationVerificationRequired: boolean;
+  needWebView: boolean;
   otpExpiresInMin: number;
-}
-
-export interface ISettingsTrackingCodes {
-  gtagId: string;
-  gtmId: string;
-  fbPixelId: string;
-}
-
-export interface ISettings extends IBaseEntity {
-  identity: ISettingsIdentity;
-  trackingCodes: ISettingsTrackingCodes;
-  trackingScripts: string[];
 }
 
 export interface ISettingsResponse extends IBaseResponse {
   data: ISettings;
 }
 
-export interface ISettingsCreate {
-  identity: Partial<ISettingsIdentity>;
-  trackingCodes: Partial<ISettingsTrackingCodes>;
-  trackingScripts: string[];
-}
+export type ISettingsCreate = Partial<ISettings>;

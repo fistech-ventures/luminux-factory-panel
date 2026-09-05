@@ -47,7 +47,7 @@ const WelcomeMenu: React.FC<IProps> = ({ className }) => {
           return (
             <div className="bg-white dark:bg-[var(--color-rich-black)] p-4 border border-[var(--color-gray-100)] rounded-lg shadow-sm">
               <p className="font-medium text-xs text-[var(--color-gray-500)]">
-                Welcome to {settingsQuery.data?.data?.identity?.name}!
+                Welcome to {settingsQuery.data?.data?.name}!
               </p>
               <p className="font-semibold">{user?.fullName}</p>
               <ul className="flex flex-col gap-2 border-t border-t-[var(--color-gray-100)] pt-4 mt-4">

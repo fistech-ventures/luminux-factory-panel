@@ -1,15 +1,26 @@
 import { IBaseEntity, IBaseFilter, IBaseResponse, TId } from '@base/interfaces';
 import { IRole } from '@modules/roles/lib/interfaces';
 
-export interface IUsersFilter extends IBaseFilter {}
+export interface IUsersFilter extends IBaseFilter {
+  /** JSON string array of role titles, e.g. ["Internal","Customer"] */
+  roles?: string;
+}
+
+export interface IUserRoleLink {
+  role: TId;
+  isDeleted?: boolean;
+}
 
 export interface IUser extends IBaseEntity {
-  avatar: string;
-  username: string;
+  avatar?: string;
   fullName: string;
-  phoneNumber: string;
+  gender?: 'male' | 'female' | 'other';
+  phoneNumber?: string;
   email: string;
-  roles: IRole[];
+  username?: string;
+  userRoles: {
+    role: IRole;
+  }[];
 }
 
 export interface IUsersResponse extends IBaseResponse {
@@ -17,11 +28,19 @@ export interface IUsersResponse extends IBaseResponse {
 }
 
 export interface IUserCreate {
-  firstName: string;
-  lastName: string;
-  password: string;
-  phoneNumber: string;
   email: string;
-  roles: { role?: TId; isDeleted?: boolean }[];
-  isActive: boolean;
+  fullName?: string;
+  gender?: 'male' | 'female' | 'other';
+  phoneNumber?: string;
+  password: string;
+}
+
+export interface IUserUpdate {
+  fullName?: string;
+  gender?: 'male' | 'female' | 'other';
+  phoneNumber?: string;
+  password?: string;
+  avatar?: string;
+  isActive?: boolean;
+  roles?: IUserRoleLink[];
 }

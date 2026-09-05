@@ -4,7 +4,7 @@ import { Env } from '.environments';
 import { ENUM_API_SCOPE_TYPES } from '@lib/interfaces/apiScope.interface';
 import { cookies } from 'next/headers';
 
-const SETTINGS_ENDPOINT = '/global-configs/quick';
+const SETTINGS_ENDPOINT = '/global-configs/system';
 
 const internalApiBaseUrlFn = (): string | null => {
   if (!Env.apiUrl) return null;
@@ -46,7 +46,7 @@ export const fetchSettingsForMetadataFn = async (): Promise<ISettingsResponse['d
     if (!res.ok) return null;
 
     const body = (await res.json()) as ISettingsResponse;
-    if (!body?.success || !body.data?.identity) return null;
+    if (!body?.success || !body.data) return null;
 
     return body.data;
   } catch {

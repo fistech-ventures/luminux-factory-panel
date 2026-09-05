@@ -1,5 +1,6 @@
 import { Toolbox } from '@lib/utils';
-import { Button, DatePicker, Drawer, Form, Radio, Space } from 'antd';
+import { RolesHooks } from '@modules/roles/lib/hooks';
+import { Button, DatePicker, Drawer, Form, Radio, Select, Space } from 'antd';
 import dayjs from 'dayjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
@@ -18,15 +19,30 @@ const UsersFilter: React.FC<IProps> = ({ initialValues, onChange }) => {
   const [formInstance] = Form.useForm();
   const [isDrawerOpen, setDrawerOpen] = useState(false);
 
+  const rolesQuery = RolesHooks.useFind({
+    options: {
+      page: 1,
+      limit: 300,
+    },
+  });
+
   useEffect(() => {
     formInstance.resetFields();
 
-    const values = {
+    const values: Record<string, any> = {
       isActive: '',
       sortOrder: '',
       dateRange: [],
       ...initialValues,
     };
+
+    if (values?.roles) {
+      try {
+        values.roles = JSON.parse(values.roles);
+      } catch {
+        values.roles = [];
+      }
+    }
 
     if (values?.startDate && values?.endDate) {
       values.dateRange.push(dayjs(values.startDate));
@@ -47,20 +63,35 @@ const UsersFilter: React.FC<IProps> = ({ initialValues, onChange }) => {
       <Drawer width={380} title="Filter" open={isDrawerOpen} onClose={() => setDrawerOpen(false)}>
         <Form
           form={formInstance}
-          onFinish={Toolbox.debounce((values) => {
-            values.startDate = values?.dateRange?.length
-              ? dayjs(values?.dateRange?.[0]).startOf('day').toISOString()
-              : null;
-            values.endDate = values?.dateRange?.length
-              ? dayjs(values?.dateRange?.[1]).endOf('day').toISOString()
-              : null;
+          onFinish={(values) => {
+            values.startDate = values?.dateRange?.length ? dayjs(values?.dateRange?.[0]).format('YYYY-MM-DD') : null;
+            values.endDate = values?.dateRange?.length ? dayjs(values?.dateRange?.[1]).format('YYYY-MM-DD') : null;
+            values.roles = values?.roles?.length ? JSON.stringify(values.roles) : null;
 
             delete values.dateRange;
-            onChange(values);
+            onChange(Toolbox.toCleanObject(values));
             setDrawerOpen(false);
-          }, 1000)}
+          }}
           className="flex flex-col gap-3"
         >
+          <Form.Item name="roles" className="!mb-0">
+            <Select
+              mode="multiple"
+              allowClear
+              showSearch
+              placeholder="Roles"
+              options={Toolbox.toCleanArray(
+                rolesQuery.data?.data?.map((role) => ({
+                  key: role?.id,
+                  label: role?.title,
+                  value: role?.title,
+                })),
+              )}
+              filterOption={(input, option) =>
+                String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+            />
+          </Form.Item>
           <Form.Item name="dateRange" className="!mb-0">
             <DatePicker.RangePicker className="w-full" />
           </Form.Item>

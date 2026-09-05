@@ -18,10 +18,9 @@ const defaultMetadataTitle = 'Daily Destiny';
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getCachedQuickSettingsFn();
-  const identity = settings?.identity;
-  const title = identity?.name?.trim() || defaultMetadataTitle;
-  const description = identity?.description?.trim() || undefined;
-  const iconUrl = identity?.icon?.trim();
+  const title = settings?.name?.trim() || defaultMetadataTitle;
+  const description = settings?.description?.trim() || undefined;
+  const iconUrl = settings?.icon?.trim();
 
   return {
     title,
@@ -42,8 +41,8 @@ const RootLayout = async ({
   const robotoFont = fontWithMorePropsCreateFn(roboto, '--font-roboto');
 
   const settings = await getCachedQuickSettingsFn();
-  const primary = settings?.identity?.themePrimaryColor?.trim();
-  const secondary = settings?.identity?.themeSecondayColor?.trim();
+  const primary = settings?.themePrimaryColor?.trim();
+  const secondary = settings?.themeSecondayColor?.trim();
   const brandHtmlStyle = primary ? buildBrandThemeInlineStyle(primary, secondary) : undefined;
 
   return (

@@ -43,8 +43,8 @@ const SignUpSection = ({ hash }: IProps) => {
               <h3 className="text-xl font-medium md:text-2xl">Visa Processing Support Center in Bangladesh</h3>
             </div>
             <UsersForm
-              type="Auth"
               form={formInstance}
+              initialValues={{ isActive: true }}
               isLoading={signUpFn.isPending}
               onFinish={(values) => signUpFn.mutate({ ...values, hash })}
             />

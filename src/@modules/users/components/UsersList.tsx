@@ -1,8 +1,9 @@
 import ConfirmationDialog from '@base/components/ConfirmationDialog';
 import CustomSwitch from '@base/components/CustomSwitch';
+import { Toolbox } from '@lib/utils';
 import { getAccess } from '@modules/auth/lib/utils/client';
 import type { PaginationProps, TableColumnsType } from 'antd';
-import { Button, Drawer, Form, Table, message } from 'antd';
+import { Avatar, Button, Drawer, Form, Table, Tag, message } from 'antd';
 import React, { useState } from 'react';
 import { AiFillEdit, AiFillDelete } from 'react-icons/ai';
 import { UsersHooks } from '../lib/hooks';
@@ -11,12 +12,11 @@ import UsersForm from './UsersForm';
 
 interface IProps {
   isLoading: boolean;
-  isRoles?: boolean;
   data: IUser[];
   pagination: PaginationProps;
 }
 
-const UsersList: React.FC<IProps> = ({ isLoading, isRoles = true, data, pagination }) => {
+const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
   const [messageApi, messageHolder] = message.useMessage();
   const [formInstance] = Form.useForm();
   const [updateItem, setUpdateItem] = useState<IUser>(null);
@@ -41,6 +41,17 @@ const UsersList: React.FC<IProps> = ({ isLoading, isRoles = true, data, paginati
     },
   });
 
+  const userUpdateRolesFn = UsersHooks.useUpdateRoles({
+    config: {
+      onSuccess: (res) => {
+        if (!res.success) {
+          messageApi.error(res.message);
+          return;
+        }
+      },
+    },
+  });
+
   const userDeleteFn = UsersHooks.useDelete({
     config: {
       onSuccess: (res) => {
@@ -53,24 +64,51 @@ const UsersList: React.FC<IProps> = ({ isLoading, isRoles = true, data, paginati
     },
   });
 
+  const handleUpdateFinishFn = (values: any) => {
+    const initialRoles = (updateItem?.userRoles ?? []).map((userRole) => ({ role: userRole?.role?.id }));
+    const currentRoles = (values?.roles ?? []).map((roleId) => ({ role: roleId }));
+    const roleDiffs = Toolbox.computeArrayDiffs<any>(initialRoles, currentRoles, 'role');
+    const profileData = { ...values };
+    delete profileData.roles;
+
+    if (roleDiffs.length) {
+      userUpdateRolesFn.mutate({ id: updateItem?.id, data: { roles: roleDiffs } });
+    }
+
+    userUpdateFn.mutate({ id: updateItem?.id, data: profileData });
+  };
+
   const dataSource = data?.map((elem) => ({
     key: elem?.id,
     id: elem?.id,
-    name: elem?.fullName,
+    avatar: elem?.avatar,
+    fullName: elem?.fullName,
+    gender: elem?.gender,
     phoneNumber: elem?.phoneNumber,
     email: elem?.email,
+    roles: elem?.userRoles?.map((userRole) => userRole?.role) ?? [],
     isActive: elem?.isActive,
     createdAt: elem?.createdAt,
-    createdBy: elem?.createdBy?.fullName,
-    updatedAt: elem?.updatedAt,
-    updatedBy: elem?.updatedBy?.fullName,
   }));
 
   const columns: TableColumnsType<(typeof dataSource)[number]> = [
     {
-      key: 'name',
-      dataIndex: 'name',
+      key: 'fullName',
+      dataIndex: 'fullName',
       title: 'Name',
+      render: (fullName, record) => (
+        <div className="flex items-center gap-2">
+          <Avatar size="small" src={record?.avatar}>
+            {fullName?.charAt(0)?.toUpperCase()}
+          </Avatar>
+          <span>{fullName || 'N/A'}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'email',
+      dataIndex: 'email',
+      title: 'Email',
     },
     {
       key: 'phoneNumber',
@@ -79,9 +117,19 @@ const UsersList: React.FC<IProps> = ({ isLoading, isRoles = true, data, paginati
       render: (phoneNumber) => phoneNumber || 'N/A',
     },
     {
-      key: 'email',
-      dataIndex: 'email',
-      title: 'Email',
+      key: 'roles',
+      dataIndex: 'roles',
+      title: 'Roles',
+      render: (roles) =>
+        roles?.length ? (
+          <div className="flex flex-wrap gap-1">
+            {roles.map((role) => (
+              <Tag key={role?.id}>{role?.title}</Tag>
+            ))}
+          </div>
+        ) : (
+          'N/A'
+        ),
     },
     {
       key: 'isActive',
@@ -136,13 +184,15 @@ const UsersList: React.FC<IProps> = ({ isLoading, isRoles = true, data, paginati
               danger
               onClick={() => {
                 getAccess(['users:delete'], () => {
-                  const isSuperAdmin = item?.roles?.some((r) => (r?.title || '').toLowerCase() === 'super admin');
+                  const isSuperAdmin = (item?.userRoles ?? []).some(
+                    (userRole) => (userRole?.role?.title || '').toLowerCase() === 'super admin',
+                  );
 
                   if (isSuperAdmin) {
                     setConfirmationDialog({
                       open: true,
                       title: 'Cannot Delete User',
-                      content: `User "${item.email}" has role \"Super Admin\" and cannot be deleted.`,
+                      content: `User "${item.email}" has role "Super Admin" and cannot be deleted.`,
                       onConfirm: () => {
                         setConfirmationDialog({ open: false, title: '', content: '', onConfirm: () => {} });
                       },
@@ -187,21 +237,12 @@ const UsersList: React.FC<IProps> = ({ isLoading, isRoles = true, data, paginati
         onClose={() => setUpdateItem(null)}
       >
         <UsersForm
-          isRoles={isRoles}
+          userId={updateItem?.id as string}
           formType="update"
           form={formInstance}
-          initialValues={{
-            ...updateItem,
-            roles: updateItem?.roles?.map((role) => ({ role: role?.id })),
-            isActive: updateItem?.isActive,
-          }}
-          isLoading={userUpdateFn.isPending}
-          onFinish={(values) =>
-            userUpdateFn.mutate({
-              id: updateItem?.id,
-              data: values,
-            })
-          }
+          initialValues={updateItem}
+          isLoading={userUpdateFn.isPending || userUpdateRolesFn.isPending}
+          onFinish={handleUpdateFinishFn}
         />
       </Drawer>
       <ConfirmationDialog

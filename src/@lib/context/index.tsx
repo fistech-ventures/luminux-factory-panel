@@ -20,7 +20,7 @@ const DEFAULT_PRIMARY = '#2b3589';
 
 type TProps = PropsWithChildren<{
   nextFont: (NextFontWithVariable & { originalVariableName: string })[];
-  /** From `getCachedQuickSettingsFn` → `identity.themePrimaryColor`; Ant Design derives hover/active when set alone. */
+  /** From `getCachedQuickSettingsFn` → `themePrimaryColor`; Ant Design derives hover/active when set alone. */
   brandPrimaryHex?: string | null;
 }>;
 

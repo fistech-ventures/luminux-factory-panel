@@ -7,14 +7,14 @@ import InputPhone from '@base/components/InputPhone';
 import PhoneCodeSelect from '@base/components/PhoneCodeSelect';
 import { Button, Col, ColorPicker, Form, FormInstance, Row, Select } from 'antd';
 import React, { useEffect } from 'react';
-import { ISettingsIdentity } from '../lib/interfaces';
+import { ISettings } from '../lib/interfaces';
 
 interface IProps {
   isLoading: boolean;
   form: FormInstance;
   formType?: 'create' | 'update';
-  initialValues?: Partial<ISettingsIdentity>;
-  onFinish: (values: ISettingsIdentity) => void;
+  initialValues?: Partial<ISettings>;
+  onFinish: (values: ISettings) => void;
 }
 
 const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'create', initialValues, onFinish }) => {
@@ -178,20 +178,6 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
         <Col xs={24} md={12} xl={8}>
           <Form.Item name="phone" className="!mb-0">
             <InputPhone size="large" />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={12} xl={8}>
-          <Form.Item
-            name="email"
-            rules={[
-              {
-                type: 'email',
-                message: 'Email is not valid!',
-              },
-            ]}
-            className="!mb-0"
-          >
-            <FloatInput placeholder="Email" />
           </Form.Item>
         </Col>
         <Col xs={24} xl={8}>

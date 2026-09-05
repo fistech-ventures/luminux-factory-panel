@@ -30,93 +30,45 @@ export const Paths = {
         toId: (id: TId) => `/admin/role-manager/roles/${id}`,
       },
     },
-    marketPrice: {
-      root: '/admin/market-price',
-      list: '/admin/market-price/list',
+    products: {
+      root: '/admin/products',
+      list: '/admin/products/list',
     },
-    categories: {
-      root: '/admin/categories',
-      list: '/admin/categories/list',
+    variants: {
+      root: '/admin/variants',
+      list: '/admin/variants/list',
     },
-    subCategories: {
-      root: '/admin/sub-categories',
-      list: '/admin/sub-categories/list',
+    productVariantOptions: {
+      root: '/admin/product-variant-options',
+      list: '/admin/product-variant-options/list',
     },
-    authors: {
-      root: '/admin/authors',
-      list: '/admin/authors/list',
+    purchases: {
+      root: '/admin/purchases',
+      list: '/admin/purchases/list',
     },
-    articles: {
-      root: '/admin/articles',
-      list: '/admin/articles/list',
-      create: '/admin/articles/create',
-      published: '/admin/articles/published',
-      drafted: '/admin/articles/drafted',
-      archived: '/admin/articles/archived',
-      featured: '/admin/articles/featured',
-      exclusive: '/admin/articles/exclusive',
-      video: {
-        root: '/admin/articles/video',
-        list: '/admin/articles/video/list',
-        create: '/admin/articles/video/create',
-      },
-      photo: {
-        root: '/admin/articles/photo',
-        list: '/admin/articles/photo/list',
-        create: '/admin/articles/photo/create',
-      },
+    sales: {
+      root: '/admin/sales',
+      list: '/admin/sales/list',
     },
-    tags: {
-      root: '/admin/tags',
-      list: '/admin/tags/list',
-      create: '/admin/tags/create',
+    customers: {
+      root: '/admin/customers',
+      list: '/admin/customers/list',
     },
-    polls: {
-      root: '/admin/polls',
-      list: '/admin/polls/list',
+    suppliers: {
+      root: '/admin/suppliers',
+      list: '/admin/suppliers/list',
     },
-    ads: {
-      root: '/admin/ads',
-      list: '/admin/ads/list',
+    expenses: {
+      root: '/admin/expenses',
+      list: '/admin/expenses/list',
     },
-    entrepreneurs: {
-      root: '/admin/entrepreneurs',
-      list: '/admin/entrepreneurs/list',
+    ledger: {
+      root: '/admin/ledger',
+      list: '/admin/ledger/list',
     },
-    startups: {
-      root: '/admin/startups',
-      list: '/admin/startups/list',
-    },
-    locations: {
-      root: '/admin/locations',
-      list: '/admin/locations/list',
-    },
-    epapers: {
-      root: '/admin/epapers',
-      list: '/admin/epapers/list',
-    },
-    epaperVisual: {
-      root: '/admin/epaper-visual',
-      list: '/admin/epaper-visual',
-      toId: (id: TId) => `/admin/epaper-visual/${id}`,
-    },
-    specialEvents: {
-      root: '/admin/special-events',
-      list: '/admin/special-events/list',
-    },
-    cms: {
-      root: '/admin/cms',
-      menus: {
-        root: '/admin/cms/menus',
-        list: '/admin/cms/menus/list',
-      },
-      pages: {
-        root: '/admin/cms/pages',
-        list: '/admin/cms/pages/list',
-      },
-      layout: {
-        root: '/admin/cms/layout',
-      },
+    gallery: {
+      root: '/admin/gallery',
+      list: '/admin/gallery/list',
     },
     settings: {
       root: '/admin/settings',

@@ -16,7 +16,7 @@ const BrandLogo: React.FC<IProps> = ({ className, isBrand = true, height = 50 })
   }
 
   const renderImageFn = (src: string) => {
-    const altText = (settingsQuery.data?.data?.identity?.initialName ?? 'Brand') + ' logo';
+    const altText = (settingsQuery.data?.data?.initialName ?? 'Brand') + ' logo';
 
     return (
       <img
@@ -34,7 +34,7 @@ const BrandLogo: React.FC<IProps> = ({ className, isBrand = true, height = 50 })
     );
   };
 
-  return renderImageFn(settingsQuery.data?.data?.identity?.logo || ImagePaths.logo);
+  return renderImageFn(settingsQuery.data?.data?.logo || ImagePaths.logo);
 };
 
 export default BrandLogo;

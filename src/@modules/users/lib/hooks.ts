@@ -48,9 +48,40 @@ export const UsersHooks = {
     });
   },
 
+  useFindAvailableRoles: ({
+    id,
+    options,
+    config,
+  }: {
+    id: TId;
+    options?: { page?: number; limit?: number; searchTerm?: string };
+    config?: QueryConfig<typeof UsersServices.findAvailableRoles>;
+  }) => {
+    const { queryKey, ...rest } = config ?? {};
+
+    return useQuery({
+      queryKey: [...(queryKey || []), UsersServices.NAME, id, 'available-roles', options],
+      queryFn: () => UsersServices.findAvailableRoles({ id, options }),
+      enabled: !!id,
+      ...rest,
+    });
+  },
+
   useCreate: ({ config }: { config?: MutationConfig<typeof UsersServices.create> } = {}) => {
     return useMutation({
       mutationFn: UsersServices.create,
+      onSettled: (data) => {
+        if (!data?.success) return;
+
+        queryClient.invalidateQueries({ queryKey: [UsersServices.NAME] });
+      },
+      ...config,
+    });
+  },
+
+  useUpdateRoles: ({ config }: { config?: MutationConfig<typeof UsersServices.updateRoles> } = {}) => {
+    return useMutation({
+      mutationFn: UsersServices.updateRoles,
       onSettled: (data) => {
         if (!data?.success) return;
 
@@ -67,18 +98,6 @@ export const UsersHooks = {
         if (!data?.success) return;
 
         queryClient.invalidateQueries({ queryKey: [UsersServices.NAME] });
-      },
-      ...config,
-    });
-  },
-
-  useGenerateRegistrationLink: ({
-    config,
-  }: { config?: MutationConfig<typeof UsersServices.generateRegistrationLink> } = {}) => {
-    return useMutation({
-      mutationFn: UsersServices.generateRegistrationLink,
-      onSettled: (data) => {
-        if (!data?.success) return;
       },
       ...config,
     });

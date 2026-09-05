@@ -3,7 +3,7 @@ import { responseHandlerFn } from '@lib/utils';
 import { AxiosRequestConfig } from 'axios';
 import { ISettingsCreate, ISettingsResponse } from './interfaces';
 
-const END_POINT: string = '/global-configs';
+const END_POINT: string = '/global-configs/system';
 
 export const SettingsServices = {
   NAME: END_POINT,
@@ -19,7 +19,7 @@ export const SettingsServices = {
 
   findQuick: async (config?: AxiosRequestConfig): Promise<ISettingsResponse> => {
     try {
-      const res = await AxiosSecureInstance.get(`${END_POINT}/quick`, config);
+      const res = await AxiosSecureInstance.get(END_POINT, config);
       return Promise.resolve(res?.data);
     } catch (error) {
       throw responseHandlerFn(error);

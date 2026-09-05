@@ -1,7 +1,8 @@
-import { IBaseResponse, TId } from '@base/interfaces';
+import { IBaseFilter, IBaseResponse, TId } from '@base/interfaces';
 import { AxiosSecureInstance } from '@lib/config';
 import { responseHandlerFn, Toolbox } from '@lib/utils';
-import { IUser, IUserCreate, IUsersFilter, IUsersResponse } from './interfaces';
+import { IRolesResponse } from '@modules/roles/lib/interfaces';
+import { IUser, IUserCreate, IUserUpdate, IUsersFilter, IUsersResponse } from './interfaces';
 
 const END_POINT: string = '/users';
 
@@ -26,30 +27,39 @@ export const UsersServices = {
     }
   },
 
+  findAvailableRoles: async (payload: { id: TId; options?: IBaseFilter }): Promise<IRolesResponse> => {
+    try {
+      const res = await AxiosSecureInstance.get(
+        `${END_POINT}/${payload.id}/available-roles?${Toolbox.queryNormalizer(payload.options ?? {})}`,
+      );
+      return Promise.resolve(res?.data);
+    } catch (error) {
+      throw responseHandlerFn(error);
+    }
+  },
+
+  /** Staff create — roles are forced to ["Internal", "Customer"] server-side */
   create: async (payload: IUserCreate): Promise<IBaseResponse<IUser>> => {
     try {
-      const res = await AxiosSecureInstance.post(END_POINT, Toolbox.toNullifyTraverse(payload));
+      const res = await AxiosSecureInstance.post(`${END_POINT}/stuff`, Toolbox.toNullifyTraverse(payload));
       return Promise.resolve(res?.data);
     } catch (error) {
       throw responseHandlerFn(error);
     }
   },
 
-  update: async (payload: { id: TId; data: Partial<IUserCreate> }): Promise<IBaseResponse<IUser>> => {
+  updateRoles: async (payload: { id: TId; data: { roles: { role: TId; isDeleted?: boolean }[] } }): Promise<IBaseResponse<IUser>> => {
     try {
-      const res = await AxiosSecureInstance.patch(`${END_POINT}/${payload.id}`, {
-        ...Toolbox.toNullifyTraverse(payload.data),
-        password: payload.data.password,
-      });
+      const res = await AxiosSecureInstance.patch(`${END_POINT}/${payload.id}/roles`, payload.data);
       return Promise.resolve(res?.data);
     } catch (error) {
       throw responseHandlerFn(error);
     }
   },
 
-  generateRegistrationLink: async (): Promise<IBaseResponse<{ hash: string }>> => {
+  update: async (payload: { id: TId; data: Partial<IUserUpdate> }): Promise<IBaseResponse<IUser>> => {
     try {
-      const res = await AxiosSecureInstance.get(`${END_POINT}/generate-registration-link`);
+      const res = await AxiosSecureInstance.patch(`${END_POINT}/${payload.id}`, Toolbox.toNullifyTraverse(payload.data));
       return Promise.resolve(res?.data);
     } catch (error) {
       throw responseHandlerFn(error);

@@ -1,41 +1,26 @@
 import FloatInput from '@base/antd/components/FloatInput';
 import FloatInputPassword from '@base/antd/components/FloatInputPassword';
-import InfiniteScrollSelect from '@base/components/InfiniteScrollSelect';
+import CustomUploader from '@base/components/CustomUploader';
 import InputPhone from '@base/components/InputPhone';
-import { TId } from '@base/interfaces';
 import { Toolbox } from '@lib/utils';
-import Authorization from '@modules/auth/components/Authorization';
 import { hasAccessPermission } from '@modules/auth/lib/utils/client';
-import { RolesHooks } from '@modules/roles/lib/hooks';
-import { IRole } from '@modules/roles/lib/interfaces';
-import { Button, Col, Form, FormInstance, message, Radio, Row } from 'antd';
-import React, { useEffect, useState } from 'react';
-import { IUserCreate } from '../lib/interfaces';
+import { Button, Col, Divider, Form, FormInstance, Radio, Row, Select, Tag, message } from 'antd';
+import React, { useEffect } from 'react';
+import { UsersHooks } from '../lib/hooks';
 
 interface IProps {
-  type?: 'Default' | 'Auth';
   isLoading: boolean;
-  isRoles?: boolean;
+  /** User id — required to fetch available roles on update */
+  userId?: string;
   form: FormInstance;
   formType?: 'create' | 'update';
-  initialValues?: Partial<IUserCreate>;
-  onFinish: (values: IUserCreate) => void;
+  initialValues?: any;
+  onFinish: (values: any) => void;
   backendError?: string | null;
 }
 
-const UsersForm: React.FC<IProps> = ({
-  type = 'Default',
-  isLoading,
-  isRoles = true,
-  form,
-  formType = 'create',
-  initialValues,
-  onFinish,
-  backendError,
-}) => {
+const UsersForm: React.FC<IProps> = ({ isLoading, userId, form, formType = 'create', initialValues, onFinish, backendError }) => {
   const [messageApi, messageHolder] = message.useMessage();
-  const [rolesForCreation, setRolesForCreation] = useState<string[]>([]);
-  const [roleSearchTerm, setRoleSearchTerm] = useState(null);
 
   useEffect(() => {
     if (backendError) {
@@ -48,9 +33,9 @@ const UsersForm: React.FC<IProps> = ({
     if (errorFields && errorFields.length > 0) {
       const firstErrorField = errorFields[0];
       const errorMessage = firstErrorField.errors[0];
-      
+
       messageApi.warning(`${errorMessage}`);
-      
+
       form.scrollToField(firstErrorField.name, {
         behavior: 'smooth',
         block: 'center',
@@ -58,53 +43,32 @@ const UsersForm: React.FC<IProps> = ({
     }
   };
 
-  const rolesSpecificQuery = RolesHooks.useFindSpecifics({
-    config: {
-      onSuccess: (res) => {
-        if (!res.success) {
-          messageApi.error(res.message);
-          return;
-        }
-      },
-    },
-  });
+  const canManageRoles = hasAccessPermission(['role-manager-roles:read']);
 
-  const rolesQuery = RolesHooks.useFindInfinite({
+  const availableRolesQuery = UsersHooks.useFindAvailableRoles({
+    id: userId,
+    options: {
+      page: 1,
+      limit: 300,
+    },
     config: {
       queryKey: [],
-      enabled: type === 'Default' && isRoles && hasAccessPermission(['role-manager-roles:read']),
-    },
-    options: {
-      limit: 20,
-      searchTerm: roleSearchTerm,
+      enabled: formType === 'update' && !!userId && canManageRoles,
     },
   });
 
-  const handleFinishFn = (values) => {
-    let sanitizedRoles = null;
+  const currentRoleIds = (initialValues?.userRoles ?? []).map((userRole) => userRole?.role?.id).filter(Boolean);
 
-    if (type === 'Default' && formType === 'create') {
-      sanitizedRoles = rolesForCreation;
-    }
-
-    if (type === 'Default' && formType === 'update' && isRoles && hasAccessPermission(['role-manager-roles:read'])) {
-      const currentSanitizedRoles = values?.roles?.map((role: TId) => ({ role: role }));
-      sanitizedRoles = Toolbox.computeArrayDiffs(initialValues?.roles, currentSanitizedRoles, 'role');
-    }
-
-    onFinish({ ...values, roles: sanitizedRoles });
-  };
+  const availableRoleOptions = Toolbox.toCleanArray(
+    (availableRolesQuery.data?.data ?? []).map((role) => ({
+      key: role?.id,
+      label: role?.title,
+      value: role?.id,
+    })),
+  );
 
   useEffect(() => {
     form.resetFields();
-
-    if (type === 'Default' && isRoles && hasAccessPermission(['role-manager-roles:read'])) {
-      if (Toolbox.isNotEmpty(initialValues?.roles)) {
-        const roles = initialValues?.roles?.map((role) => role?.role);
-        rolesSpecificQuery.mutate(roles);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form, initialValues]);
 
   return (
@@ -117,27 +81,50 @@ const UsersForm: React.FC<IProps> = ({
         form={form}
         initialValues={{
           ...initialValues,
-          roles: initialValues?.roles?.map((role) => role?.role),
+          roles: currentRoleIds,
         }}
-        onFinish={handleFinishFn}
+        onFinish={(values) => onFinish({ ...values, roles: values?.roles ?? [] })}
         onFinishFailed={handleFinishFailed}
         validateMessages={{
           required: '${label} is required!',
         }}
       >
         <Row gutter={[16, 16]}>
+          {formType === 'create' && (
+            <Col xs={24}>
+              <Form.Item
+                name="email"
+                rules={[
+                  { type: 'email', message: 'Email is not valid!' },
+                  { required: true, message: 'Email is required!' },
+                ]}
+                className="!mb-0"
+              >
+                <FloatInput placeholder="Email" />
+              </Form.Item>
+            </Col>
+          )}
           <Col xs={24}>
-            <Form.Item
-              name="fullName"
-              rules={[
-                {
-                  required: true,
-                  message: 'Full name is required!',
-                },
-              ]}
-              className="!mb-0"
-            >
+            <Form.Item name="fullName" rules={[{ required: true, message: 'Full name is required!' }]} className="!mb-0">
               <FloatInput placeholder="Full Name" />
+            </Form.Item>
+          </Col>
+          <Col xs={24}>
+            <Form.Item name="gender" className="!mb-0">
+              <Select
+                allowClear
+                placeholder="Gender"
+                options={[
+                  { key: 'male', label: 'Male', value: 'male' },
+                  { key: 'female', label: 'Female', value: 'female' },
+                  { key: 'other', label: 'Other', value: 'other' },
+                ]}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24}>
+            <Form.Item name="phoneNumber" className="!mb-0">
+              <InputPhone placeholder="Phone Number" size="large" />
             </Form.Item>
           </Col>
           <Col xs={24}>
@@ -155,78 +142,23 @@ const UsersForm: React.FC<IProps> = ({
               ]}
               className="!mb-0"
             >
-              <FloatInputPassword placeholder="Password" />
+              <FloatInputPassword placeholder={formType === 'create' ? 'Password' : 'New Password (optional)'} />
             </Form.Item>
           </Col>
-          <Col xs={24}>
-            <Form.Item
-              name="phoneNumber"
-              // rules={[
-              //   {
-              //     required: true,
-              //     message: 'Phone number is required!',
-              //   },
-              // ]}
-              className="!mb-0"
-            >
-              <InputPhone placeholder="Phone Number" size="large" />
-            </Form.Item>
-          </Col>
-          {formType === 'create' && (
+          {formType === 'update' && (
             <Col xs={24}>
-              <Form.Item
-                name="email"
-                rules={[
-                  {
-                    type: 'email',
-                    message: 'Email is not valid!',
-                  },
-                  {
-                    required: true,
-                    message: 'Email is required!',
-                  },
-                ]}
-                className="!mb-0"
-              >
-                <FloatInput placeholder="Email" />
+              <Form.Item name="avatar" className="!mb-0">
+                <CustomUploader
+                  maxCount={1}
+                  listType="picture-card"
+                  acceptedTypes={['jpg', 'jpeg', 'png', 'webp', 'avif']}
+                  initialValues={Toolbox.isNotEmpty(initialValues?.avatar) ? [initialValues.avatar] : []}
+                  onChange={(urls) => form.setFieldValue('avatar', urls?.[0])}
+                />
               </Form.Item>
             </Col>
           )}
-          {type === 'Default' && isRoles && (
-            <Authorization allowedAccess={['role-manager-roles:read']}>
-              <Col xs={24} md={24}>
-                <Form.Item
-                  className="!mb-0"
-                  rules={[
-                    {
-                      required: true,
-                      message: 'Role is required!',
-                    },
-                  ]}
-                  name="roles"
-                >
-                  <InfiniteScrollSelect<IRole>
-                    isFloat
-                    allowClear
-                    showSearch
-                    mode="multiple"
-                    virtual={false}
-                    placeholder="Roles"
-                    initialOptions={rolesSpecificQuery.data?.data}
-                    option={({ item: role }) => ({
-                      key: role?.id,
-                      label: role?.title,
-                      value: role?.id,
-                    })}
-                    onChangeSearchTerm={(searchTerm) => setRoleSearchTerm(searchTerm)}
-                    query={rolesQuery}
-                    onChange={(_, option) => setRolesForCreation(option.map((op) => op.label))}
-                  />
-                </Form.Item>
-              </Col>
-            </Authorization>
-          )}
-          {type === 'Default' && (
+          {formType === 'update' && (
             <Col xs={24}>
               <Form.Item name="isActive" className="!mb-0">
                 <Radio.Group buttonStyle="solid" className="w-full text-center">
@@ -237,6 +169,32 @@ const UsersForm: React.FC<IProps> = ({
                     Inactive
                   </Radio.Button>
                 </Radio.Group>
+              </Form.Item>
+            </Col>
+          )}
+          {formType === 'update' && canManageRoles && (
+            <Col xs={24}>
+              <Divider orientation="left" plain>
+                Roles
+              </Divider>
+              <div className="flex flex-wrap gap-1 mb-2">
+                {currentRoleIds?.length ? (
+                  currentRoleIds.map((roleId) => {
+                    const role = (initialValues?.userRoles ?? []).find((userRole) => userRole?.role?.id === roleId)?.role;
+                    return <Tag key={roleId}>{role?.title || roleId}</Tag>;
+                  })
+                ) : (
+                  <Tag>No roles assigned</Tag>
+                )}
+              </div>
+              <Form.Item name="roles" className="!mb-0" extra="Pick roles to assign (roles not yet assigned to this user).">
+                <Select
+                  mode="multiple"
+                  allowClear
+                  placeholder="Assign roles"
+                  options={availableRoleOptions}
+                  loading={availableRolesQuery.isLoading}
+                />
               </Form.Item>
             </Col>
           )}

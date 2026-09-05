@@ -74,7 +74,7 @@ export const Toolbox = {
   },
 
   toCleanArray: function <T = any>(array: T[]): T[] {
-    return array.filter((x) => this.isNotEmpty(x));
+    return (array ?? []).filter((x) => this.isNotEmpty(x));
   },
 
   computeArrayDiffs: function <T = any>(

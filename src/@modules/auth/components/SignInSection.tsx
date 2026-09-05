@@ -37,7 +37,7 @@ const SignInSection = () => {
 
         setAuthSession(data.data);
 
-        messageApi.loading(Messages.signIn(settingsQuery.data?.data?.identity?.name), 1).then(() => {
+        messageApi.loading(Messages.signIn(settingsQuery.data?.data?.name), 1).then(() => {
           window.location.replace(url);
         });
       },
