@@ -3,7 +3,6 @@
 import BaseFilter from '@base/components/BaseFilter';
 import BaseSearch from '@base/components/BaseSearch';
 import PageHeader from '@base/components/PageHeader';
-import { Permissions } from '@lib/constant';
 import { Toolbox } from '@lib/utils';
 import WithAuthorization from '@modules/auth/components/WithAuthorization';
 import { ProfitHooks } from '@modules/profit/lib/hooks';

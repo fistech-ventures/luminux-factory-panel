@@ -15,15 +15,7 @@ import { CustomersHooks } from "@modules/customers/lib/hooks";
 import { Button, Drawer, Form, message, Select, Tag } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
-
-export const PAYMENT_METHODS = [
-  "cash",
-  "bkash",
-  "nagad",
-  "rocket",
-  "upay",
-  "bank",
-];
+import { ENUM_PAYMENT_METHODS } from "@lib/constant";
 
 const SalesPage = () => {
   const router = useRouter();
@@ -119,7 +111,7 @@ const SalesPage = () => {
               <Select
                 allowClear
                 placeholder="Payment Method"
-                options={PAYMENT_METHODS.map((method) => ({
+                options={ENUM_PAYMENT_METHODS.map((method) => ({
                   key: method,
                   label: method,
                   value: method,

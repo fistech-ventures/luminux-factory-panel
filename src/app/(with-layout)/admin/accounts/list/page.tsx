@@ -11,7 +11,7 @@ import AccountsList from "@modules/accounts/components/AccountsList";
 import { Card, Col, Form, Row, Select, Statistic, Tag } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import React from "react";
-import { PAYMENT_METHODS } from "../../sales/list/page";
+import { ENUM_PAYMENT_METHODS } from "@lib/constant";
 
 const AccountsPage = () => {
   const router = useRouter();
@@ -99,7 +99,7 @@ const AccountsPage = () => {
               <Select
                 allowClear
                 placeholder="Account Type"
-                options={PAYMENT_METHODS.map((method) => ({
+                options={ENUM_PAYMENT_METHODS.map((method) => ({
                   key: method,
                   label: method,
                   value: method,
