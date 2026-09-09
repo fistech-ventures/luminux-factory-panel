@@ -89,7 +89,7 @@ const PaymentsPage = () => {
       <Drawer width={640} title="Create a new payment" open={isDrawerOpen} onClose={() => setDrawerOpen(false)}>
         <PaymentsForm
           form={formInstance}
-          initialValues={{ paymentDate: new Date().toISOString() }}
+          initialValues={{ paymentDate: new Date()}}
           isLoading={paymentCreateFn.isPending}
           onFinish={(values) => paymentCreateFn.mutate(values)}
         />

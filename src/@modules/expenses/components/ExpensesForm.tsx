@@ -1,19 +1,37 @@
-import FloatInput from '@base/antd/components/FloatInput';
-import { Button, Col, DatePicker, Form, FormInstance, InputNumber, Row, message } from 'antd';
-import dayjs from 'dayjs';
-import React, { useEffect } from 'react';
-import { IExpenseCreate } from '../lib/interfaces';
+import FloatInput from "@base/antd/components/FloatInput";
+import {
+  Button,
+  Col,
+  DatePicker,
+  Form,
+  FormInstance,
+  InputNumber,
+  Row,
+  Select,
+  message,
+} from "antd";
+import dayjs from "dayjs";
+import React, { useEffect } from "react";
+import { IExpenseCreate } from "../lib/interfaces";
+import { ENUM_PAYMENT_METHODS } from "@lib/constant";
 
 interface IProps {
   isLoading: boolean;
   form: FormInstance;
-  formType?: 'create' | 'update';
+  formType?: "create" | "update";
   initialValues?: Partial<IExpenseCreate>;
   onFinish: (values: IExpenseCreate) => void;
   backendError?: string | null;
 }
 
-const ExpensesForm: React.FC<IProps> = ({ isLoading, form, formType = 'create', initialValues, onFinish, backendError }) => {
+const ExpensesForm: React.FC<IProps> = ({
+  isLoading,
+  form,
+  formType = "create",
+  initialValues,
+  onFinish,
+  backendError,
+}) => {
   const [messageApi, messageHolder] = message.useMessage();
 
   useEffect(() => {
@@ -31,8 +49,8 @@ const ExpensesForm: React.FC<IProps> = ({ isLoading, form, formType = 'create', 
       messageApi.warning(`${errorMessage}`);
 
       form.scrollToField(firstErrorField.name, {
-        behavior: 'smooth',
-        block: 'center',
+        behavior: "smooth",
+        block: "center",
       });
     }
   };
@@ -53,41 +71,77 @@ const ExpensesForm: React.FC<IProps> = ({ isLoading, form, formType = 'create', 
           ...initialValues,
           date: initialValues?.date ? dayjs(initialValues.date) : dayjs(),
         }}
-        onFinish={(values) => onFinish({ ...values, date: dayjs(values.date).format('YYYY-MM-DD') })}
+        onFinish={(values) =>
+          onFinish({ ...values, date: dayjs(values.date).format("YYYY-MM-DD") })
+        }
         onFinishFailed={handleFinishFailed}
         validateMessages={{
-          required: '${label} is required!',
+          required: "${label} is required!",
         }}
       >
         <Row gutter={[16, 16]}>
-          <Col xs={24}>
-            <Form.Item name="date" rules={[{ required: true, message: 'Date is required!' }]} className="!mb-0">
+          <Col xs={12}>
+            <Form.Item
+              name="date"
+              rules={[{ required: true, message: "Date is required!" }]}
+              className="!mb-0"
+            >
               <DatePicker className="w-full" placeholder="Date" />
             </Form.Item>
           </Col>
+          <Col xs={12}>
+            <Form.Item
+              name="paymentMethod"
+              rules={[
+                { required: true, message: "Payment method is required!" },
+              ]}
+              className="!mb-0"
+            >
+              <Select placeholder="Payment Method">
+                {Object.values(ENUM_PAYMENT_METHODS).map((method) => (
+                  <Select.Option key={method} value={method}>
+                    {method}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
           <Col xs={24}>
-            <Form.Item name="purpose" rules={[{ required: true, message: 'Purpose is required!' }]} className="!mb-0">
+            <Form.Item
+              name="purpose"
+              rules={[{ required: true, message: "Purpose is required!" }]}
+              className="!mb-0"
+            >
               <FloatInput placeholder="Purpose" />
             </Form.Item>
           </Col>
           <Col xs={12}>
             <Form.Item
               name="amountSpent"
-              rules={[{ required: true, message: 'Amount spent is required!' }]}
+              rules={[{ required: true, message: "Amount spent is required!" }]}
               className="!mb-0"
             >
-              <InputNumber className="w-full!" placeholder="Amount Spent" min={0} precision={2} />
+              <InputNumber
+                className="w-full!"
+                placeholder="Amount Spent"
+                min={0}
+                precision={2}
+              />
             </Form.Item>
           </Col>
           <Col xs={12}>
-            <Form.Item name="spentBy" rules={[{ required: true, message: 'Spent by is required!' }]} className="!mb-0">
+            <Form.Item
+              name="spentBy"
+              rules={[{ required: true, message: "Spent by is required!" }]}
+              className="!mb-0"
+            >
               <FloatInput placeholder="Spent By (name)" />
             </Form.Item>
           </Col>
           <Col xs={24}>
             <Form.Item className="text-right !mb-0">
               <Button loading={isLoading} type="primary" htmlType="submit">
-                {formType === 'create' ? 'Submit' : 'Update'}
+                {formType === "create" ? "Submit" : "Update"}
               </Button>
             </Form.Item>
           </Col>

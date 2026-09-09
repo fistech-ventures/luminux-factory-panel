@@ -3,7 +3,7 @@ import { AxiosSecureInstance } from '@lib/config';
 import { responseHandlerFn, Toolbox } from '@lib/utils';
 import { IPayment, IPaymentCreate, IPaymentFilter, IPaymentsResponse } from './interfaces';
 
-const END_POINT: string = '/internal/payments';
+const END_POINT: string = '/payments';
 
 export const PaymentsServices = {
   NAME: END_POINT,

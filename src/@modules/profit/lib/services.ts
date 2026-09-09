@@ -2,7 +2,7 @@ import { AxiosSecureInstance } from '@lib/config';
 import { responseHandlerFn, Toolbox } from '@lib/utils';
 import { IProfitFilter, IProfitListResponse, IProfitStatsResponse } from './interfaces';
 
-const END_POINT: string = '/internal/profit';
+const END_POINT: string = '/profit';
 
 export const ProfitServices = {
   NAME: END_POINT,
