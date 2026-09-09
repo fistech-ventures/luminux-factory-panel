@@ -1,17 +1,26 @@
-import { IBaseEntity, IBaseFilter, IBaseResponse, TId } from '@base/interfaces';
+import { IBaseEntity, IBaseFilter, IBaseResponse, IMetaResponse, TId } from '@base/interfaces';
+import { ENUM_PAYMENT_METHODS } from '@lib/constant';
 
 export interface IPurchasesFilter extends IBaseFilter {
   supplierId?: TId;
+  paymentMethod?: ENUM_PAYMENT_METHODS;
 }
 
 export interface IPurchaseItem {
+  id?: TId;
   productId?: TId;
   variantId?: TId;
   productName?: string;
   productCode?: string;
   quantity: number;
   totalProductCost: number;
-  otherCost?: number;
+  otherCost: number;
+  totalCost?: number;
+  product?: {
+    id: TId;
+    title: string;
+    productCode: string;
+  };
 }
 
 export interface IPurchase extends IBaseEntity {
@@ -21,17 +30,27 @@ export interface IPurchase extends IBaseEntity {
   supplier?: {
     id: TId;
     companyName: string;
+    contactPerson?: string;
+    contactNumber: string;
+    email?: string;
+    address?: string;
   };
   items: IPurchaseItem[];
   totalQuantity: number;
   totalPurchaseAmount: number;
   paidAmount: number;
+  paymentMethod: ENUM_PAYMENT_METHODS;
   dueAmount: number;
   purchasedById: TId;
+  purchasedBy?: {
+    id: TId;
+    phoneNumber?: string;
+  };
 }
 
 export interface IPurchasesResponse extends IBaseResponse {
   data: IPurchase[];
+  meta: IMetaResponse;
 }
 
 export interface IPurchaseCreate {
@@ -40,5 +59,7 @@ export interface IPurchaseCreate {
   supplierId: TId;
   items: IPurchaseItem[];
   paidAmount: number;
+  paymentMethod: ENUM_PAYMENT_METHODS;
   purchasedById: TId;
+  createdBy?: TId;
 }

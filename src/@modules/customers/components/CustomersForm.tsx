@@ -1,19 +1,26 @@
-import FloatInput from '@base/antd/components/FloatInput';
-import InputPhone from '@base/components/InputPhone';
-import { Button, Col, Form, FormInstance, Row, message } from 'antd';
-import React, { useEffect } from 'react';
-import { ICustomerCreate } from '../lib/interfaces';
+import FloatInput from "@base/antd/components/FloatInput";
+import InputPhone from "@base/components/InputPhone";
+import { Button, Col, Form, FormInstance, Row, Select, message } from "antd";
+import React, { useEffect } from "react";
+import { ICustomerCreate } from "../lib/interfaces";
 
 interface IProps {
   isLoading: boolean;
   form: FormInstance;
-  formType?: 'create' | 'update';
+  formType?: "create" | "update";
   initialValues?: Partial<ICustomerCreate>;
   onFinish: (values: ICustomerCreate) => void;
   backendError?: string | null;
 }
 
-const CustomersForm: React.FC<IProps> = ({ isLoading, form, formType = 'create', initialValues, onFinish, backendError }) => {
+const CustomersForm: React.FC<IProps> = ({
+  isLoading,
+  form,
+  formType = "create",
+  initialValues,
+  onFinish,
+  backendError,
+}) => {
   const [messageApi, messageHolder] = message.useMessage();
 
   useEffect(() => {
@@ -31,8 +38,8 @@ const CustomersForm: React.FC<IProps> = ({ isLoading, form, formType = 'create',
       messageApi.warning(`${errorMessage}`);
 
       form.scrollToField(firstErrorField.name, {
-        behavior: 'smooth',
-        block: 'center',
+        behavior: "smooth",
+        block: "center",
       });
     }
   };
@@ -53,26 +60,54 @@ const CustomersForm: React.FC<IProps> = ({ isLoading, form, formType = 'create',
         onFinish={onFinish}
         onFinishFailed={handleFinishFailed}
         validateMessages={{
-          required: '${label} is required!',
+          required: "${label} is required!",
         }}
       >
         <Row gutter={[16, 16]}>
           <Col xs={24}>
-            <Form.Item name="name" rules={[{ required: true, message: 'Name is required!' }]} className="!mb-0">
+            <Form.Item
+              name="customerType"
+              rules={[
+                { required: true, message: "Customer type is required!" },
+              ]}
+              className="!mb-0"
+            >
+              <Select
+                placeholder="Customer Type"
+                defaultValue="B2B"
+                options={[
+                  { value: "B2B", label: "B2B" },
+                  { value: "B2C", label: "B2C" },
+                ]}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24}>
+            <Form.Item
+              name="name"
+              rules={[{ required: true, message: "Name is required!" }]}
+              className="!mb-0"
+            >
               <FloatInput placeholder="Name" />
             </Form.Item>
           </Col>
           <Col xs={24}>
             <Form.Item
               name="contactNumber"
-              rules={[{ required: true, message: 'Contact number is required!' }]}
+              rules={[
+                { required: true, message: "Contact number is required!" },
+              ]}
               className="!mb-0"
             >
               <InputPhone placeholder="Contact Number" size="large" />
             </Form.Item>
           </Col>
           <Col xs={24}>
-            <Form.Item name="email" rules={[{ type: 'email', message: 'Email is not valid!' }]} className="!mb-0">
+            <Form.Item
+              name="email"
+              rules={[{ type: "email", message: "Email is not valid!" }]}
+              className="!mb-0"
+            >
               <FloatInput placeholder="Email" />
             </Form.Item>
           </Col>
@@ -89,7 +124,7 @@ const CustomersForm: React.FC<IProps> = ({ isLoading, form, formType = 'create',
           <Col xs={24}>
             <Form.Item className="text-right !mb-0">
               <Button loading={isLoading} type="primary" htmlType="submit">
-                {formType === 'create' ? 'Submit' : 'Update'}
+                {formType === "create" ? "Submit" : "Update"}
               </Button>
             </Form.Item>
           </Col>

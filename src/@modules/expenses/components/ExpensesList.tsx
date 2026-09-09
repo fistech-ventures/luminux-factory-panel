@@ -1,12 +1,12 @@
-import ConfirmationDialog from '@base/components/ConfirmationDialog';
-import { getAccess } from '@modules/auth/lib/utils/client';
-import type { PaginationProps, TableColumnsType } from 'antd';
-import { Button, Drawer, Form, Table, message } from 'antd';
-import React, { useState } from 'react';
-import { AiFillEdit, AiFillDelete } from 'react-icons/ai';
-import { ExpensesHooks } from '../lib/hooks';
-import { IExpense } from '../lib/interfaces';
-import ExpensesForm from './ExpensesForm';
+import ConfirmationDialog from "@base/components/ConfirmationDialog";
+import { getAccess } from "@modules/auth/lib/utils/client";
+import type { PaginationProps, TableColumnsType } from "antd";
+import { Button, Drawer, Form, Table, message } from "antd";
+import React, { useState } from "react";
+import { AiFillEdit, AiFillDelete } from "react-icons/ai";
+import { ExpensesHooks } from "../lib/hooks";
+import { IExpense } from "../lib/interfaces";
+import ExpensesForm from "./ExpensesForm";
 
 interface IProps {
   isLoading: boolean;
@@ -23,7 +23,7 @@ const ExpensesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
     title: string;
     content: string;
     onConfirm: () => void;
-  }>({ open: false, title: '', content: '', onConfirm: () => {} });
+  }>({ open: false, title: "", content: "", onConfirm: () => {} });
 
   const expenseUpdateFn = ExpensesHooks.useUpdate({
     config: {
@@ -57,45 +57,76 @@ const ExpensesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
     date: elem?.date,
     purpose: elem?.purpose,
     amountSpent: elem?.amountSpent,
+    paymentMethod: elem?.paymentMethod,
     spentBy: elem?.spentBy,
     createdAt: elem?.createdAt,
+    createdBy: elem?.createdBy,
+    updatedAt: elem?.updatedAt,
+    updatedBy: elem?.updatedBy,
   }));
 
   const columns: TableColumnsType<(typeof dataSource)[number]> = [
     {
-      key: 'date',
-      dataIndex: 'date',
-      title: 'Date',
+      key: "date",
+      dataIndex: "date",
+      title: "Date",
     },
     {
-      key: 'purpose',
-      dataIndex: 'purpose',
-      title: 'Purpose',
+      key: "purpose",
+      dataIndex: "purpose",
+      title: "Purpose",
     },
     {
-      key: 'amountSpent',
-      dataIndex: 'amountSpent',
-      title: 'Amount Spent',
-      render: (amountSpent) => (amountSpent != null ? Number(amountSpent).toFixed(2) : 'N/A'),
+      key: "amountSpent",
+      dataIndex: "amountSpent",
+      title: "Amount Spent",
+      render: (amountSpent) =>
+        amountSpent != null ? Number(amountSpent).toFixed(2) : "N/A",
     },
     {
-      key: 'spentBy',
-      dataIndex: 'spentBy',
-      title: 'Spent By',
-      render: (spentBy) => spentBy || 'N/A',
+      key: "paymentMethod",
+      dataIndex: "paymentMethod",
+      title: "P.Method",
+      render: (paymentMethod) => paymentMethod || "N/A",
     },
     {
-      key: 'id',
-      dataIndex: 'id',
-      title: 'Action',
-      align: 'center',
+      key: "spentBy",
+      dataIndex: "spentBy",
+      title: "Spent By",
+      render: (spentBy) => spentBy || "N/A",
+    },
+    {
+      key: "createdBy",
+      dataIndex: "createdBy",
+      title: "Created By",
+      render: (createdBy) => createdBy?.fullName || "N/A",
+    },
+    {
+      key: "updatedAt",
+      dataIndex: "updatedAt",
+      title: "Updated At",
+      render: (date) => (date ? new Date(date).toLocaleString() : "N/A"),
+    },
+    {
+      key: "updatedBy",
+      dataIndex: "updatedBy",
+      title: "Updated By",
+      render: (updatedBy) => updatedBy?.fullName || "N/A",
+    },
+    {
+      key: "id",
+      dataIndex: "id",
+      title: "Action",
+      align: "center",
       render: (id) => {
         const item = data?.find((item) => item.id === id);
         return (
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+          <div
+            style={{ display: "flex", gap: "8px", justifyContent: "center" }}
+          >
             <Button
               onClick={() => {
-                getAccess(['expenses:update'], () => {
+                getAccess(["expenses:update"], () => {
                   setUpdateItem(item);
                 });
               }}
@@ -105,14 +136,19 @@ const ExpensesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
             <Button
               danger
               onClick={() => {
-                getAccess(['expenses:delete'], () => {
+                getAccess(["expenses:delete"], () => {
                   setConfirmationDialog({
                     open: true,
-                    title: 'Delete Expense',
+                    title: "Delete Expense",
                     content: `Are you sure you want to delete expense "${item.purpose}"?`,
                     onConfirm: () => {
                       expenseDeleteFn.mutate(item.id);
-                      setConfirmationDialog({ open: false, title: '', content: '', onConfirm: () => {} });
+                      setConfirmationDialog({
+                        open: false,
+                        title: "",
+                        content: "",
+                        onConfirm: () => {},
+                      });
                     },
                   });
                 });
@@ -136,11 +172,19 @@ const ExpensesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
         pagination={pagination}
         scroll={{ x: true }}
       />
-      <Drawer width={640} title={`Update Expense - ${updateItem?.purpose}`} open={!!updateItem?.id} onClose={() => setUpdateItem(null)}>
+      <Drawer
+        width={640}
+        title={`Update Expense - ${updateItem?.purpose}`}
+        open={!!updateItem?.id}
+        onClose={() => setUpdateItem(null)}
+      >
         <ExpensesForm
           formType="update"
           form={formInstance}
-          initialValues={updateItem}
+          initialValues={{
+            ...updateItem,
+            createdBy: undefined,
+          }}
           isLoading={expenseUpdateFn.isPending}
           onFinish={(values) =>
             expenseUpdateFn.mutate({
@@ -155,7 +199,14 @@ const ExpensesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
         title={confirmationDialog.title}
         content={confirmationDialog.content}
         onConfirm={confirmationDialog.onConfirm}
-        onCancel={() => setConfirmationDialog({ open: false, title: '', content: '', onConfirm: () => {} })}
+        onCancel={() =>
+          setConfirmationDialog({
+            open: false,
+            title: "",
+            content: "",
+            onConfirm: () => {},
+          })
+        }
       />
     </React.Fragment>
   );

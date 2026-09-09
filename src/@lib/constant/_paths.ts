@@ -66,6 +66,22 @@ export const Paths = {
       root: '/admin/ledger',
       list: '/admin/ledger/list',
     },
+    profit: {
+      root: '/admin/profit',
+      list: '/admin/profit/list',
+    },
+    loss: {
+      root: '/admin/loss',
+      list: '/admin/loss/list',
+    },
+    accounts: {
+      root: '/admin/accounts',
+      list: '/admin/accounts/list',
+    },
+    payments: {
+      root: '/admin/payments',
+      list: '/admin/payments/list',
+    },
     gallery: {
       root: '/admin/gallery',
       list: '/admin/gallery/list',

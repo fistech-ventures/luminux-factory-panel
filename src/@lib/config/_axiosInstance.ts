@@ -1,13 +1,11 @@
 import { Env } from '.environments';
 import { IBaseResponse } from '@base/interfaces';
-import { ENUM_API_SCOPE_TYPES } from '@lib/interfaces/apiScope.interface';
 import { getNotificationInstance } from '@lib/utils';
-import { AuthHooks } from '@modules/auth/lib/hooks';
 import { getAuthToken, refreshAuthToken } from '@modules/auth/lib/utils/client';
 import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 const requestInterceptorFn = (config: InternalAxiosRequestConfig) => {
-  config.baseURL = config.baseURL.replace('{{scope}}', config?.scope || ENUM_API_SCOPE_TYPES.INTERNAL);
+  // No scope manipulation needed since base URL already includes internal scope
   if (config?.scope) delete config.scope;
 
   return config;
@@ -62,21 +60,31 @@ AxiosSecureInstance.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      const refreshSuccess = await refreshAuthToken();
-      if (refreshSuccess) {
-        // Retry the original request with the new token
-        const newToken = getAuthToken();
-        if (newToken) {
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+      try {
+        const refreshSuccess = await refreshAuthToken();
+        if (refreshSuccess) {
+          // Retry the original request with the new token
+          const newToken = getAuthToken();
+          if (newToken) {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          }
+          return AxiosSecureInstance(originalRequest);
         }
-        return AxiosSecureInstance(originalRequest);
+      } catch (refreshError) {
+        // Refresh failed, clear tokens and redirect to login
+        console.error('Token refresh failed:', refreshError);
       }
 
-      // Refresh failed, sign out
-      const notification = getNotificationInstance();
-      notification.error({ message: 'Session expired. Please sign in again.' });
-      AuthHooks.useSignOut();
-      return error.response;
+      // Refresh failed, clear session and redirect to login
+      const { clearAuthSession } = await import('@modules/auth/lib/utils/client');
+      clearAuthSession();
+      
+      // Only redirect if not already on auth page
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/auth')) {
+        window.location.href = '/auth';
+      }
+      
+      return Promise.reject(error);
     }
 
     const notification = getNotificationInstance();
@@ -87,6 +95,6 @@ AxiosSecureInstance.interceptors.response.use(
       notification.error({ message: error.response?.data?.message || error.response?.statusText });
     }
 
-    return error.response;
+    return Promise.reject(error);
   },
 );

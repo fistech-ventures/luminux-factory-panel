@@ -1,22 +1,29 @@
-'use client';
+"use client";
 
-import BaseFilter from '@base/components/BaseFilter';
-import BaseSearch from '@base/components/BaseSearch';
-import PageHeader from '@base/components/PageHeader';
-import { getAuthSession } from '@modules/auth/lib/utils/client';
-import { Toolbox } from '@lib/utils';
-import Authorization from '@modules/auth/components/Authorization';
-import WithAuthorization from '@modules/auth/components/WithAuthorization';
-import SalesForm from '@modules/sales/components/SalesForm';
-import SalesList from '@modules/sales/components/SalesList';
-import { SalesHooks } from '@modules/sales/lib/hooks';
-import { ISalesFilter } from '@modules/sales/lib/interfaces';
-import { CustomersHooks } from '@modules/customers/lib/hooks';
-import { Button, Drawer, Form, message, Select, Tag } from 'antd';
-import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useState } from 'react';
+import BaseFilter from "@base/components/BaseFilter";
+import BaseSearch from "@base/components/BaseSearch";
+import PageHeader from "@base/components/PageHeader";
+import { getAuthSession } from "@modules/auth/lib/utils/client";
+import { Toolbox } from "@lib/utils";
+import Authorization from "@modules/auth/components/Authorization";
+import WithAuthorization from "@modules/auth/components/WithAuthorization";
+import SalesForm from "@modules/sales/components/SalesForm";
+import SalesList from "@modules/sales/components/SalesList";
+import { SalesHooks } from "@modules/sales/lib/hooks";
+import { ISalesFilter } from "@modules/sales/lib/interfaces";
+import { CustomersHooks } from "@modules/customers/lib/hooks";
+import { Button, Drawer, Form, message, Select, Tag } from "antd";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useState } from "react";
 
-const PAYMENT_METHODS = ['Cash', 'bKash', 'Nagad', 'Card', 'Bank Transfer', 'Other'];
+export const PAYMENT_METHODS = [
+  "cash",
+  "bkash",
+  "nagad",
+  "rocket",
+  "upay",
+  "bank",
+];
 
 const SalesPage = () => {
   const router = useRouter();
@@ -24,7 +31,11 @@ const SalesPage = () => {
   const [messageApi, messageHolder] = message.useMessage();
   const [formInstance] = Form.useForm();
   const [isDrawerOpen, setDrawerOpen] = useState(false);
-  const { page = 1, limit = 10, ...rest } = Toolbox.parseQueryParams<ISalesFilter>(`?${searchParams.toString()}`);
+  const {
+    page = 1,
+    limit = 10,
+    ...rest
+  } = Toolbox.parseQueryParams<ISalesFilter>(`?${searchParams.toString()}`);
 
   const salesQuery = SalesHooks.useFind({
     options: {
@@ -64,7 +75,7 @@ const SalesPage = () => {
         subTitle={<BaseSearch />}
         tags={[<Tag key={1}>Total: {salesQuery.data?.meta?.total || 0}</Tag>]}
         extra={
-          <Authorization allowedAccess={['sales:write']}>
+          <Authorization allowedAccess={["sales:write"]}>
             <Button type="primary" onClick={() => setDrawerOpen(true)}>
               Create
             </Button>
@@ -72,9 +83,14 @@ const SalesPage = () => {
         }
       />
       <BaseFilter
-        initialValues={Toolbox.toCleanObject(Object.fromEntries(searchParams.entries()))}
+        initialValues={Toolbox.toCleanObject(
+          Object.fromEntries(searchParams.entries()),
+        )}
         onChange={(values) => {
-          const params = Toolbox.toCleanObject({ ...Object.fromEntries(searchParams.entries()), ...values });
+          const params = Toolbox.toCleanObject({
+            ...Object.fromEntries(searchParams.entries()),
+            ...values,
+          });
           const queryString = new URLSearchParams(params).toString();
           router.push(`?${queryString}`);
         }}
@@ -93,7 +109,9 @@ const SalesPage = () => {
                   })),
                 )}
                 filterOption={(input, option) =>
-                  String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                  String(option?.label ?? "")
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
                 }
               />
             </Form.Item>
@@ -101,7 +119,11 @@ const SalesPage = () => {
               <Select
                 allowClear
                 placeholder="Payment Method"
-                options={PAYMENT_METHODS.map((method) => ({ key: method, label: method, value: method }))}
+                options={PAYMENT_METHODS.map((method) => ({
+                  key: method,
+                  label: method,
+                  value: method,
+                }))}
               />
             </Form.Item>
           </>
@@ -115,15 +137,24 @@ const SalesPage = () => {
           pageSize: limit,
           total: salesQuery.data?.meta?.total,
           showSizeChanger: true,
-          pageSizeOptions: ['10', '20', '50', '100'],
+          pageSizeOptions: ["10", "20", "50", "100"],
           onChange: (page, limit) => {
-            const params = Toolbox.toCleanObject({ ...Object.fromEntries(searchParams.entries()), page, limit });
+            const params = Toolbox.toCleanObject({
+              ...Object.fromEntries(searchParams.entries()),
+              page,
+              limit,
+            });
             const queryString = new URLSearchParams(params).toString();
             router.push(`?${queryString}`);
           },
         }}
       />
-      <Drawer width={860} title="Create a new sale" open={isDrawerOpen} onClose={() => setDrawerOpen(false)}>
+      <Drawer
+        width={860}
+        title="Create a new sale"
+        open={isDrawerOpen}
+        onClose={() => setDrawerOpen(false)}
+      >
         <SalesForm
           form={formInstance}
           initialValues={{
@@ -139,5 +170,5 @@ const SalesPage = () => {
 };
 
 export default WithAuthorization(SalesPage, {
-  allowedAccess: ['sales:read'],
+  allowedAccess: ["sales:read"],
 });

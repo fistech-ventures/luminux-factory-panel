@@ -52,4 +52,15 @@ export const SalesServices = {
       throw responseHandlerFn(error);
     }
   },
+
+  getInvoicePdf: async (id: TId): Promise<Blob> => {
+    try {
+      const res = await AxiosSecureInstance.get(`${END_POINT}/${id}/invoice`, {
+        responseType: 'blob',
+      });
+      return Promise.resolve(res?.data);
+    } catch (error) {
+      throw responseHandlerFn(error);
+    }
+  },
 };

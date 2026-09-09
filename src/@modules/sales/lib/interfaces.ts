@@ -1,41 +1,64 @@
-import { IBaseEntity, IBaseFilter, IBaseResponse, TId } from '@base/interfaces';
+import { IBaseEntity, IBaseFilter, IBaseResponse, IMetaResponse, TId } from '@base/interfaces';
+import { ENUM_PAYMENT_METHODS } from '@lib/constant';
 
 export interface ISalesFilter extends IBaseFilter {
   customerId?: TId;
   soldById?: TId;
-  paymentMethod?: string;
+  paymentMethod?: ENUM_PAYMENT_METHODS;
 }
 
 export interface ISaleItem {
+  id?: TId;
   productId: TId;
   variantId?: TId;
   quantity: number;
   sellingPrice: number;
-  totalAmount?: number;
+  sourcingPrice?: number;
+  totalPrice?: number;
+  product?: {
+    id: TId;
+    title: string;
+    productCode: string;
+    sellingPrice: number;
+    stock: number;
+  };
+  variant?: {
+    id: TId;
+    title: string;
+  };
 }
 
 export interface ISale extends IBaseEntity {
   date: string;
-  invoiceNo: string;
+  invoiceNo?: string;
   invoiceUrl?: string;
   customerId: TId;
   customer?: {
     id: TId;
     name: string;
+    customerType?: string;
     contactNumber?: string;
+    email?: string;
+    address?: string;
+    companyName?: string;
   };
   items: ISaleItem[];
   totalAmount: number;
   discount: number;
   grandTotal: number;
   paidAmount: number;
-  paymentMethod: string;
+  paymentMethod: ENUM_PAYMENT_METHODS;
   dueAmount: number;
   soldById: TId;
+  soldBy?: {
+    id: TId;
+    phoneNumber?: string;
+  };
 }
 
 export interface ISalesResponse extends IBaseResponse {
   data: ISale[];
+  meta: IMetaResponse;
 }
 
 export interface ISaleCreate {
@@ -44,6 +67,7 @@ export interface ISaleCreate {
   items: ISaleItem[];
   discount: number;
   paidAmount: number;
-  paymentMethod: string;
+  paymentMethod: ENUM_PAYMENT_METHODS;
   soldById: TId;
+  createdBy?: TId;
 }

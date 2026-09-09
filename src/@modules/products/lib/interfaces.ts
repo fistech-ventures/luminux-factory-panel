@@ -1,4 +1,4 @@
-import { IBaseEntity, IBaseFilter, IBaseResponse, TId } from '@base/interfaces';
+import { IBaseEntity, IBaseFilter, IBaseResponse, IMetaResponse, TId } from '@base/interfaces';
 
 export interface IProductsFilter extends IBaseFilter {
   stock?: number;
@@ -15,7 +15,6 @@ export interface IProductVariantLink {
   sellingPrice?: number;
   stockQuantity?: number;
   position?: number;
-  isDeleted?: boolean;
 }
 
 export interface IProductVariantRelation {
@@ -38,11 +37,16 @@ export interface IProduct extends IBaseEntity {
   productCode: string;
   stock: number;
   saleQuantity: number;
+  averageB2BSalesPrice: number;
+  averageB2CSalesPrice: number;
+  b2bSoldQuantity: number;
+  b2cSoldQuantity: number;
   variants: (IProductVariantLink & IProductVariantRelation)[];
 }
 
 export interface IProductsResponse extends IBaseResponse {
   data: IProduct[];
+  meta: IMetaResponse;
 }
 
 export interface IProductCreate {
@@ -54,4 +58,5 @@ export interface IProductCreate {
   productCode: string;
   stock?: number;
   variants?: IProductVariantLink[];
+  createdBy?: TId;
 }

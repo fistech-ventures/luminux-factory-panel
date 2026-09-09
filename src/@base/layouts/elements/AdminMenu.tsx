@@ -1,9 +1,9 @@
 import CustomLink from "@base/components/CustomLink";
-import { Paths } from "@lib/constant";
+import { Paths, Permissions } from "@lib/constant";
 import { Toolbox } from "@lib/utils";
 import { getContentAccess } from "@modules/auth/lib/utils/client";
 import { Menu } from "antd";
-import { FaUsers, FaUserShield, FaUserTag, FaBook } from "react-icons/fa";
+import { FaUsers, FaUserShield, FaUserTag, FaBook, FaChartLine, FaChartBar } from "react-icons/fa";
 import { GrUserAdmin } from "react-icons/gr";
 import { RiUserStarFill } from "react-icons/ri";
 import {
@@ -18,6 +18,8 @@ import {
   MdOutlineReceiptLong,
   MdOutlinePhotoLibrary,
   MdOutlineSettings,
+  MdAccountBalance,
+  MdPayment,
 } from "react-icons/md";
 
 interface IProps {
@@ -52,7 +54,7 @@ const AdminMenu: React.FC<IProps> = ({ className, selectedKeys, openKeys, onOpen
               </CustomLink>
             ),
           },
-          allowedAccess: ["sales:read"],
+          allowedAccess: [Permissions.SALES_READ],
         }),
         getContentAccess({
           content: {
@@ -64,7 +66,7 @@ const AdminMenu: React.FC<IProps> = ({ className, selectedKeys, openKeys, onOpen
               </CustomLink>
             ),
           },
-          allowedAccess: ["purchases:read"],
+          allowedAccess: [Permissions.PURCHASES_READ],
         }),
         getContentAccess({
           content: {
@@ -76,7 +78,7 @@ const AdminMenu: React.FC<IProps> = ({ className, selectedKeys, openKeys, onOpen
               </CustomLink>
             ),
           },
-          allowedAccess: ["products:read"],
+          allowedAccess: [Permissions.PRODUCTS_READ],
         }),
         getContentAccess({
           content: {
@@ -88,7 +90,7 @@ const AdminMenu: React.FC<IProps> = ({ className, selectedKeys, openKeys, onOpen
               </CustomLink>
             ),
           },
-          allowedAccess: ["variants:read"],
+          allowedAccess: [Permissions.VARIANTS_READ],
         }),
         getContentAccess({
           content: {
@@ -100,7 +102,7 @@ const AdminMenu: React.FC<IProps> = ({ className, selectedKeys, openKeys, onOpen
               </CustomLink>
             ),
           },
-          allowedAccess: ["product-variant-options:read"],
+          allowedAccess: [Permissions.PRODUCT_VARIANT_OPTIONS_READ],
         }),
         getContentAccess({
           content: {
@@ -112,7 +114,7 @@ const AdminMenu: React.FC<IProps> = ({ className, selectedKeys, openKeys, onOpen
               </CustomLink>
             ),
           },
-          allowedAccess: ["customers:read"],
+          allowedAccess: [Permissions.CUSTOMERS_READ],
         }),
         getContentAccess({
           content: {
@@ -124,7 +126,7 @@ const AdminMenu: React.FC<IProps> = ({ className, selectedKeys, openKeys, onOpen
               </CustomLink>
             ),
           },
-          allowedAccess: ["suppliers:read"],
+          allowedAccess: [Permissions.SUPPLIERS_READ],
         }),
         getContentAccess({
           content: {
@@ -136,7 +138,7 @@ const AdminMenu: React.FC<IProps> = ({ className, selectedKeys, openKeys, onOpen
               </CustomLink>
             ),
           },
-          allowedAccess: ["expenses:read"],
+          allowedAccess: [Permissions.EXPENSES_READ],
         }),
         getContentAccess({
           content: {
@@ -148,7 +150,55 @@ const AdminMenu: React.FC<IProps> = ({ className, selectedKeys, openKeys, onOpen
               </CustomLink>
             ),
           },
-          allowedAccess: ["ledger:read"],
+          allowedAccess: [Permissions.LEDGER_READ],
+        }),
+        getContentAccess({
+          content: {
+            key: Paths.admin.profit.list,
+            icon: <FaChartLine />,
+            label: (
+              <CustomLink href={Toolbox.appendPagination(Paths.admin.profit.list)}>
+                Profit
+              </CustomLink>
+            ),
+          },
+          allowedAccess: [Permissions.SALES_READ],
+        }),
+        getContentAccess({
+          content: {
+            key: Paths.admin.loss.list,
+            icon: <FaChartBar />,
+            label: (
+              <CustomLink href={Toolbox.appendPagination(Paths.admin.loss.list)}>
+                Loss
+              </CustomLink>
+            ),
+          },
+          allowedAccess: [Permissions.SALES_READ],
+        }),
+        getContentAccess({
+          content: {
+            key: Paths.admin.accounts.list,
+            icon: <MdAccountBalance />,
+            label: (
+              <CustomLink href={Toolbox.appendPagination(Paths.admin.accounts.list)}>
+                Accounts
+              </CustomLink>
+            ),
+          },
+          allowedAccess: [Permissions.SALES_READ, Permissions.PURCHASES_READ, Permissions.EXPENSES_READ],
+        }),
+        getContentAccess({
+          content: {
+            key: Paths.admin.payments.list,
+            icon: <MdPayment />,
+            label: (
+              <CustomLink href={Toolbox.appendPagination(Paths.admin.payments.list)}>
+                Payments
+              </CustomLink>
+            ),
+          },
+          allowedAccess: [Permissions.PAYMENTS_READ],
         }),
         getContentAccess({
           content: {
@@ -160,7 +210,7 @@ const AdminMenu: React.FC<IProps> = ({ className, selectedKeys, openKeys, onOpen
               </CustomLink>
             ),
           },
-          allowedAccess: ["gallery:read"],
+          allowedAccess: [Permissions.GALLERY_READ],
         }),
         getContentAccess({
           content: {
@@ -172,7 +222,7 @@ const AdminMenu: React.FC<IProps> = ({ className, selectedKeys, openKeys, onOpen
               </CustomLink>
             ),
           },
-          allowedAccess: ["users:read"],
+          allowedAccess: [Permissions.USERS_READ],
         }),
         getContentAccess({
           content: {
@@ -194,7 +244,7 @@ const AdminMenu: React.FC<IProps> = ({ className, selectedKeys, openKeys, onOpen
                     </CustomLink>
                   ),
                 },
-                allowedAccess: ["role-manager-permission-types:read"],
+                allowedAccess: [Permissions.ROLE_MANAGER_PERMISSION_TYPES_READ],
               }),
               getContentAccess({
                 content: {
@@ -210,7 +260,7 @@ const AdminMenu: React.FC<IProps> = ({ className, selectedKeys, openKeys, onOpen
                     </CustomLink>
                   ),
                 },
-                allowedAccess: ["role-manager-permissions:read"],
+                allowedAccess: [Permissions.ROLE_MANAGER_PERMISSIONS_READ],
               }),
               getContentAccess({
                 content: {
@@ -226,14 +276,14 @@ const AdminMenu: React.FC<IProps> = ({ className, selectedKeys, openKeys, onOpen
                     </CustomLink>
                   ),
                 },
-                allowedAccess: ["role-manager-roles:read"],
+                allowedAccess: [Permissions.ROLE_MANAGER_ROLES_READ],
               }),
             ],
           },
           allowedAccess: [
-            "role-manager-permission-types:read",
-            "role-manager-permissions:read",
-            "role-manager-roles:read",
+            Permissions.ROLE_MANAGER_PERMISSION_TYPES_READ,
+            Permissions.ROLE_MANAGER_PERMISSIONS_READ,
+            Permissions.ROLE_MANAGER_ROLES_READ,
           ],
         }),
         getContentAccess({
@@ -244,7 +294,7 @@ const AdminMenu: React.FC<IProps> = ({ className, selectedKeys, openKeys, onOpen
               <CustomLink href={Paths.admin.settings.root}>Settings</CustomLink>
             ),
           },
-          allowedAccess: ["settings:read"],
+          allowedAccess: [Permissions.SETTINGS_READ],
         }),
       ]}
     />

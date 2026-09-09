@@ -69,6 +69,11 @@ export const Permissions = {
   LEDGER_UPDATE: 'ledger:update',
   LEDGER_DELETE: 'ledger:delete',
 
+  PAYMENTS_READ: 'payments:read',
+  PAYMENTS_WRITE: 'payments:write',
+  PAYMENTS_UPDATE: 'payments:update',
+  PAYMENTS_DELETE: 'payments:delete',
+
   GALLERY_READ: 'gallery:read',
   GALLERY_WRITE: 'gallery:write',
   GALLERY_UPDATE: 'gallery:update',

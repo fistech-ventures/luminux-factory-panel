@@ -184,7 +184,10 @@ const ProductsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
         <ProductsForm
           formType="update"
           form={formInstance}
-          initialValues={updateItem}
+          initialValues={{
+            ...updateItem,
+            createdBy: undefined,
+          }}
           isLoading={productUpdateFn.isPending}
           onFinish={(values) => {
             const initialVariants = (updateItem?.variants ?? []).map((variant) => ({

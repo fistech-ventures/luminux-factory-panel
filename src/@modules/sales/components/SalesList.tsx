@@ -197,6 +197,7 @@ const SalesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           initialValues={{
             ...updateItem,
             customer: updateItem?.customer,
+            createdBy: undefined,
           }}
           isLoading={saleUpdateFn.isPending}
           onFinish={(values) =>

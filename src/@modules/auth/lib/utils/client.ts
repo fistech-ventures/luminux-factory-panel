@@ -54,6 +54,11 @@ export const getAuthSession = (): ISession => {
       const isExpire = isJwtExpire(tokenDec);
 
       if (isExpire) {
+        // Token is expired, try to refresh silently
+        // Don't return unAuthorizeSession immediately, let the refresh happen
+        refreshAuthToken().catch(() => {
+          // If refresh fails, session will be cleared
+        });
         return unAuthorizeSession;
       } else {
         const session = {
@@ -128,10 +133,19 @@ export const clearAuthSession = (): boolean => {
 
 export const useAuthSession = (): ISession => {
   const [session, setSession] = useState<ISession>({ ...unAuthorizeSession, isLoading: true });
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setSession(getAuthSession());
+    setMounted(true);
+    // Only set session once on mount
+    const currentSession = getAuthSession();
+    setSession(currentSession);
   }, []);
+
+  // Don't render until mounted to avoid hydration mismatch
+  if (!mounted) {
+    return { ...unAuthorizeSession, isLoading: true };
+  }
 
   return session;
 };
@@ -159,26 +173,60 @@ export const getRefreshToken = (): string => {
 };
 
 let refreshPromise: Promise<boolean> | null = null;
+let isRefreshing = false;
 
 export const refreshAuthToken = async (): Promise<boolean> => {
   if (typeof window === 'undefined') return false;
 
   // Prevent multiple concurrent refresh attempts
   if (refreshPromise) return refreshPromise;
+  
+  // Prevent refresh if already in progress
+  if (isRefreshing) return false;
 
+  isRefreshing = true;
   refreshPromise = (async () => {
     try {
       const refreshToken = getRefreshToken();
-      if (!refreshToken) return false;
+      if (!refreshToken) {
+        console.warn('No refresh token available');
+        return false;
+      }
+
+      // Check if refresh token is expired
+      try {
+        const decoded: IToken = jwtDecode(refreshToken);
+        if (isJwtExpire(decoded)) {
+          console.warn('Refresh token is expired');
+          clearAuthSession();
+          return false;
+        }
+      } catch {
+        console.warn('Invalid refresh token');
+        clearAuthSession();
+        return false;
+      }
 
       const { default: axios } = await import('axios');
       const { Env } = await import('.environments');
+      
       const response = await axios.post(`${Env.apiUrl}/auth/refresh-token`, {
         refreshToken,
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
       if (response.data?.success) {
         const { accessToken, permissionToken, refreshToken: newRefreshToken } = response.data.data;
+        
+        // Validate new tokens
+        if (!accessToken || !newRefreshToken) {
+          console.warn('Invalid token response from server');
+          return false;
+        }
+
         const cookieExpiration = getCookieExpirationFromJwt(accessToken);
         const refreshTokenExpiration = getCookieExpirationFromJwt(newRefreshToken);
 
@@ -188,13 +236,19 @@ export const refreshAuthToken = async (): Promise<boolean> => {
         Cookies.setData(PERMISSION_TOKEN_KEY, permissionToken, cookieExpiration);
         Cookies.setData(REFRESH_TOKEN_KEY, newRefreshToken, refreshTokenExpiration);
 
+        console.info('Token refreshed successfully');
         return true;
       }
+      console.warn('Token refresh failed: invalid response');
       return false;
-    } catch {
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      // Clear tokens on any error during refresh
+      clearAuthSession();
       return false;
     } finally {
       refreshPromise = null;
+      isRefreshing = false;
     }
   })();
 

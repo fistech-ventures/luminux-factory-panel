@@ -1,4 +1,4 @@
-import { IBaseEntity, IBaseFilter, IBaseResponse } from '@base/interfaces';
+import { IBaseEntity, IBaseFilter, IBaseResponse, IMetaResponse } from '@base/interfaces';
 
 export interface ISuppliersFilter extends IBaseFilter {}
 
@@ -12,6 +12,7 @@ export interface ISupplier extends IBaseEntity {
 
 export interface ISuppliersResponse extends IBaseResponse {
   data: ISupplier[];
+  meta: IMetaResponse;
 }
 
 export interface ISupplierCreate {
@@ -20,4 +21,5 @@ export interface ISupplierCreate {
   contactNumber: string;
   email?: string;
   address?: string;
+  createdBy?: string;
 }

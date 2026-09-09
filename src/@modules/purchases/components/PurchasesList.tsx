@@ -176,6 +176,7 @@ const PurchasesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           initialValues={{
             ...updateItem,
             supplier: updateItem?.supplier,
+            createdBy: undefined,
           }}
           isLoading={purchaseUpdateFn.isPending}
           onFinish={(values) =>

@@ -76,7 +76,7 @@ const PurchasesPage = () => {
           router.push(`?${queryString}`);
         }}
         extra={
-          <Form.Item name="supplierId" className="!mb-0">
+          <Form.Item name="supplierId" className="mb-0!">
             <Select
               allowClear
               showSearch

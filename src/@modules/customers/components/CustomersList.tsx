@@ -56,6 +56,7 @@ const CustomersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
   });
 
   const dataSource = data?.map((elem) => ({
+    customerType: elem?.customerType,
     key: elem?.id,
     id: elem?.id,
     name: elem?.name,
@@ -63,10 +64,16 @@ const CustomersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
     email: elem?.email,
     address: elem?.address,
     companyName: elem?.companyName,
-    createdAt: elem?.createdAt,
+    createdBy: elem?.createdBy,
+    updatedBy: elem?.updatedBy,
   }));
 
   const columns: TableColumnsType<(typeof dataSource)[number]> = [
+    {
+      key: "customerType",
+      dataIndex: "customerType",
+      title: "Type",
+    },
     {
       key: "name",
       dataIndex: "name",
@@ -95,6 +102,18 @@ const CustomersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       dataIndex: "address",
       title: "Address",
       render: (address) => address || "N/A",
+    },
+    {
+      key: "createdBy",
+      dataIndex: "createdBy",
+      title: "Created By",
+      render: (createdBy) => createdBy?.fullName || "N/A",
+    },
+    {
+      key: "updatedBy",
+      dataIndex: "updatedBy",
+      title: "Updated By",
+      render: (updatedBy) => updatedBy?.fullName || "N/A",
     },
     {
       key: "id",
@@ -177,6 +196,7 @@ const CustomersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           form={formInstance}
           initialValues={{
             ...updateItem,
+            createdBy: undefined,
           }}
           isLoading={customerUpdateFn.isPending}
           onFinish={(values) =>

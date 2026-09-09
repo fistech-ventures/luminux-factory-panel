@@ -168,6 +168,7 @@ const SuppliersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           form={formInstance}
           initialValues={{
             ...updateItem,
+            createdBy: undefined,
           }}
           isLoading={supplierUpdateFn.isPending}
           onFinish={(values) =>
