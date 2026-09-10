@@ -1,11 +1,14 @@
 import FloatInput from '@base/antd/components/FloatInput';
 import FloatInputPassword from '@base/antd/components/FloatInputPassword';
+import InfiniteScrollSelect from '@base/components/InfiniteScrollSelect';
 import CustomUploader from '@base/components/CustomUploader';
 import InputPhone from '@base/components/InputPhone';
 import { Toolbox } from '@lib/utils';
 import { hasAccessPermission } from '@modules/auth/lib/utils/client';
+import { RolesHooks } from '@modules/roles/lib/hooks';
+import { IRole } from '@modules/roles/lib/interfaces';
 import { Button, Col, Divider, Form, FormInstance, Radio, Row, Select, Tag, message } from 'antd';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { UsersHooks } from '../lib/hooks';
 
 interface IProps {
@@ -21,6 +24,7 @@ interface IProps {
 
 const UsersForm: React.FC<IProps> = ({ isLoading, userId, form, formType = 'create', initialValues, onFinish, backendError }) => {
   const [messageApi, messageHolder] = message.useMessage();
+  const [rolesSearchTerm, setRolesSearchTerm] = useState(null);
 
   useEffect(() => {
     if (backendError) {
@@ -45,6 +49,20 @@ const UsersForm: React.FC<IProps> = ({ isLoading, userId, form, formType = 'crea
 
   const canManageRoles = hasAccessPermission(['role-manager-roles:read']);
 
+  /** All roles from GET /roles (paged + searchable) — used for the create form */
+  const rolesQuery = RolesHooks.useFindInfinite({
+    options: {
+      page: 1,
+      limit: 10,
+      searchTerm: rolesSearchTerm,
+    },
+    config: {
+      queryKey: [],
+      enabled: canManageRoles,
+    },
+  });
+
+  /** Roles not yet assigned to the user — used for the update form */
   const availableRolesQuery = UsersHooks.useFindAvailableRoles({
     id: userId,
     options: {
@@ -145,6 +163,30 @@ const UsersForm: React.FC<IProps> = ({ isLoading, userId, form, formType = 'crea
               <FloatInputPassword placeholder={formType === 'create' ? 'Password' : 'New Password (optional)'} />
             </Form.Item>
           </Col>
+          {formType === 'create' && canManageRoles && (
+            <Col xs={24}>
+              <Form.Item
+                name="roles"
+                rules={[{ required: true, message: 'At least one role is required!' }]}
+                className="!mb-0"
+              >
+                <InfiniteScrollSelect<IRole>
+                  mode="multiple"
+                  showSearch
+                  allowClear
+                  virtual={false}
+                  placeholder="Roles"
+                  option={({ item: role }) => ({
+                    key: role?.id,
+                    label: role?.title,
+                    value: role?.id,
+                  })}
+                  onChangeSearchTerm={(searchTerm) => setRolesSearchTerm(searchTerm)}
+                  query={rolesQuery}
+                />
+              </Form.Item>
+            </Col>
+          )}
           {formType === 'update' && (
             <Col xs={24}>
               <Form.Item name="avatar" className="!mb-0">

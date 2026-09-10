@@ -33,6 +33,7 @@ export interface IUserCreate {
   gender?: 'male' | 'female' | 'other';
   phoneNumber?: string;
   password: string;
+  roles?: TId[];
 }
 
 export interface IUserUpdate {
