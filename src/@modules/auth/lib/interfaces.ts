@@ -1,5 +1,5 @@
 import { IBaseResponse, TId } from '@base/interfaces';
-import { TPermission, TRole } from '@lib/constant';
+import { TPermission } from '@lib/constant';
 
 export interface IToken {
   user: {
@@ -7,7 +7,8 @@ export interface IToken {
     fullName: string;
     email: string;
     phoneNumber: string;
-    roles: TRole[];
+    /** Roles as returned by the backend (titles or ids) */
+    roles: string[];
   };
   iat: number;
   exp: number;

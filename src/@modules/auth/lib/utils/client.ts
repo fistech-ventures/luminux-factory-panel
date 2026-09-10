@@ -1,7 +1,7 @@
 'use client';
 
 import { Env } from '.environments';
-import { Roles, TPermission, TRole } from '@lib/constant';
+import { Roles, TPermission } from '@lib/constant';
 import { Cookies, getNotificationInstance } from '@lib/utils';
 import type { MenuProps, TableColumnsType } from 'antd';
 import { jwtDecode } from 'jwt-decode';
@@ -66,6 +66,7 @@ export const getAuthSession = (): ISession => {
           isAuthenticate: true,
           user: {
             ...tokenDec.user,
+            roles: Array.isArray(tokenDec.user?.roles) ? tokenDec.user.roles : [],
           },
           token,
           permissionToken,
@@ -102,17 +103,16 @@ export const setAuthSession = (session: ISignInSession): ISession => {
       sessionUserCache = null;
       Cookies.setData(AUTH_TOKEN_KEY, token, cookieExpiration);
       Cookies.setData(PERMISSION_TOKEN_KEY, session.permissionToken, cookieExpiration);
-      Cookies.setData(REFRESH_TOKEN_KEY, session.refreshToken, refreshTokenExpiration);
-
-      return {
-        isLoading: false,
-        isAuthenticate: true,
-        user: {
-          ...tokenDec.user,
-        },
-        token,
-        permissionToken,
-      };
+      Cookies.setData(REFRESH_TOKEN_KEY, session.refreshToken, refreshTokenExpiration);      return {
+          isLoading: false,
+          isAuthenticate: true,
+          user: {
+            ...tokenDec.user,
+            roles: Array.isArray(tokenDec.user?.roles) ? tokenDec.user.roles : [],
+          },
+          token,
+          permissionToken,
+        };
     }
   } catch {
     return unAuthorizeSession;
@@ -297,9 +297,17 @@ export const getPermissions = (): TPermission[] => {
   }
 };
 
+/** Case-insensitive match against the backend role titles/ids in the session */
+const userHasRole = (roleTitle: string): boolean => {
+  const roles = sessionUserCache?.roles ?? [];
+
+  return roles.some((r) => String(r).toLowerCase() === roleTitle.toLowerCase());
+};
+
 export const hasAccessPermission = (allowedAccess: TPermission[]): boolean => {
   if (Env.isEnableRBAC === 'false') return true;
-  else if (sessionUserCache?.roles?.includes(Roles.SUPER_ADMIN)) return true;
+  else if (userHasRole(Roles.SUPER_ADMIN)) return true;
+  else if (userHasRole(Roles.ADMIN)) return true;
   else {
     const permissions: TPermission[] = [...getPermissions(), 'FORBIDDEN'];
     const hasAccess = permissions.some((permission) => allowedAccess.includes(permission));
@@ -363,15 +371,16 @@ export const getMenuItemsAccess = (menuItems: TMenuItems[]): TMenuItem[] => {
   return items.filter((x) => x);
 };
 
-export const hasAccessByRoles = (allowedRoles: TRole[], disallowedRoles: TRole[]): boolean => {
+export const hasAccessByRoles = (allowedRoles: string[], disallowedRoles: string[]): boolean => {
   if (Env.isEnableRBAC === 'false') return true;
-  else if (sessionUserCache?.roles?.includes(Roles.SUPER_ADMIN)) return true;
+  else if (userHasRole(Roles.SUPER_ADMIN)) return true;
+  else if (userHasRole(Roles.ADMIN)) return true;
   else {
-    let hasAccess = false;
     const roles = sessionUserCache?.roles ?? [];
+    let hasAccess = false;
 
-    if (allowedRoles.length) hasAccess = roles.some((role) => allowedRoles.includes(role));
-    if (disallowedRoles.length) hasAccess = roles.some((role) => !disallowedRoles.includes(role));
+    if (allowedRoles.length) hasAccess = roles.some((role) => userHasRole(role));
+    if (disallowedRoles.length) hasAccess = roles.some((role) => !userHasRole(role));
 
     return hasAccess;
   }
@@ -379,8 +388,8 @@ export const hasAccessByRoles = (allowedRoles: TRole[], disallowedRoles: TRole[]
 
 interface IGetNodeByRoles {
   node: React.ReactNode;
-  allowedRoles?: TRole[];
-  disallowedRoles?: TRole[];
+  allowedRoles?: string[];
+  disallowedRoles?: string[];
   fallBack?: React.ReactNode;
 }
 
@@ -397,8 +406,8 @@ export const getNodeByRoles = ({
 
 interface IGetColumnsByRoles<Record> {
   columns: TableColumnsType<Record>;
-  allowedRoles?: TRole[];
-  disallowedRoles?: TRole[];
+  allowedRoles?: string[];
+  disallowedRoles?: string[];
 }
 
 export const getColumnsByRoles = <Record = any>({
@@ -413,8 +422,8 @@ export const getColumnsByRoles = <Record = any>({
 
 interface IGetContentByRoles<Record> {
   content: Record;
-  allowedRoles?: TRole[];
-  disallowedRoles?: TRole[];
+  allowedRoles?: string[];
+  disallowedRoles?: string[];
 }
 
 export const getContentByRoles = <Record = any>({

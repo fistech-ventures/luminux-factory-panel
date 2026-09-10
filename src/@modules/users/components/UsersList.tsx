@@ -64,10 +64,14 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
     },
   });
 
+  /** Build the initial role-links the backend expects for the PATCH /users/:id/roles diff. Supports both flat and nested userRoles. */
+  const buildInitialRoleLinks = (userRoles: any[]): { role: string }[] =>
+    (userRoles ?? []).map((userRole) => ({ role: userRole?.role?.id ?? userRole?.roleId }));
+
   const handleUpdateFinishFn = (values: any) => {
-    const initialRoles = (updateItem?.userRoles ?? []).map((userRole) => ({ role: userRole?.role?.id }));
-    const currentRoles = (values?.roles ?? []).map((roleId) => ({ role: roleId }));
-    const roleDiffs = Toolbox.computeArrayDiffs<any>(initialRoles, currentRoles, 'role');
+    const initialRoleLinks = buildInitialRoleLinks(updateItem?.userRoles ?? []);
+    const currentRoleLinks = (values?.roles ?? []).map((roleId: any) => ({ role: roleId }));
+    const roleDiffs = Toolbox.computeArrayDiffs<any>(initialRoleLinks, currentRoleLinks, 'role');
     const profileData = { ...values };
     delete profileData.roles;
 
@@ -78,6 +82,13 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
     userUpdateFn.mutate({ id: updateItem?.id, data: profileData });
   };
 
+  /** Backend may return userRoles as [{ roleId }] (flat) or [{ role: { id, title } }] (nested). Normalize to role objects. */
+  const normalizeUserRoles = (userRoles: { role?: any; roleId?: any }[]): any[] =>
+    userRoles?.map((userRole) => ({
+      id: userRole?.role?.id ?? userRole?.roleId,
+      title: userRole?.role?.title ?? userRole?.roleId,
+    })) ?? [];
+
   const dataSource = data?.map((elem) => ({
     key: elem?.id,
     id: elem?.id,
@@ -86,7 +97,7 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
     gender: elem?.gender,
     phoneNumber: elem?.phoneNumber,
     email: elem?.email,
-    roles: elem?.userRoles?.map((userRole) => userRole?.role) ?? [],
+    roles: normalizeUserRoles(elem?.userRoles ?? []),
     isActive: elem?.isActive,
     createdAt: elem?.createdAt,
   }));
@@ -243,6 +254,7 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           initialValues={updateItem}
           isLoading={userUpdateFn.isPending || userUpdateRolesFn.isPending}
           onFinish={handleUpdateFinishFn}
+          backendError={userUpdateFn.isError ? String(userUpdateFn.error) : null}
         />
       </Drawer>
       <ConfirmationDialog

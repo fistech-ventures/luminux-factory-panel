@@ -75,7 +75,16 @@ const UsersForm: React.FC<IProps> = ({ isLoading, userId, form, formType = 'crea
     },
   });
 
-  const currentRoleIds = (initialValues?.userRoles ?? []).map((userRole) => userRole?.role?.id).filter(Boolean);
+  /** Backend may return userRoles as [{ roleId }] (flat) or [{ role: { id, title } }] (nested). Extract ids either way. */
+  const normalizeUserRoles = (userRoles: { role?: any; roleId?: any }[]): { id: string; title: string }[] =>
+    (userRoles ?? []).map((userRole) => ({
+      id: userRole?.role?.id ?? userRole?.roleId,
+      title: userRole?.role?.title ?? userRole?.roleId,
+    }));
+
+  const currentRoleIds = normalizeUserRoles(initialValues?.userRoles ?? [])
+    .map((r) => r.id)
+    .filter(Boolean);
 
   const availableRoleOptions = Toolbox.toCleanArray(
     (availableRolesQuery.data?.data ?? []).map((role) => ({
