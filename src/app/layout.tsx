@@ -1,20 +1,20 @@
-import { Providers } from '@lib/context';
-import { buildBrandThemeInlineStyle } from '@modules/settings/lib/brandPalette';
-import { getCachedQuickSettingsFn } from '@modules/settings/lib/metadata';
-import '@styles/index.scss';
-import type { Metadata } from 'next';
-import { NextFontWithVariable } from 'next/dist/compiled/@next/font';
-import { Roboto } from 'next/font/google';
-import brandIcon from './brand_icon.png';
-import './globals.css';
+import { Providers } from "@lib/context";
+import { buildBrandThemeInlineStyle } from "@modules/settings/lib/brandPalette";
+import { getCachedQuickSettingsFn } from "@modules/settings/lib/metadata";
+import "@styles/index.scss";
+import type { Metadata } from "next";
+import { NextFontWithVariable } from "next/dist/compiled/@next/font";
+import { Roboto } from "next/font/google";
+import brandIcon from "./brand_icon.png";
+import "./globals.css";
 
 const roboto = Roboto({
-  weight: ['100', '300', '400', '500', '700', '900'],
-  subsets: ['latin'],
-  variable: '--font-roboto',
+  weight: ["100", "300", "400", "500", "700", "900"],
+  subsets: ["latin"],
+  variable: "--font-roboto",
 });
 
-const defaultMetadataTitle = 'Daily Destiny';
+const defaultMetadataTitle = "Luminux Lighting Showroom Panel";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getCachedQuickSettingsFn();
@@ -25,7 +25,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title,
     description,
-    icons: iconUrl ? { shortcut: iconUrl, icon: iconUrl } : { shortcut: brandIcon.src },
+    icons: iconUrl
+      ? { shortcut: iconUrl, icon: iconUrl }
+      : { shortcut: brandIcon.src },
   };
 }
 
@@ -34,16 +36,21 @@ const RootLayout = async ({
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
-  const fontWithMorePropsCreateFn = (fontDefinition: NextFontWithVariable, originalVariableName: string) => {
+  const fontWithMorePropsCreateFn = (
+    fontDefinition: NextFontWithVariable,
+    originalVariableName: string,
+  ) => {
     return { ...fontDefinition, originalVariableName };
   };
 
-  const robotoFont = fontWithMorePropsCreateFn(roboto, '--font-roboto');
+  const robotoFont = fontWithMorePropsCreateFn(roboto, "--font-roboto");
 
   const settings = await getCachedQuickSettingsFn();
   const primary = settings?.themePrimaryColor?.trim();
   const secondary = settings?.themeSecondayColor?.trim();
-  const brandHtmlStyle = primary ? buildBrandThemeInlineStyle(primary, secondary) : undefined;
+  const brandHtmlStyle = primary
+    ? buildBrandThemeInlineStyle(primary, secondary)
+    : undefined;
 
   return (
     <html lang="en" style={brandHtmlStyle}>
