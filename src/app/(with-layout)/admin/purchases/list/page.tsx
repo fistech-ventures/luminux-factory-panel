@@ -46,8 +46,6 @@ const PurchasesPage = () => {
           return;
         }
 
-        setDrawerOpen(false);
-        formInstance.resetFields();
         messageApi.success(res.message);
       },
     },
@@ -119,6 +117,10 @@ const PurchasesPage = () => {
           }}
           isLoading={purchaseCreateFn.isPending}
           onFinish={(values) => purchaseCreateFn.mutate(values)}
+          _onSuccess={() => {
+            setDrawerOpen(false);
+            formInstance.resetFields();
+          }}
         />
       </Drawer>
     </React.Fragment>

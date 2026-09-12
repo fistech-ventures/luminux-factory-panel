@@ -1,6 +1,7 @@
 import FloatInput from "@base/antd/components/FloatInput";
 import InfiniteScrollSelect from "@base/components/InfiniteScrollSelect";
 import { Toolbox } from "@lib/utils";
+import { ENUM_PAYMENT_METHODS } from "@lib/constant";
 import { ProductsHooks } from "@modules/products/lib/hooks";
 import { IProduct } from "@modules/products/lib/interfaces";
 import { SuppliersHooks } from "@modules/suppliers/lib/hooks";
@@ -33,6 +34,7 @@ interface IProps {
   initialValues?: any;
   onFinish: (values: IPurchaseCreate) => void;
   backendError?: string | null;
+  _onSuccess?: () => void;
 }
 
 const PurchasesForm: React.FC<IProps> = ({
@@ -42,6 +44,7 @@ const PurchasesForm: React.FC<IProps> = ({
   initialValues,
   onFinish,
   backendError,
+  _onSuccess,
 }) => {
   const [messageApi, messageHolder] = message.useMessage();
   const [supplierSearchTerm, setSupplierSearchTerm] = useState(null);
@@ -70,9 +73,33 @@ const PurchasesForm: React.FC<IProps> = ({
     }
   };
 
+  const handleFinish = (values: any) => {
+    onFinish({
+      ...values,
+      purchaseDate: dayjs(values.purchaseDate).format("YYYY-MM-DD"),
+      items: (values?.items ?? []).map(
+        ({ mode: _mode, ...item }) => item,
+      ),
+    });
+  };
+
   useEffect(() => {
-    form.resetFields();
-  }, [form, initialValues]);
+    // Only reset form when initialValues change and there's no backend error
+    if (initialValues && !backendError) {
+      form.setFieldsValue({
+        ...initialValues,
+        purchaseDate: initialValues?.purchaseDate
+          ? dayjs(initialValues.purchaseDate)
+          : dayjs(),
+        items: Toolbox.isNotEmpty(initialValues?.items)
+          ? initialValues.items.map((item) => ({
+              ...item,
+              mode: item?.productId ? "existing" : "new",
+            }))
+          : [],
+      });
+    }
+  }, [initialValues, form, backendError]);
 
   const suppliersQuery = SuppliersHooks.useFindInfinite({
     options: {
@@ -146,6 +173,7 @@ const PurchasesForm: React.FC<IProps> = ({
           purchaseDate: initialValues?.purchaseDate
             ? dayjs(initialValues.purchaseDate)
             : dayjs(),
+          paymentMethod: initialValues?.paymentMethod || "CASH",
           items: Toolbox.isNotEmpty(initialValues?.items)
             ? initialValues.items.map((item) => ({
                 ...item,
@@ -153,15 +181,7 @@ const PurchasesForm: React.FC<IProps> = ({
               }))
             : [],
         }}
-        onFinish={(values) =>
-          onFinish({
-            ...values,
-            purchaseDate: dayjs(values.purchaseDate).format("YYYY-MM-DD"),
-            items: (values?.items ?? []).map(
-              ({ mode: _mode, ...item }) => item,
-            ),
-          })
-        }
+        onFinish={handleFinish}
         onFinishFailed={handleFinishFailed}
         validateMessages={{
           required: "${label} is required!",
@@ -174,7 +194,7 @@ const PurchasesForm: React.FC<IProps> = ({
               rules={[
                 { required: true, message: "Purchase date is required!" },
               ]}
-              className="!mb-0"
+              className="mb-0!"
             >
               <DatePicker className="w-full" placeholder="Purchase Date" />
             </Form.Item>
@@ -185,7 +205,7 @@ const PurchasesForm: React.FC<IProps> = ({
               rules={[
                 { required: true, message: "Purchase type is required!" },
               ]}
-              className="!mb-0"
+              className="mb-0!"
             >
               <FloatInput placeholder="Purchase Type (e.g. Bangladesh, China)" />
             </Form.Item>
@@ -194,7 +214,7 @@ const PurchasesForm: React.FC<IProps> = ({
             <Form.Item
               name="supplierId"
               rules={[{ required: true, message: "Supplier is required!" }]}
-              className="!mb-0"
+              className="mb-0!"
             >
               <InfiniteScrollSelect<ISupplier>
                 showSearch
@@ -242,7 +262,7 @@ const PurchasesForm: React.FC<IProps> = ({
                           <Form.Item
                             {...field}
                             name={[field.name, "mode"]}
-                            className="!mb-0"
+                            className="mb-0!"
                             initialValue="existing"
                           >
                             <Radio.Group
@@ -278,7 +298,7 @@ const PurchasesForm: React.FC<IProps> = ({
                                   message: "Product is required!",
                                 },
                               ]}
-                              className="!mb-0"
+                              className="mb-0!"
                             >
                               <InfiniteScrollSelect<IProduct>
                                 showSearch
@@ -299,7 +319,7 @@ const PurchasesForm: React.FC<IProps> = ({
                             <Form.Item
                               {...field}
                               name={[field.name, "variantId"]}
-                              className="!mb-0"
+                              className="mb-0!"
                             >
                               <Select
                                 showSearch
@@ -331,7 +351,7 @@ const PurchasesForm: React.FC<IProps> = ({
                                   message: "Product name is required!",
                                 },
                               ]}
-                              className="!mb-0"
+                              className="mb-0!"
                             >
                               <FloatInput placeholder="New Product Name" />
                             </Form.Item>
@@ -344,7 +364,7 @@ const PurchasesForm: React.FC<IProps> = ({
                                   message: "Product code is required!",
                                 },
                               ]}
-                              className="!mb-0"
+                              className="mb-0!"
                             >
                               <FloatInput placeholder="New Product Code" />
                             </Form.Item>
@@ -360,7 +380,7 @@ const PurchasesForm: React.FC<IProps> = ({
                                 message: "Quantity is required!",
                               },
                             ]}
-                            className="!mb-0 w-full!"
+                            className="mb-0! w-full!"
                           >
                             <InputNumber
                               className="w-full!"
@@ -378,7 +398,7 @@ const PurchasesForm: React.FC<IProps> = ({
                                 message: "Total cost is required!",
                               },
                             ]}
-                            className="!mb-0 w-full!"
+                            className="mb-0! w-full!"
                           >
                             <InputNumber
                               className="w-full!"
@@ -390,7 +410,7 @@ const PurchasesForm: React.FC<IProps> = ({
                           <Form.Item
                             {...field}
                             name={[field.name, "otherCost"]}
-                            className="!mb-0 w-full!"
+                            className="mb-0! w-full!"
                           >
                             <InputNumber
                               className="w-full!"
@@ -419,7 +439,7 @@ const PurchasesForm: React.FC<IProps> = ({
             <Form.Item
               name="paidAmount"
               rules={[{ required: true, message: "Paid amount is required!" }]}
-              className="!mb-0"
+              className="mb-0!"
             >
               <InputNumber
                 className="w-full!"
@@ -431,9 +451,25 @@ const PurchasesForm: React.FC<IProps> = ({
           </Col>
           <Col xs={12}>
             <Form.Item
+              name="paymentMethod"
+              rules={[{ required: true, message: "Payment method is required!" }]}
+              className="mb-0!"
+            >
+              <Select
+                placeholder="Payment Method"
+                options={ENUM_PAYMENT_METHODS.map((method) => ({
+                  key: method,
+                  label: method,
+                  value: method,
+                }))}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24}>
+            <Form.Item
               name="purchasedById"
               rules={[{ required: true, message: "Purchased by is required!" }]}
-              className="!mb-0"
+              className="mb-0!"
             >
               <InfiniteScrollSelect<IUser>
                 showSearch
@@ -464,7 +500,7 @@ const PurchasesForm: React.FC<IProps> = ({
             </div>
           </Col>
           <Col xs={24}>
-            <Form.Item className="text-right !mb-0">
+            <Form.Item className="text-right mb-0!">
               <Button loading={isLoading} type="primary" htmlType="submit">
                 {formType === "create" ? "Submit" : "Update"}
               </Button>

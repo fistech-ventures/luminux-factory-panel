@@ -33,7 +33,6 @@ const PurchasesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           return;
         }
 
-        setUpdateItem(null);
         messageApi.success(res.message);
       },
     },
@@ -185,6 +184,10 @@ const PurchasesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               data: values,
             })
           }
+          _onSuccess={() => {
+            setUpdateItem(null);
+            formInstance.resetFields();
+          }}
         />
       </Drawer>
       <ConfirmationDialog
