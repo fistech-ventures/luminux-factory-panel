@@ -1,11 +1,12 @@
 import ConfirmationDialog from '@base/components/ConfirmationDialog';
+import RecordDetailsModal from '@base/components/RecordDetailsModal';
 import { ImagePaths } from '@lib/constant';
 import { Toolbox } from '@lib/utils';
 import { getAccess } from '@modules/auth/lib/utils/client';
 import type { PaginationProps, TableColumnsType } from 'antd';
 import { Button, Drawer, Form, Table, message } from 'antd';
 import React, { useState } from 'react';
-import { AiFillEdit, AiFillDelete } from 'react-icons/ai';
+import { AiFillEdit, AiFillDelete, AiOutlineEye } from 'react-icons/ai';
 import { ProductsHooks } from '../lib/hooks';
 import { IProduct } from '../lib/interfaces';
 import ProductsForm from './ProductsForm';
@@ -20,6 +21,7 @@ const ProductsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
   const [messageApi, messageHolder] = message.useMessage();
   const [formInstance] = Form.useForm();
   const [updateItem, setUpdateItem] = useState<IProduct>(null);
+  const [detailsItem, setDetailsItem] = useState<IProduct>(null);
   const [confirmationDialog, setConfirmationDialog] = useState<{
     open: boolean;
     title: string;
@@ -139,6 +141,15 @@ const ProductsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
             <Button
               onClick={() => {
+                getAccess(['products:read'], () => {
+                  setDetailsItem(item);
+                });
+              }}
+            >
+              <AiOutlineEye />
+            </Button>
+            <Button
+              onClick={() => {
                 getAccess(['products:update'], () => {
                   setUpdateItem(item);
                 });
@@ -213,6 +224,13 @@ const ProductsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           }}
         />
       </Drawer>
+      <RecordDetailsModal
+        open={!!detailsItem?.id}
+        onClose={() => setDetailsItem(null)}
+        resource="product"
+        id={detailsItem?.id}
+        title={`Product Details - ${detailsItem?.title ?? ''}`}
+      />
       <ConfirmationDialog
         open={confirmationDialog.open}
         title={confirmationDialog.title}

@@ -14,6 +14,7 @@ interface IProps<D = any> extends SelectProps {
   onChangeSearchTerm: (searchTerm: string) => void;
   onChangeItems?: (items: D[]) => void;
   query: UseInfiniteQueryResult<InfiniteData<IBaseResponse<D[]>>, Error>;
+  renderFooter?: (searchTerm: string) => React.ReactNode;
 }
 
 const InfiniteScrollSelect = <D = any,>({
@@ -23,10 +24,12 @@ const InfiniteScrollSelect = <D = any,>({
   onChangeSearchTerm,
   onChangeItems,
   query,
+  renderFooter,
   ...rest
 }: IProps<D>) => {
   const { ref, inView } = useInView();
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const mergeItems = useCallback(() => {
     if (!query.data?.pages) return [];
@@ -53,12 +56,19 @@ const InfiniteScrollSelect = <D = any,>({
       <FloatSelect
         {...rest}
         filterOption={false}
-        onSearch={Toolbox.debounce(onChangeSearchTerm, 1000)}
-        onBlur={() => onChangeSearchTerm(null)}
+        onSearch={(value) => {
+          setSearchTerm(value);
+          onChangeSearchTerm(value);
+        }}
+        onBlur={() => {
+          setSearchTerm('');
+          onChangeSearchTerm(null);
+        }}
         onSelect={(...e) => {
           rest.onSelect?.(...e);
 
           if (!rest.mode) {
+            setSearchTerm('');
             onChangeSearchTerm(null);
           }
           // Close dropdown after selection in multi-select mode
@@ -86,6 +96,14 @@ const InfiniteScrollSelect = <D = any,>({
                 disabled: true,
               }
             : null,
+          renderFooter && searchTerm
+            ? {
+                key: 'footer',
+                label: renderFooter(searchTerm),
+                value: 'footer',
+                disabled: true,
+              }
+            : null,
         ])}
       />
     );
@@ -95,12 +113,19 @@ const InfiniteScrollSelect = <D = any,>({
     <Select
       {...rest}
       filterOption={false}
-      onSearch={Toolbox.debounce(onChangeSearchTerm, 1000)}
-      onBlur={() => onChangeSearchTerm(null)}
+      onSearch={(value) => {
+        setSearchTerm(value);
+        onChangeSearchTerm(value);
+      }}
+      onBlur={() => {
+        setSearchTerm('');
+        onChangeSearchTerm(null);
+      }}
       onSelect={(...e) => {
         rest.onSelect?.(...e);
 
         if (!rest.mode) {
+          setSearchTerm('');
           onChangeSearchTerm(null);
         }
       }}
@@ -119,6 +144,14 @@ const InfiniteScrollSelect = <D = any,>({
               disabled: true,
             }
           : null,
+          renderFooter && searchTerm
+            ? {
+                key: 'footer',
+                label: renderFooter(searchTerm),
+                value: 'footer',
+                disabled: true,
+              }
+            : null,
       ])}
     />
   );

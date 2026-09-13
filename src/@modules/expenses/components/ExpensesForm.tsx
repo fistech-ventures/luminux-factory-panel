@@ -70,6 +70,7 @@ const ExpensesForm: React.FC<IProps> = ({
         initialValues={{
           ...initialValues,
           date: initialValues?.date ? dayjs(initialValues.date) : dayjs(),
+          paymentMethod: initialValues?.paymentMethod || "cash",
         }}
         onFinish={(values) =>
           onFinish({ ...values, date: dayjs(values.date).format("YYYY-MM-DD") })
@@ -84,7 +85,7 @@ const ExpensesForm: React.FC<IProps> = ({
             <Form.Item
               name="date"
               rules={[{ required: true, message: "Date is required!" }]}
-              className="!mb-0"
+              className="mb-0!"
             >
               <DatePicker className="w-full" placeholder="Date" />
             </Form.Item>
@@ -95,22 +96,22 @@ const ExpensesForm: React.FC<IProps> = ({
               rules={[
                 { required: true, message: "Payment method is required!" },
               ]}
-              className="!mb-0"
+              className="mb-0!"
             >
-              <Select placeholder="Payment Method">
-                {Object.values(ENUM_PAYMENT_METHODS).map((method) => (
-                  <Select.Option key={method} value={method}>
-                    {method}
-                  </Select.Option>
-                ))}
-              </Select>
+              <Select
+                placeholder="Payment Method"
+                options={ENUM_PAYMENT_METHODS.map((method) => ({
+                  value: method,
+                  label: method,
+                }))}
+              />
             </Form.Item>
           </Col>
           <Col xs={24}>
             <Form.Item
               name="purpose"
               rules={[{ required: true, message: "Purpose is required!" }]}
-              className="!mb-0"
+              className="mb-0!"
             >
               <FloatInput placeholder="Purpose" />
             </Form.Item>
@@ -119,7 +120,7 @@ const ExpensesForm: React.FC<IProps> = ({
             <Form.Item
               name="amountSpent"
               rules={[{ required: true, message: "Amount spent is required!" }]}
-              className="!mb-0"
+              className="mb-0!"
             >
               <InputNumber
                 className="w-full!"
@@ -133,7 +134,7 @@ const ExpensesForm: React.FC<IProps> = ({
             <Form.Item
               name="spentBy"
               rules={[{ required: true, message: "Spent by is required!" }]}
-              className="!mb-0"
+              className="mb-0!"
             >
               <FloatInput placeholder="Spent By (name)" />
             </Form.Item>

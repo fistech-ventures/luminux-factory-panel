@@ -19,7 +19,6 @@ export interface IBaseFilter {
   endDate?: string;
   sortBy?: string;
   sortOrder?: 'ASC' | 'DESC';
-  paymentMethod?: string;
 }
 
 export interface IBaseEntity {

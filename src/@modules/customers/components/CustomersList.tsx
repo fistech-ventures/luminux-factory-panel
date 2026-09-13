@@ -1,11 +1,12 @@
 import ConfirmationDialog from "@base/components/ConfirmationDialog";
+import RecordDetailsModal from "@base/components/RecordDetailsModal";
 import { Paths } from "@lib/constant";
 import { getAccess } from "@modules/auth/lib/utils/client";
 import type { PaginationProps, TableColumnsType } from "antd";
 import { Button, Drawer, Form, Table, message } from "antd";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { AiFillEdit, AiFillDelete } from "react-icons/ai";
+import { AiFillEdit, AiFillDelete, AiOutlineEye } from "react-icons/ai";
 import { FaBook } from "react-icons/fa";
 import { CustomersHooks } from "../lib/hooks";
 import { ICustomer } from "../lib/interfaces";
@@ -22,6 +23,7 @@ const CustomersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
   const [messageApi, messageHolder] = message.useMessage();
   const [formInstance] = Form.useForm();
   const [updateItem, setUpdateItem] = useState<ICustomer>(null);
+  const [detailsItem, setDetailsItem] = useState<ICustomer>(null);
   const [confirmationDialog, setConfirmationDialog] = useState<{
     open: boolean;
     title: string;
@@ -139,6 +141,15 @@ const CustomersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
             </Button>
             <Button
               onClick={() => {
+                getAccess(["customers:read"], () => {
+                  setDetailsItem(item);
+                });
+              }}
+            >
+              <AiOutlineEye />
+            </Button>
+            <Button
+              onClick={() => {
                 getAccess(["customers:update"], () => {
                   setUpdateItem(item);
                 });
@@ -207,6 +218,13 @@ const CustomersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           }
         />
       </Drawer>
+      <RecordDetailsModal
+        open={!!detailsItem?.id}
+        onClose={() => setDetailsItem(null)}
+        resource="customer"
+        id={detailsItem?.id}
+        title={`Customer Details - ${detailsItem?.name ?? ""}`}
+      />
       <ConfirmationDialog
         open={confirmationDialog.open}
         title={confirmationDialog.title}

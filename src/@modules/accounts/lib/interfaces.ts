@@ -26,7 +26,7 @@ export interface IAccountTransaction {
 
 export interface IAccountTransactionsFilter {
   accountType?: ENUM_PAYMENT_METHODS | string;
-  transactionType?: ENUM_TRANSACTION_TYPES | "cashIn" | "cashOut" | string;
+  transactionType?: ENUM_TRANSACTION_TYPES | string;
   startDate?: string;
   endDate?: string;
   page?: number;

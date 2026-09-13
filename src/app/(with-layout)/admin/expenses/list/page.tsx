@@ -91,7 +91,7 @@ const ExpensesPage = () => {
                 placeholder="Payment Method"
                 options={ENUM_PAYMENT_METHODS.map((method) => ({
                   value: method,
-                  label: method.toUpperCase(),
+                  label: method,
                 }))}
               />
             </Form.Item>

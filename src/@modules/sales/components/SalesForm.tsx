@@ -1,5 +1,6 @@
 import InfiniteScrollSelect from "@base/components/InfiniteScrollSelect";
 import { Toolbox } from "@lib/utils";
+import { ENUM_PAYMENT_METHODS, ENUM_CUSTOMER_TYPES } from "@lib/constant";
 import { CustomersHooks } from "@modules/customers/lib/hooks";
 import { ICustomer } from "@modules/customers/lib/interfaces";
 import { ProductsHooks } from "@modules/products/lib/hooks";
@@ -13,7 +14,9 @@ import {
   Divider,
   Form,
   FormInstance,
+  Input,
   InputNumber,
+  Modal,
   Row,
   Select,
   message,
@@ -23,15 +26,6 @@ import React, { useEffect, useState } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { ISaleCreate } from "../lib/interfaces";
-
-const PAYMENT_METHODS = [
-  "Cash",
-  "bKash",
-  "Nagad",
-  "Card",
-  "Bank Transfer",
-  "Other",
-];
 
 interface IProps {
   isLoading: boolean;
@@ -55,6 +49,9 @@ const SalesForm: React.FC<IProps> = ({
   const [productSearchTerm, setProductSearchTerm] = useState(null);
   const [userSearchTerm, setUserSearchTerm] = useState(null);
   const watchedItems = Form.useWatch("items", form) || [];
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [customerModalForm] = Form.useForm();
+  const customerCreateFn = CustomersHooks.useCreate();
 
   useEffect(() => {
     if (backendError) {
@@ -78,8 +75,20 @@ const SalesForm: React.FC<IProps> = ({
   };
 
   useEffect(() => {
-    form.resetFields();
-  }, [form, initialValues]);
+    // Only sync the form when initialValues change and there's no backend error,
+    // otherwise a parent re-render (e.g. after creating a customer) would wipe
+    // the selection made by the user or by the create modal.
+    if (initialValues && !backendError) {
+      form.setFieldsValue({
+        ...initialValues,
+        date: initialValues?.date ? dayjs(initialValues.date) : dayjs(),
+        paymentMethod: initialValues?.paymentMethod || "cash",
+        items: Toolbox.isNotEmpty(initialValues?.items)
+          ? initialValues.items.map((item) => ({ ...item }))
+          : [],
+      });
+    }
+  }, [initialValues, form, backendError]);
 
   const customersQuery = CustomersHooks.useFindInfinite({
     options: {
@@ -139,6 +148,7 @@ const SalesForm: React.FC<IProps> = ({
         initialValues={{
           ...initialValues,
           date: initialValues?.date ? dayjs(initialValues.date) : dayjs(),
+          paymentMethod: initialValues?.paymentMethod || "cash",
           items: Toolbox.isNotEmpty(initialValues?.items)
             ? initialValues.items.map((item) => ({ ...item }))
             : [],
@@ -161,7 +171,7 @@ const SalesForm: React.FC<IProps> = ({
             <Form.Item
               name="date"
               rules={[{ required: true, message: "Date is required!" }]}
-              className="!mb-0"
+              className="mb-0!"
             >
               <DatePicker className="w-full" placeholder="Date" />
             </Form.Item>
@@ -172,12 +182,12 @@ const SalesForm: React.FC<IProps> = ({
               rules={[
                 { required: true, message: "Payment method is required!" },
               ]}
-              className="!mb-0"
+              className="mb-0!"
             >
               <Select
                 showSearch
                 placeholder="Payment Method"
-                options={PAYMENT_METHODS.map((method) => ({
+                options={ENUM_PAYMENT_METHODS.map((method) => ({
                   key: method,
                   label: method,
                   value: method,
@@ -189,7 +199,7 @@ const SalesForm: React.FC<IProps> = ({
             <Form.Item
               name="customerId"
               rules={[{ required: true, message: "Customer is required!" }]}
-              className="!mb-0"
+              className="mb-0!"
             >
               <InfiniteScrollSelect<ICustomer>
                 showSearch
@@ -203,13 +213,38 @@ const SalesForm: React.FC<IProps> = ({
                 }
                 option={({ item: customer }) => ({
                   key: customer?.id,
-                  label: customer?.name,
+                  label: `${customer?.name} (${customer?.contactNumber})`,
                   value: customer?.id,
                 })}
                 onChangeSearchTerm={(searchTerm) =>
                   setCustomerSearchTerm(searchTerm)
                 }
                 query={customersQuery}
+                renderFooter={(searchTerm) => {
+                  const customerExists = customersQuery.data?.pages?.some(page =>
+                    page?.data?.some((customer: ICustomer) =>
+                      customer?.name?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+                      customer?.contactNumber?.includes(searchTerm)
+                    )
+                  );
+                  
+                  if (!customerExists && searchTerm && searchTerm.length > 2) {
+                    return (
+                      <Button
+                        type="dashed"
+                        block
+                        icon={<AiOutlinePlus />}
+                        onClick={() => {
+                          setIsCustomerModalOpen(true);
+                          customerModalForm.setFieldsValue({ name: searchTerm });
+                        }}
+                      >
+                        Create Customer: {searchTerm}
+                      </Button>
+                    );
+                  }
+                  return null;
+                }}
               />
             </Form.Item>
           </Col>
@@ -217,7 +252,7 @@ const SalesForm: React.FC<IProps> = ({
             <Form.Item
               name="soldById"
               rules={[{ required: true, message: "Sold by is required!" }]}
-              className="!mb-0"
+              className="mb-0!"
             >
               <InfiniteScrollSelect<IUser>
                 showSearch
@@ -268,7 +303,7 @@ const SalesForm: React.FC<IProps> = ({
                                 message: "Product is required!",
                               },
                             ]}
-                            className="!mb-0 flex-1"
+                            className="mb-0! flex-1"
                           >
                             <InfiniteScrollSelect<IProduct>
                               showSearch
@@ -296,7 +331,7 @@ const SalesForm: React.FC<IProps> = ({
                         <Form.Item
                           {...field}
                           name={[field.name, "variantId"]}
-                          className="!mb-0"
+                          className="mb-0!"
                         >
                           <Select
                             showSearch
@@ -326,7 +361,7 @@ const SalesForm: React.FC<IProps> = ({
                                 message: "Quantity is required!",
                               },
                             ]}
-                            className="!mb-0"
+                            className="mb-0!"
                           >
                             <InputNumber
                               className="w-full!"
@@ -344,7 +379,7 @@ const SalesForm: React.FC<IProps> = ({
                                 message: "Selling price is required!",
                               },
                             ]}
-                            className="!mb-0"
+                            className="mb-0!"
                           >
                             <InputNumber
                               className="w-full!"
@@ -370,7 +405,7 @@ const SalesForm: React.FC<IProps> = ({
             </Form.List>
           </Col>
           <Col xs={24} md={12}>
-            <Form.Item name="discount" className="!mb-0">
+            <Form.Item name="discount" className="mb-0!">
               <InputNumber
                 className="w-full!"
                 placeholder="Discount"
@@ -383,7 +418,7 @@ const SalesForm: React.FC<IProps> = ({
             <Form.Item
               name="paidAmount"
               rules={[{ required: true, message: "Paid amount is required!" }]}
-              className="!mb-0 w-full!"
+              className="mb-0! w-full!"
             >
               <InputNumber
                 className="w-full!"
@@ -410,7 +445,7 @@ const SalesForm: React.FC<IProps> = ({
             </div>
           </Col>
           <Col xs={24}>
-            <Form.Item className="text-right !mb-0">
+            <Form.Item className="text-right mb-0!">
               <Button loading={isLoading} type="primary" htmlType="submit">
                 {formType === "create" ? "Submit" : "Update"}
               </Button>
@@ -418,6 +453,89 @@ const SalesForm: React.FC<IProps> = ({
           </Col>
         </Row>
       </Form>
+      
+      <Modal
+        title="Create New Customer"
+        open={isCustomerModalOpen}
+        onCancel={() => {
+          setIsCustomerModalOpen(false);
+          customerModalForm.resetFields();
+        }}
+        footer={[
+          <Button key="cancel" onClick={() => {
+            setIsCustomerModalOpen(false);
+            customerModalForm.resetFields();
+          }}>
+            Cancel
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            loading={customerCreateFn.isPending}
+            onClick={() => {
+              customerModalForm.validateFields().then((values) => {
+                customerCreateFn.mutate(values, {
+                  onSuccess: (res) => {
+                    if (res.success) {
+                      messageApi.success('Customer created successfully');
+                      setIsCustomerModalOpen(false);
+                      customerModalForm.resetFields();
+                      form.setFieldsValue({ customerId: res.data.id });
+                      // Refresh customer list
+                      customersQuery.refetch();
+                    } else {
+                      messageApi.error(res.message);
+                    }
+                  },
+                });
+              });
+            }}
+          >
+            Create Customer
+          </Button>,
+        ]}
+      >
+        <Form
+          form={customerModalForm}
+          layout="vertical"
+          initialValues={{
+            customerType: 'B2C',
+          }}
+        >
+          <Form.Item
+            name="name"
+            rules={[{ required: true, message: 'Customer name is required!' }]}
+          >
+            <Input placeholder="Customer Name" />
+          </Form.Item>
+          <Form.Item
+            name="contactNumber"
+            rules={[{ required: true, message: 'Contact number is required!' }]}
+          >
+            <Input placeholder="Contact Number" />
+          </Form.Item>
+          <Form.Item
+            name="customerType"
+            rules={[{ required: true, message: 'Customer type is required!' }]}
+          >
+            <Select
+              options={ENUM_CUSTOMER_TYPES.map((type) => ({
+                value: type,
+                label: type,
+              }))}
+            />
+          </Form.Item>
+          <Form.Item name="email">
+            <Input placeholder="Email (optional)" />
+          </Form.Item>
+          <Form.Item name="address">
+            <Input placeholder="Address (optional)" />
+          </Form.Item>
+          <Form.Item name="companyName">
+            <Input placeholder="Company Name (optional)" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </React.Fragment>
   );
 };

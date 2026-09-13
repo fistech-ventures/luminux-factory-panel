@@ -1,6 +1,10 @@
+import RecordDetailsModal from "@base/components/RecordDetailsModal";
 import { IAccountTransaction } from "@modules/accounts/lib/interfaces";
-import { Table, TableColumnsType, Tag } from "antd";
+import { getAccess } from "@modules/auth/lib/utils/client";
+import { Button, Table, TableColumnsType, Tag } from "antd";
 import dayjs from "dayjs";
+import React, { useState } from "react";
+import { AiOutlineEye } from "react-icons/ai";
 
 interface IProps {
   isLoading?: boolean;
@@ -9,6 +13,11 @@ interface IProps {
 }
 
 const AccountsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
+  const [detailsRef, setDetailsRef] = useState<{
+    resource: string;
+    id: string;
+  } | null>(null);
+
   const dataSource = data?.map((transaction) => ({
     key: transaction?.id,
     transactionDate: transaction?.transactionDate,
@@ -33,8 +42,8 @@ const AccountsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       dataIndex: "transactionType",
       title: "Type",
       render: (type) => (
-        <Tag color={type === "CASH_IN" ? "green" : "red"}>
-          {type === "CASH_IN" ? "Cash In" : "Cash Out"}
+        <Tag color={type === "cashIn" ? "green" : "red"}>
+          {type === "cashIn" ? "Cash In" : "Cash Out"}
         </Tag>
       ),
     },
@@ -42,7 +51,8 @@ const AccountsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       key: "paymentMethod",
       dataIndex: "paymentMethod",
       title: "Payment Method",
-      render: (method) => method || "N/A",
+      render: (method) =>
+        method?.charAt(0).toUpperCase() + method?.slice(1) || "N/A",
     },
     {
       key: "amount",
@@ -54,10 +64,10 @@ const AccountsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       key: "referenceType",
       dataIndex: "referenceType",
       title: "Reference Type",
-      render: (type) => type || "N/A",
+      render: (type) => type?.charAt(0).toUpperCase() + type?.slice(1) || "N/A",
     },
     {
-      key: "referenceId",
+      key: "reference",
       dataIndex: "referenceId",
       title: "Reference ID",
       render: (id) => id || "N/A",
@@ -66,7 +76,7 @@ const AccountsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       key: "entityType",
       dataIndex: "entityType",
       title: "Entity Type",
-      render: (type) => type || "N/A",
+      render: (type) => type?.charAt(0).toUpperCase() + type?.slice(1) || "N/A",
     },
     {
       key: "description",
@@ -74,16 +84,51 @@ const AccountsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       title: "Description",
       render: (desc) => desc || "N/A",
     },
+    {
+      key: "action",
+      dataIndex: "referenceId",
+      title: "Action",
+      align: "center",
+      render: (referenceId, record) => {
+        // The reference type decides which details API is called (purchase/{id}, expense/{id}, ...).
+        if (!record?.referenceType || !referenceId) return "N/A";
+
+        return (
+          <Button
+            icon={<AiOutlineEye />}
+            onClick={() => {
+              getAccess(
+                ["sales:read", "purchases:read", "expenses:read"],
+                () => {
+                  setDetailsRef({
+                    resource: record.referenceType,
+                    id: String(referenceId),
+                  });
+                },
+              );
+            }}
+          />
+        );
+      },
+    },
   ];
 
   return (
-    <Table
-      loading={isLoading}
-      dataSource={dataSource}
-      columns={columns}
-      pagination={pagination}
-      scroll={{ x: true }}
-    />
+    <React.Fragment>
+      <Table
+        loading={isLoading}
+        dataSource={dataSource}
+        columns={columns}
+        pagination={pagination}
+        scroll={{ x: true }}
+      />
+      <RecordDetailsModal
+        open={!!detailsRef?.id}
+        onClose={() => setDetailsRef(null)}
+        resource={detailsRef?.resource}
+        id={detailsRef?.id}
+      />
+    </React.Fragment>
   );
 };
 

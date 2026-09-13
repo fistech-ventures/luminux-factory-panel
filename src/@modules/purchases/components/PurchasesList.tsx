@@ -1,9 +1,10 @@
 import ConfirmationDialog from '@base/components/ConfirmationDialog';
+import RecordDetailsModal from '@base/components/RecordDetailsModal';
 import { getAccess } from '@modules/auth/lib/utils/client';
 import type { PaginationProps, TableColumnsType } from 'antd';
 import { Button, Drawer, Form, Table, message } from 'antd';
 import React, { useState } from 'react';
-import { AiFillEdit, AiFillDelete } from 'react-icons/ai';
+import { AiFillEdit, AiFillDelete, AiOutlineEye } from 'react-icons/ai';
 import { PurchasesHooks } from '../lib/hooks';
 import { IPurchase } from '../lib/interfaces';
 import PurchasesForm from './PurchasesForm';
@@ -18,6 +19,7 @@ const PurchasesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
   const [messageApi, messageHolder] = message.useMessage();
   const [formInstance] = Form.useForm();
   const [updateItem, setUpdateItem] = useState<IPurchase>(null);
+  const [detailsItem, setDetailsItem] = useState<IPurchase>(null);
   const [confirmationDialog, setConfirmationDialog] = useState<{
     open: boolean;
     title: string;
@@ -122,6 +124,15 @@ const PurchasesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
             <Button
               onClick={() => {
+                getAccess(['purchases:read'], () => {
+                  setDetailsItem(item);
+                });
+              }}
+            >
+              <AiOutlineEye />
+            </Button>
+            <Button
+              onClick={() => {
                 getAccess(['purchases:update'], () => {
                   setUpdateItem(item);
                 });
@@ -190,6 +201,13 @@ const PurchasesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           }}
         />
       </Drawer>
+      <RecordDetailsModal
+        open={!!detailsItem?.id}
+        onClose={() => setDetailsItem(null)}
+        resource="purchase"
+        id={detailsItem?.id}
+        title={`Purchase Details - ${detailsItem?.purchaseDate ?? ''}`}
+      />
       <ConfirmationDialog
         open={confirmationDialog.open}
         title={confirmationDialog.title}

@@ -1,11 +1,12 @@
 import ConfirmationDialog from '@base/components/ConfirmationDialog';
+import RecordDetailsModal from '@base/components/RecordDetailsModal';
 import CustomSwitch from '@base/components/CustomSwitch';
 import { Toolbox } from '@lib/utils';
 import { getAccess } from '@modules/auth/lib/utils/client';
 import type { PaginationProps, TableColumnsType } from 'antd';
 import { Avatar, Button, Drawer, Form, Table, Tag, message } from 'antd';
 import React, { useState } from 'react';
-import { AiFillEdit, AiFillDelete } from 'react-icons/ai';
+import { AiFillEdit, AiFillDelete, AiOutlineEye } from 'react-icons/ai';
 import { UsersHooks } from '../lib/hooks';
 import { IUser } from '../lib/interfaces';
 import UsersForm from './UsersForm';
@@ -20,6 +21,7 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
   const [messageApi, messageHolder] = message.useMessage();
   const [formInstance] = Form.useForm();
   const [updateItem, setUpdateItem] = useState<IUser>(null);
+  const [detailsItem, setDetailsItem] = useState<IUser>(null);
   const [confirmationDialog, setConfirmationDialog] = useState<{
     open: boolean;
     title: string;
@@ -184,6 +186,15 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
             <Button
               onClick={() => {
+                getAccess(['users:read'], () => {
+                  setDetailsItem(item);
+                });
+              }}
+            >
+              <AiOutlineEye />
+            </Button>
+            <Button
+              onClick={() => {
                 getAccess(['users:update'], () => {
                   setUpdateItem(item);
                 });
@@ -257,6 +268,13 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           backendError={userUpdateFn.isError ? String(userUpdateFn.error) : null}
         />
       </Drawer>
+      <RecordDetailsModal
+        open={!!detailsItem?.id}
+        onClose={() => setDetailsItem(null)}
+        resource="user"
+        id={detailsItem?.id}
+        title={`User Details - ${detailsItem?.fullName ?? detailsItem?.email ?? ''}`}
+      />
       <ConfirmationDialog
         open={confirmationDialog.open}
         title={confirmationDialog.title}

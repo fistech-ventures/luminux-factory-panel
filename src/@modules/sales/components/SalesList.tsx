@@ -1,13 +1,14 @@
-import ConfirmationDialog from '@base/components/ConfirmationDialog';
-import { getAccess } from '@modules/auth/lib/utils/client';
-import type { PaginationProps, TableColumnsType } from 'antd';
-import { Button, Drawer, Form, Table, message } from 'antd';
-import React, { useState } from 'react';
-import { AiFillEdit, AiFillDelete } from 'react-icons/ai';
-import { FiFileText } from 'react-icons/fi';
-import { SalesHooks } from '../lib/hooks';
-import { ISale } from '../lib/interfaces';
-import SalesForm from './SalesForm';
+import ConfirmationDialog from "@base/components/ConfirmationDialog";
+import RecordDetailsModal from "@base/components/RecordDetailsModal";
+import { getAccess } from "@modules/auth/lib/utils/client";
+import type { PaginationProps, TableColumnsType } from "antd";
+import { Button, Drawer, Form, Table, message } from "antd";
+import React, { useState } from "react";
+import { AiFillEdit, AiFillDelete, AiOutlineEye } from "react-icons/ai";
+import { FiFileText } from "react-icons/fi";
+import { SalesHooks } from "../lib/hooks";
+import { ISale } from "../lib/interfaces";
+import SalesForm from "./SalesForm";
 
 interface IProps {
   isLoading: boolean;
@@ -19,12 +20,13 @@ const SalesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
   const [messageApi, messageHolder] = message.useMessage();
   const [formInstance] = Form.useForm();
   const [updateItem, setUpdateItem] = useState<ISale>(null);
+  const [detailsItem, setDetailsItem] = useState<ISale>(null);
   const [confirmationDialog, setConfirmationDialog] = useState<{
     open: boolean;
     title: string;
     content: string;
     onConfirm: () => void;
-  }>({ open: false, title: '', content: '', onConfirm: () => {} });
+  }>({ open: false, title: "", content: "", onConfirm: () => {} });
 
   const saleUpdateFn = SalesHooks.useUpdate({
     config: {
@@ -69,78 +71,85 @@ const SalesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
 
   const columns: TableColumnsType<(typeof dataSource)[number]> = [
     {
-      key: 'date',
-      dataIndex: 'date',
-      title: 'Date',
+      key: "date",
+      dataIndex: "date",
+      title: "Date",
     },
     {
-      key: 'invoiceNo',
-      dataIndex: 'invoiceNo',
-      title: 'Invoice',
-      render: (invoiceNo) => invoiceNo || 'N/A',
+      key: "invoiceNo",
+      dataIndex: "invoiceNo",
+      title: "Invoice",
+      render: (invoiceNo) => invoiceNo || "N/A",
     },
     {
-      key: 'customerName',
-      dataIndex: 'customerName',
-      title: 'Customer',
-      render: (customerName) => customerName || 'N/A',
+      key: "customerName",
+      dataIndex: "customerName",
+      title: "Customer",
+      render: (customerName) => customerName || "N/A",
     },
     {
-      key: 'itemsCount',
-      dataIndex: 'itemsCount',
-      title: 'Items',
+      key: "itemsCount",
+      dataIndex: "itemsCount",
+      title: "Items",
       render: (itemsCount) => itemsCount ?? 0,
     },
     {
-      key: 'totalAmount',
-      dataIndex: 'totalAmount',
-      title: 'Total',
-      render: (totalAmount) => (totalAmount != null ? Number(totalAmount).toFixed(2) : 'N/A'),
+      key: "totalAmount",
+      dataIndex: "totalAmount",
+      title: "Total",
+      render: (totalAmount) =>
+        totalAmount != null ? Number(totalAmount).toFixed(2) : "N/A",
     },
     {
-      key: 'discount',
-      dataIndex: 'discount',
-      title: 'Discount',
-      render: (discount) => (discount != null ? Number(discount).toFixed(2) : 'N/A'),
+      key: "discount",
+      dataIndex: "discount",
+      title: "Discount",
+      render: (discount) =>
+        discount != null ? Number(discount).toFixed(2) : "N/A",
     },
     {
-      key: 'grandTotal',
-      dataIndex: 'grandTotal',
-      title: 'Grand Total',
-      render: (grandTotal) => (grandTotal != null ? Number(grandTotal).toFixed(2) : 'N/A'),
+      key: "grandTotal",
+      dataIndex: "grandTotal",
+      title: "Grand Total",
+      render: (grandTotal) =>
+        grandTotal != null ? Number(grandTotal).toFixed(2) : "N/A",
     },
     {
-      key: 'paidAmount',
-      dataIndex: 'paidAmount',
-      title: 'Paid',
-      render: (paidAmount) => (paidAmount != null ? Number(paidAmount).toFixed(2) : 'N/A'),
+      key: "paidAmount",
+      dataIndex: "paidAmount",
+      title: "Paid",
+      render: (paidAmount) =>
+        paidAmount != null ? Number(paidAmount).toFixed(2) : "N/A",
     },
     {
-      key: 'dueAmount',
-      dataIndex: 'dueAmount',
-      title: 'Due',
-      render: (dueAmount) => (dueAmount != null ? Number(dueAmount).toFixed(2) : 'N/A'),
+      key: "dueAmount",
+      dataIndex: "dueAmount",
+      title: "Due",
+      render: (dueAmount) =>
+        dueAmount != null ? Number(dueAmount).toFixed(2) : "N/A",
     },
     {
-      key: 'paymentMethod',
-      dataIndex: 'paymentMethod',
-      title: 'Payment',
-      render: (paymentMethod) => paymentMethod || 'N/A',
+      key: "paymentMethod",
+      dataIndex: "paymentMethod",
+      title: "Payment",
+      render: (paymentMethod) => paymentMethod || "N/A",
     },
     {
-      key: 'id',
-      dataIndex: 'id',
-      title: 'Action',
-      align: 'center',
+      key: "id",
+      dataIndex: "id",
+      title: "Action",
+      align: "center",
       render: (id) => {
         const item = data?.find((item) => item.id === id);
         return (
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+          <div
+            style={{ display: "flex", gap: "8px", justifyContent: "center" }}
+          >
             <Button
               onClick={() => {
-                getAccess(['sales:read'], () => {
+                getAccess(["sales:read"], () => {
                   if (item?.invoiceUrl) {
-                    window.open(item.invoiceUrl, '_blank');
+                    window.open(item.invoiceUrl, "_blank");
                   }
                 });
               }}
@@ -149,7 +158,16 @@ const SalesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
             </Button>
             <Button
               onClick={() => {
-                getAccess(['sales:update'], () => {
+                getAccess(["sales:read"], () => {
+                  setDetailsItem(item);
+                });
+              }}
+            >
+              <AiOutlineEye />
+            </Button>
+            <Button
+              onClick={() => {
+                getAccess(["sales:update"], () => {
                   setUpdateItem(item);
                 });
               }}
@@ -159,14 +177,19 @@ const SalesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
             <Button
               danger
               onClick={() => {
-                getAccess(['sales:delete'], () => {
+                getAccess(["sales:delete"], () => {
                   setConfirmationDialog({
                     open: true,
-                    title: 'Delete Sale',
+                    title: "Delete Sale",
                     content: `Are you sure you want to delete sale "${item.invoiceNo}"?`,
                     onConfirm: () => {
                       saleDeleteFn.mutate(item.id);
-                      setConfirmationDialog({ open: false, title: '', content: '', onConfirm: () => {} });
+                      setConfirmationDialog({
+                        open: false,
+                        title: "",
+                        content: "",
+                        onConfirm: () => {},
+                      });
                     },
                   });
                 });
@@ -190,7 +213,12 @@ const SalesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
         pagination={pagination}
         scroll={{ x: true }}
       />
-      <Drawer width={860} title={`Update Sale - ${updateItem?.invoiceNo}`} open={!!updateItem?.id} onClose={() => setUpdateItem(null)}>
+      <Drawer
+        width={860}
+        title={`Update Sale - ${updateItem?.invoiceNo}`}
+        open={!!updateItem?.id}
+        onClose={() => setUpdateItem(null)}
+      >
         <SalesForm
           formType="update"
           form={formInstance}
@@ -208,12 +236,26 @@ const SalesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           }
         />
       </Drawer>
+      <RecordDetailsModal
+        open={!!detailsItem?.id}
+        onClose={() => setDetailsItem(null)}
+        resource="sale"
+        id={detailsItem?.id}
+        title={`Sale Details - ${detailsItem?.invoiceNo ?? ""}`}
+      />
       <ConfirmationDialog
         open={confirmationDialog.open}
         title={confirmationDialog.title}
         content={confirmationDialog.content}
         onConfirm={confirmationDialog.onConfirm}
-        onCancel={() => setConfirmationDialog({ open: false, title: '', content: '', onConfirm: () => {} })}
+        onCancel={() =>
+          setConfirmationDialog({
+            open: false,
+            title: "",
+            content: "",
+            onConfirm: () => {},
+          })
+        }
       />
     </React.Fragment>
   );

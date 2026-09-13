@@ -1,9 +1,10 @@
 import ConfirmationDialog from '@base/components/ConfirmationDialog';
+import RecordDetailsModal from '@base/components/RecordDetailsModal';
 import { getAccess } from '@modules/auth/lib/utils/client';
 import type { PaginationProps, TableColumnsType } from 'antd';
 import { Button, Drawer, Form, Table, Tag, message } from 'antd';
 import React, { useState } from 'react';
-import { AiFillEdit, AiFillDelete } from 'react-icons/ai';
+import { AiFillEdit, AiFillDelete, AiOutlineEye } from 'react-icons/ai';
 import { LedgerHooks } from '../lib/hooks';
 import { ILedger } from '../lib/interfaces';
 import LedgerForm from './LedgerForm';
@@ -18,6 +19,7 @@ const LedgerList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
   const [messageApi, messageHolder] = message.useMessage();
   const [formInstance] = Form.useForm();
   const [updateItem, setUpdateItem] = useState<ILedger>(null);
+  const [detailsItem, setDetailsItem] = useState<ILedger>(null);
   const [confirmationDialog, setConfirmationDialog] = useState<{
     open: boolean;
     title: string;
@@ -111,6 +113,15 @@ const LedgerList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
             <Button
               onClick={() => {
+                getAccess(['ledger:read'], () => {
+                  setDetailsItem(item);
+                });
+              }}
+            >
+              <AiOutlineEye />
+            </Button>
+            <Button
+              onClick={() => {
                 getAccess(['ledger:update'], () => {
                   setUpdateItem(item);
                 });
@@ -171,6 +182,13 @@ const LedgerList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           }
         />
       </Drawer>
+      <RecordDetailsModal
+        open={!!detailsItem?.id}
+        onClose={() => setDetailsItem(null)}
+        resource="ledger"
+        id={detailsItem?.id}
+        title={`Ledger Entry Details - ${detailsItem?.type ?? ''}`}
+      />
       <ConfirmationDialog
         open={confirmationDialog.open}
         title={confirmationDialog.title}

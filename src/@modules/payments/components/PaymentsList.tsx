@@ -1,6 +1,10 @@
+import RecordDetailsModal from '@base/components/RecordDetailsModal';
+import { getAccess } from '@modules/auth/lib/utils/client';
 import { IPayment } from '@modules/payments/lib/interfaces';
-import { Table, TableColumnsType, Tag } from 'antd';
+import { Button, Table, TableColumnsType, Tag } from 'antd';
 import dayjs from 'dayjs';
+import React, { useState } from 'react';
+import { AiOutlineEye } from 'react-icons/ai';
 
 interface IProps {
   isLoading?: boolean;
@@ -9,6 +13,8 @@ interface IProps {
 }
 
 const PaymentsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
+  const [detailsRef, setDetailsRef] = useState<{ resource: string; id: string } | null>(null);
+
   const dataSource = data?.map((payment) => ({
     key: payment?.id,
     paymentDate: payment?.paymentDate,
@@ -33,9 +39,7 @@ const PaymentsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       dataIndex: 'entityType',
       title: 'Entity Type',
       render: (type) => (
-        <Tag color={type === 'customer' ? 'blue' : 'orange'}>
-          {type === 'customer' ? 'Customer' : 'Supplier'}
-        </Tag>
+        <Tag color={type === 'customer' ? 'blue' : 'orange'}>{type === 'customer' ? 'Customer' : 'Supplier'}</Tag>
       ),
     },
     {
@@ -57,7 +61,7 @@ const PaymentsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       render: (type) => type || 'N/A',
     },
     {
-      key: 'referenceId',
+      key: 'reference',
       dataIndex: 'referenceId',
       title: 'Reference ID',
       render: (id) => id || 'N/A',
@@ -68,16 +72,48 @@ const PaymentsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       title: 'Note',
       render: (note) => note || 'N/A',
     },
+    {
+      key: 'action',
+      dataIndex: 'referenceId',
+      title: 'Action',
+      align: 'center',
+      render: (referenceId, record) => {
+        // A payment can point at a sale/purchase (reference) or at a customer/supplier (entity).
+        const resource = record?.referenceType || record?.entityType;
+        const id = referenceId || record?.entityId;
+
+        if (!resource || !id) return 'N/A';
+
+        return (
+          <Button
+            icon={<AiOutlineEye />}
+            onClick={() => {
+              getAccess(['payments:read'], () => {
+                setDetailsRef({ resource, id: String(id) });
+              });
+            }}
+          />
+        );
+      },
+    },
   ];
 
   return (
-    <Table
-      loading={isLoading}
-      dataSource={dataSource}
-      columns={columns}
-      pagination={pagination}
-      scroll={{ x: true }}
-    />
+    <React.Fragment>
+      <Table
+        loading={isLoading}
+        dataSource={dataSource}
+        columns={columns}
+        pagination={pagination}
+        scroll={{ x: true }}
+      />
+      <RecordDetailsModal
+        open={!!detailsRef?.id}
+        onClose={() => setDetailsRef(null)}
+        resource={detailsRef?.resource}
+        id={detailsRef?.id}
+      />
+    </React.Fragment>
   );
 };
 

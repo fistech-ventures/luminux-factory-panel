@@ -1,5 +1,6 @@
 import FloatInput from "@base/antd/components/FloatInput";
 import InputPhone from "@base/components/InputPhone";
+import { ENUM_CUSTOMER_TYPES } from "@lib/constant";
 import { Button, Col, Form, FormInstance, Row, Select, message } from "antd";
 import React, { useEffect } from "react";
 import { ICustomerCreate } from "../lib/interfaces";
@@ -56,7 +57,10 @@ const CustomersForm: React.FC<IProps> = ({
         size="large"
         layout="vertical"
         form={form}
-        initialValues={initialValues}
+        initialValues={{
+          ...initialValues,
+          customerType: initialValues?.customerType || "B2B",
+        }}
         onFinish={onFinish}
         onFinishFailed={handleFinishFailed}
         validateMessages={{
@@ -70,15 +74,14 @@ const CustomersForm: React.FC<IProps> = ({
               rules={[
                 { required: true, message: "Customer type is required!" },
               ]}
-              className="!mb-0"
+              className="mb-0!"
             >
               <Select
                 placeholder="Customer Type"
-                defaultValue="B2B"
-                options={[
-                  { value: "B2B", label: "B2B" },
-                  { value: "B2C", label: "B2C" },
-                ]}
+                options={ENUM_CUSTOMER_TYPES.map((type) => ({
+                  value: type,
+                  label: type,
+                }))}
               />
             </Form.Item>
           </Col>
@@ -86,7 +89,7 @@ const CustomersForm: React.FC<IProps> = ({
             <Form.Item
               name="name"
               rules={[{ required: true, message: "Name is required!" }]}
-              className="!mb-0"
+              className="mb-0!"
             >
               <FloatInput placeholder="Name" />
             </Form.Item>
@@ -97,7 +100,7 @@ const CustomersForm: React.FC<IProps> = ({
               rules={[
                 { required: true, message: "Contact number is required!" },
               ]}
-              className="!mb-0"
+              className="mb-0!"
             >
               <InputPhone placeholder="Contact Number" size="large" />
             </Form.Item>
@@ -106,7 +109,7 @@ const CustomersForm: React.FC<IProps> = ({
             <Form.Item
               name="email"
               rules={[{ type: "email", message: "Email is not valid!" }]}
-              className="!mb-0"
+              className="mb-0!"
             >
               <FloatInput placeholder="Email" />
             </Form.Item>

@@ -1,11 +1,12 @@
 import ConfirmationDialog from '@base/components/ConfirmationDialog';
+import RecordDetailsModal from '@base/components/RecordDetailsModal';
 import { Paths } from '@lib/constant';
 import { getAccess } from '@modules/auth/lib/utils/client';
 import type { PaginationProps, TableColumnsType } from 'antd';
 import { Button, Drawer, Form, Table, message } from 'antd';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
-import { AiFillEdit, AiFillDelete } from 'react-icons/ai';
+import { AiFillEdit, AiFillDelete, AiOutlineEye } from 'react-icons/ai';
 import { FaBook } from 'react-icons/fa';
 import { SuppliersHooks } from '../lib/hooks';
 import { ISupplier } from '../lib/interfaces';
@@ -22,6 +23,7 @@ const SuppliersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
   const [messageApi, messageHolder] = message.useMessage();
   const [formInstance] = Form.useForm();
   const [updateItem, setUpdateItem] = useState<ISupplier>(null);
+  const [detailsItem, setDetailsItem] = useState<ISupplier>(null);
   const [confirmationDialog, setConfirmationDialog] = useState<{
     open: boolean;
     title: string;
@@ -116,6 +118,15 @@ const SuppliersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
             </Button>
             <Button
               onClick={() => {
+                getAccess(['suppliers:read'], () => {
+                  setDetailsItem(item);
+                });
+              }}
+            >
+              <AiOutlineEye />
+            </Button>
+            <Button
+              onClick={() => {
                 getAccess(['suppliers:update'], () => {
                   setUpdateItem(item);
                 });
@@ -179,6 +190,13 @@ const SuppliersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           }
         />
       </Drawer>
+      <RecordDetailsModal
+        open={!!detailsItem?.id}
+        onClose={() => setDetailsItem(null)}
+        resource="supplier"
+        id={detailsItem?.id}
+        title={`Supplier Details - ${detailsItem?.companyName ?? ''}`}
+      />
       <ConfirmationDialog
         open={confirmationDialog.open}
         title={confirmationDialog.title}

@@ -15,7 +15,9 @@ import {
   Divider,
   Form,
   FormInstance,
+  Input,
   InputNumber,
+  Modal,
   Radio,
   Row,
   Select,
@@ -51,6 +53,9 @@ const PurchasesForm: React.FC<IProps> = ({
   const [productSearchTerm, setProductSearchTerm] = useState(null);
   const [userSearchTerm, setUserSearchTerm] = useState(null);
   const watchedItems = Form.useWatch("items", form) || [];
+  const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
+  const [supplierModalForm] = Form.useForm();
+  const supplierCreateFn = SuppliersHooks.useCreate();
 
   useEffect(() => {
     if (backendError) {
@@ -77,9 +82,7 @@ const PurchasesForm: React.FC<IProps> = ({
     onFinish({
       ...values,
       purchaseDate: dayjs(values.purchaseDate).format("YYYY-MM-DD"),
-      items: (values?.items ?? []).map(
-        ({ mode: _mode, ...item }) => item,
-      ),
+      items: (values?.items ?? []).map(({ mode: _mode, ...item }) => item),
     });
   };
 
@@ -173,7 +176,7 @@ const PurchasesForm: React.FC<IProps> = ({
           purchaseDate: initialValues?.purchaseDate
             ? dayjs(initialValues.purchaseDate)
             : dayjs(),
-          paymentMethod: initialValues?.paymentMethod || "CASH",
+          paymentMethod: initialValues?.paymentMethod || "cash",
           items: Toolbox.isNotEmpty(initialValues?.items)
             ? initialValues.items.map((item) => ({
                 ...item,
@@ -228,13 +231,38 @@ const PurchasesForm: React.FC<IProps> = ({
                 }
                 option={({ item: supplier }) => ({
                   key: supplier?.id,
-                  label: supplier?.companyName,
+                  label: `${supplier?.companyName} (${supplier?.contactNumber})`,
                   value: supplier?.id,
                 })}
                 onChangeSearchTerm={(searchTerm) =>
                   setSupplierSearchTerm(searchTerm)
                 }
                 query={suppliersQuery}
+                renderFooter={(searchTerm) => {
+                  const supplierExists = suppliersQuery.data?.pages?.some(page =>
+                    page?.data?.some((supplier: ISupplier) =>
+                      supplier?.companyName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+                      supplier?.contactNumber?.includes(searchTerm)
+                    )
+                  );
+                  
+                  if (!supplierExists && searchTerm && searchTerm.length > 2) {
+                    return (
+                      <Button
+                        type="dashed"
+                        block
+                        icon={<AiOutlinePlus />}
+                        onClick={() => {
+                          setIsSupplierModalOpen(true);
+                          supplierModalForm.setFieldsValue({ companyName: searchTerm });
+                        }}
+                      >
+                        Create Supplier: {searchTerm}
+                      </Button>
+                    );
+                  }
+                  return null;
+                }}
               />
             </Form.Item>
           </Col>
@@ -452,15 +480,16 @@ const PurchasesForm: React.FC<IProps> = ({
           <Col xs={12}>
             <Form.Item
               name="paymentMethod"
-              rules={[{ required: true, message: "Payment method is required!" }]}
-              className="mb-0!"
+              className="!mb-0"
+              rules={[
+                { required: true, message: "Payment method is required!" },
+              ]}
             >
               <Select
                 placeholder="Payment Method"
                 options={ENUM_PAYMENT_METHODS.map((method) => ({
-                  key: method,
-                  label: method,
                   value: method,
+                  label: method,
                 }))}
               />
             </Form.Item>
@@ -508,6 +537,75 @@ const PurchasesForm: React.FC<IProps> = ({
           </Col>
         </Row>
       </Form>
+      
+      <Modal
+        title="Create New Supplier"
+        open={isSupplierModalOpen}
+        onCancel={() => {
+          setIsSupplierModalOpen(false);
+          supplierModalForm.resetFields();
+        }}
+        footer={[
+          <Button key="cancel" onClick={() => {
+            setIsSupplierModalOpen(false);
+            supplierModalForm.resetFields();
+          }}>
+            Cancel
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            loading={supplierCreateFn.isPending}
+            onClick={() => {
+              supplierModalForm.validateFields().then((values) => {
+                supplierCreateFn.mutate(values, {
+                  onSuccess: (res) => {
+                    if (res.success) {
+                      messageApi.success('Supplier created successfully');
+                      setIsSupplierModalOpen(false);
+                      supplierModalForm.resetFields();
+                      form.setFieldsValue({ supplierId: res.data.id });
+                      // Refresh supplier list
+                      suppliersQuery.refetch();
+                    } else {
+                      messageApi.error(res.message);
+                    }
+                  },
+                });
+              });
+            }}
+          >
+            Create Supplier
+          </Button>,
+        ]}
+      >
+        <Form
+          form={supplierModalForm}
+          layout="vertical"
+        >
+          <Form.Item
+            name="companyName"
+            rules={[{ required: true, message: 'Company name is required!' }]}
+          >
+            <Input placeholder="Company Name" />
+          </Form.Item>
+          <Form.Item
+            name="contactNumber"
+            rules={[{ required: true, message: 'Contact number is required!' }]}
+          >
+            <Input placeholder="Contact Number" />
+          </Form.Item>
+          <Form.Item name="contactPerson">
+            <Input placeholder="Contact Person (optional)" />
+          </Form.Item>
+          <Form.Item name="email">
+            <Input placeholder="Email (optional)" />
+          </Form.Item>
+          <Form.Item name="address">
+            <Input placeholder="Address (optional)" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </React.Fragment>
   );
 };

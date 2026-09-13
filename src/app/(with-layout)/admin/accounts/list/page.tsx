@@ -11,7 +11,7 @@ import AccountsList from "@modules/accounts/components/AccountsList";
 import { Card, Col, Form, Row, Select, Statistic, Tag } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import React from "react";
-import { ENUM_PAYMENT_METHODS } from "@lib/constant";
+import { ENUM_PAYMENT_METHODS, ENUM_TRANSACTION_TYPES } from "@lib/constant";
 
 const AccountsPage = () => {
   const router = useRouter();
@@ -95,7 +95,7 @@ const AccountsPage = () => {
         }}
         extra={
           <>
-            <Form.Item name="accountType" className="!mb-0">
+            <Form.Item name="accountType" className="mb-0!">
               <Select
                 allowClear
                 placeholder="Account Type"
@@ -106,14 +106,15 @@ const AccountsPage = () => {
                 }))}
               />
             </Form.Item>
-            <Form.Item name="transactionType" className="!mb-0">
+            <Form.Item name="transactionType" className="mb-0!">
               <Select
                 allowClear
                 placeholder="Transaction Type"
-                options={[
-                  { key: "CASH_IN", label: "Cash In", value: "cashIn" },
-                  { key: "CASH_OUT", label: "Cash Out", value: "cashOut" },
-                ]}
+                options={ENUM_TRANSACTION_TYPES.map((type) => ({
+                  key: type,
+                  label: type,
+                  value: type,
+                }))}
               />
             </Form.Item>
           </>
