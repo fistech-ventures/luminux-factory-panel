@@ -128,6 +128,7 @@ const GalleryList: React.FC<IProps> = ({ isLoading, data, pagination, onSelectio
               title="Edit gallery item"
               onClick={() => {
                 getAccess(['gallery:update'], () => {
+                  formInstance.resetFields();
                   setUpdateItem(item);
                 });
               }}

@@ -126,6 +126,7 @@ const LedgerList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               title="Edit ledger entry"
               onClick={() => {
                 getAccess(['ledger:update'], () => {
+                  formInstance.resetFields();
                   setUpdateItem(item);
                 });
               }}

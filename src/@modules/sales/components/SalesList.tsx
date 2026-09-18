@@ -208,6 +208,7 @@ const SalesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
                   title="Edit sale"
                   onClick={() => {
                     getAccess(["sales:update"], () => {
+                      formInstance.resetFields();
                       setUpdateItem(item);
                     });
                   }}

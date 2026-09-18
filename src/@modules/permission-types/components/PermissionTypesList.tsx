@@ -118,6 +118,7 @@ const PermissionTypesList: React.FC<IProps> = ({ isLoading, data, pagination }) 
               type="primary"
               onClick={() => {
                 getAccess(['role-manager-permission-types:update'], () => {
+                  formInstance.resetFields();
                   setUpdateItem(item);
                 });
               }}

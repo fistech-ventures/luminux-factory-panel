@@ -132,6 +132,7 @@ const SuppliersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               title="Edit supplier"
               onClick={() => {
                 getAccess(['suppliers:update'], () => {
+                  formInstance.resetFields();
                   setUpdateItem(item);
                 });
               }}

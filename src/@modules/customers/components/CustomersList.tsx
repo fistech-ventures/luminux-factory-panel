@@ -153,6 +153,7 @@ const CustomersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               title="Edit customer"
               onClick={() => {
                 getAccess(["customers:update"], () => {
+                  formInstance.resetFields();
                   setUpdateItem(item);
                 });
               }}

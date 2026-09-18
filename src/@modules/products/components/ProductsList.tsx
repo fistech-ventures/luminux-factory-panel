@@ -163,6 +163,7 @@ const ProductsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
                   title="Edit product"
                   onClick={() => {
                     getAccess(["products:update"], () => {
+                      formInstance.resetFields();
                       setUpdateItem(item);
                     });
                   }}

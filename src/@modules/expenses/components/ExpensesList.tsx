@@ -139,6 +139,7 @@ const ExpensesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               title="Edit expense"
               onClick={() => {
                 getAccess(["expenses:update"], () => {
+                  formInstance.resetFields();
                   setUpdateItem(item);
                 });
               }}

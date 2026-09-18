@@ -116,6 +116,7 @@ const VariantsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               title="Edit variant"
               onClick={() => {
                 getAccess(['variants:update'], () => {
+                  formInstance.resetFields();
                   setUpdateItem(item);
                 });
               }}

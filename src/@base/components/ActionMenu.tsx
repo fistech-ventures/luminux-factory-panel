@@ -27,7 +27,10 @@ const getActionLabel = (element: React.ReactElement<any>) => {
   return labels[iconName] || "Action";
 };
 
-const renderLabeledActions = (node: React.ReactNode): React.ReactNode =>
+const renderLabeledActions = (
+  node: React.ReactNode,
+  closeMenu: () => void,
+): React.ReactNode =>
   React.Children.toArray(node).flatMap((child) => {
     if (!React.isValidElement(child)) return [];
     const element = child as React.ReactElement<any>;
@@ -41,6 +44,10 @@ const renderLabeledActions = (node: React.ReactNode): React.ReactNode =>
       return React.cloneElement(element, {
         className: `${element.props.className || ""} w-full! flex! items-center! justify-start! text-left! rounded-none! border-none!`,
         icon: undefined,
+        onClick: (event: React.MouseEvent<HTMLElement>) => {
+          closeMenu();
+          element.props.onClick?.(event);
+        },
         children: (
           <>
             <span className="inline-flex w-5 shrink-0 items-center justify-center">
@@ -53,32 +60,39 @@ const renderLabeledActions = (node: React.ReactNode): React.ReactNode =>
     }
 
     return element.props.children
-      ? renderLabeledActions(element.props.children)
+      ? renderLabeledActions(element.props.children, closeMenu)
       : [];
   });
 
-const ActionMenu: React.FC<IProps> = ({ items, content }) => (
-  <Dropdown
-    menu={items ? { items } : undefined}
-    dropdownRender={
-      content
-        ? () => (
-            <div className="min-w-44! p-1! flex! flex-col! border border-gray-200 bg-white">
-              {renderLabeledActions(content)}
-            </div>
-          )
-        : undefined
-    }
-    trigger={["click"]}
-    placement="bottomRight"
-  >
-    <Button
-      type="text"
-      icon={<FiMoreVertical />}
-      aria-label="Actions"
-      title="Actions"
-    />
-  </Dropdown>
-);
+const ActionMenu: React.FC<IProps> = ({ items, content }) => {
+  const [open, setOpen] = React.useState(false);
+  const closeMenu = () => setOpen(false);
+
+  return (
+    <Dropdown
+      open={open}
+      onOpenChange={setOpen}
+      menu={items ? { items } : undefined}
+      dropdownRender={
+        content
+          ? () => (
+              <div className="min-w-44! p-1! flex! flex-col! border border-gray-200 bg-white">
+                {renderLabeledActions(content, closeMenu)}
+              </div>
+            )
+          : undefined
+      }
+      trigger={["click"]}
+      placement="bottomRight"
+    >
+      <Button
+        type="text"
+        icon={<FiMoreVertical />}
+        aria-label="Actions"
+        title="Actions"
+      />
+    </Dropdown>
+  );
+};
 
 export default ActionMenu;

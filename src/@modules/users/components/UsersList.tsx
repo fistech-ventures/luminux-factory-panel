@@ -199,6 +199,7 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               title="Edit user"
               onClick={() => {
                 getAccess(['users:update'], () => {
+                  formInstance.resetFields();
                   setUpdateItem(item);
                 });
               }}

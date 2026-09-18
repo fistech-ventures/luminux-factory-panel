@@ -107,6 +107,7 @@ const ProductVariantOptionsList: React.FC<IProps> = ({ isLoading, data, paginati
               title="Edit product variant option"
               onClick={() => {
                 getAccess(['product-variant-options:update'], () => {
+                  formInstance.resetFields();
                   setUpdateItem(item);
                 });
               }}

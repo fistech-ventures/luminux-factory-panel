@@ -137,6 +137,7 @@ const PurchasesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               title="Edit purchase"
               onClick={() => {
                 getAccess(['purchases:update'], () => {
+                  formInstance.resetFields();
                   setUpdateItem(item);
                 });
               }}

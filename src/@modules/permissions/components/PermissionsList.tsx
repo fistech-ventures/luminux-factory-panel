@@ -129,6 +129,7 @@ const PermissionsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               type="primary"
               onClick={() => {
                 getAccess(['role-manager-permissions:update'], () => {
+                  formInstance.resetFields();
                   setUpdateItem(item);
                 });
               }}

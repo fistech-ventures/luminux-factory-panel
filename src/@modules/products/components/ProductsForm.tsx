@@ -14,7 +14,7 @@ import {
   Select,
   message,
 } from "antd";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { IProductCreate } from "../lib/interfaces";
@@ -38,12 +38,26 @@ const ProductsForm: React.FC<IProps> = ({
 }) => {
   const [messageApi, messageHolder] = message.useMessage();
   const watchedVariants = Form.useWatch("variants", form) || [];
+  const initialValuesRef = useRef(initialValues);
+  const initialRecordId = (initialValues as { id?: string } | undefined)?.id;
 
   useEffect(() => {
     if (backendError) {
       messageApi.error(backendError);
     }
   }, [backendError, messageApi]);
+
+  useEffect(() => {
+    if (!initialRecordId) return;
+
+    form.resetFields();
+    form.setFieldsValue({
+      ...initialValuesRef.current,
+      variants: Toolbox.isNotEmpty(initialValuesRef.current?.variants)
+        ? initialValuesRef.current.variants
+        : [],
+    });
+  }, [form, initialRecordId]);
 
   const handleFinishFailed = (errorInfo: any) => {
     const { errorFields } = errorInfo;

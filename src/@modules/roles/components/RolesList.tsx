@@ -139,6 +139,7 @@ const RolesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               type="primary"
               onClick={() => {
                 getAccess(['role-manager-roles:update'], () => {
+                  formInstance.resetFields();
                   setUpdateItem(item);
                 });
               }}
