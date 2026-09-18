@@ -36,10 +36,6 @@ const GalleryForm: React.FC<IProps> = ({ isLoading, form, formType = 'update', i
     }
   };
 
-  useEffect(() => {
-    form.resetFields();
-  }, [form, initialValues]);
-
   return (
     <React.Fragment>
       {messageHolder}

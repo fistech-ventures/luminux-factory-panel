@@ -1,9 +1,10 @@
 import ConfirmationDialog from '@base/components/ConfirmationDialog';
+import ActionMenu from '@base/components/ActionMenu';
 import CustomSwitch from '@base/components/CustomSwitch';
 import { Paths, Roles } from '@lib/constant';
 import { getAccess } from '@modules/auth/lib/utils/client';
 import type { PaginationProps, TableColumnsType } from 'antd';
-import { Button, Drawer, Form, message, Space, Table } from 'antd';
+import { Button, Drawer, Form, Space, Table, message } from 'antd';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
@@ -117,8 +118,9 @@ const RolesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
         const item = data?.find((item) => item.id === id);
 
         return (
-          <Space>
+          <ActionMenu content={<Space direction="vertical">
             <Button
+              title="Edit permissions"
               type="primary"
               ghost
               disabled={isDisabled}
@@ -132,6 +134,7 @@ const RolesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               Edit Permissions
             </Button>
             <Button
+              title="Edit role"
               disabled={isDisabled}
               type="primary"
               onClick={() => {
@@ -143,6 +146,7 @@ const RolesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               <AiFillEdit />
             </Button>
             <Button
+              title="Delete role"
               danger
               disabled={isDisabled}
               onClick={() => {
@@ -161,7 +165,7 @@ const RolesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
             >
               <AiFillDelete />
             </Button>
-          </Space>
+          </Space>} />
         );
       },
     },
@@ -184,6 +188,7 @@ const RolesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
         onClose={() => setUpdateItem(null)}
       >
         <RolesForm
+          key={updateItem?.id}
           formType="update"
           form={formInstance}
           initialValues={{ ...updateItem, isActive: updateItem?.isActive }}

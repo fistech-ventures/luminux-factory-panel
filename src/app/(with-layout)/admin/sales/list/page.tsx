@@ -12,6 +12,7 @@ import SalesList from "@modules/sales/components/SalesList";
 import { SalesHooks } from "@modules/sales/lib/hooks";
 import { ISalesFilter } from "@modules/sales/lib/interfaces";
 import { CustomersHooks } from "@modules/customers/lib/hooks";
+import { UsersHooks } from "@modules/users/lib/hooks";
 import { Button, Drawer, Form, message, Select, Tag } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
@@ -38,6 +39,13 @@ const SalesPage = () => {
   });
 
   const customersQuery = CustomersHooks.useFind({
+    options: {
+      page: 1,
+      limit: 300,
+    },
+  });
+
+  const usersQuery = UsersHooks.useFind({
     options: {
       page: 1,
       limit: 300,
@@ -116,6 +124,25 @@ const SalesPage = () => {
                   label: method,
                   value: method,
                 }))}
+              />
+            </Form.Item>
+            <Form.Item name="soldById" className="mb-0!">
+              <Select
+                allowClear
+                showSearch
+                placeholder="Sold By"
+                options={Toolbox.toCleanArray(
+                  usersQuery.data?.data?.map((user) => ({
+                    key: user?.id,
+                    label: user?.fullName || user?.email,
+                    value: user?.id,
+                  })),
+                )}
+                filterOption={(input, option) =>
+                  String(option?.label ?? "")
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
+                }
               />
             </Form.Item>
           </>

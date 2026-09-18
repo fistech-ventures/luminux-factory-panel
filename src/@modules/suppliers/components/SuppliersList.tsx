@@ -1,4 +1,5 @@
 import ConfirmationDialog from '@base/components/ConfirmationDialog';
+import ActionMenu from '@base/components/ActionMenu';
 import RecordDetailsModal from '@base/components/RecordDetailsModal';
 import { Paths } from '@lib/constant';
 import { getAccess } from '@modules/auth/lib/utils/client';
@@ -106,8 +107,9 @@ const SuppliersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       render: (id) => {
         const item = data?.find((item) => item.id === id);
         return (
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+          <ActionMenu content={<div className="flex flex-col gap-1">
             <Button
+              title="View ledger"
               onClick={() => {
                 getAccess(['suppliers:read'], () => {
                   router.push(`${Paths.admin.ledger.list}?entityType=supplier&entityId=${id}`);
@@ -117,6 +119,7 @@ const SuppliersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               <FaBook />
             </Button>
             <Button
+              title="View details"
               onClick={() => {
                 getAccess(['suppliers:read'], () => {
                   setDetailsItem(item);
@@ -126,6 +129,7 @@ const SuppliersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               <AiOutlineEye />
             </Button>
             <Button
+              title="Edit supplier"
               onClick={() => {
                 getAccess(['suppliers:update'], () => {
                   setUpdateItem(item);
@@ -135,6 +139,7 @@ const SuppliersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               <AiFillEdit />
             </Button>
             <Button
+              title="Delete supplier"
               danger
               onClick={() => {
                 getAccess(['suppliers:delete'], () => {
@@ -152,7 +157,7 @@ const SuppliersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
             >
               <AiFillDelete />
             </Button>
-          </div>
+          </div>} />
         );
       },
     },
@@ -175,6 +180,7 @@ const SuppliersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
         onClose={() => setUpdateItem(null)}
       >
         <SuppliersForm
+          key={updateItem?.id}
           formType="update"
           form={formInstance}
           initialValues={{

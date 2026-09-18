@@ -94,10 +94,6 @@ const UsersForm: React.FC<IProps> = ({ isLoading, userId, form, formType = 'crea
     })),
   );
 
-  useEffect(() => {
-    form.resetFields();
-  }, [form, initialValues]);
-
   return (
     <React.Fragment>
       {messageHolder}

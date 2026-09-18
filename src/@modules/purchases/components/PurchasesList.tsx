@@ -1,4 +1,5 @@
 import ConfirmationDialog from '@base/components/ConfirmationDialog';
+import ActionMenu from '@base/components/ActionMenu';
 import RecordDetailsModal from '@base/components/RecordDetailsModal';
 import { getAccess } from '@modules/auth/lib/utils/client';
 import type { PaginationProps, TableColumnsType } from 'antd';
@@ -121,8 +122,9 @@ const PurchasesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       render: (id) => {
         const item = data?.find((item) => item.id === id);
         return (
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+          <ActionMenu content={<div className="flex flex-col gap-1">
             <Button
+              title="View details"
               onClick={() => {
                 getAccess(['purchases:read'], () => {
                   setDetailsItem(item);
@@ -132,6 +134,7 @@ const PurchasesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               <AiOutlineEye />
             </Button>
             <Button
+              title="Edit purchase"
               onClick={() => {
                 getAccess(['purchases:update'], () => {
                   setUpdateItem(item);
@@ -141,6 +144,7 @@ const PurchasesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               <AiFillEdit />
             </Button>
             <Button
+              title="Delete purchase"
               danger
               onClick={() => {
                 getAccess(['purchases:delete'], () => {
@@ -158,7 +162,7 @@ const PurchasesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
             >
               <AiFillDelete />
             </Button>
-          </div>
+          </div>} />
         );
       },
     },
@@ -181,6 +185,7 @@ const PurchasesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
         onClose={() => setUpdateItem(null)}
       >
         <PurchasesForm
+          key={updateItem?.id}
           formType="update"
           form={formInstance}
           initialValues={{

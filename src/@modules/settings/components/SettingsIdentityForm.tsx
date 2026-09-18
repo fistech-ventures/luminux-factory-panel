@@ -1,28 +1,38 @@
-import FloatInput from '@base/antd/components/FloatInput';
-import FloatInputNumber from '@base/antd/components/FloatInputNumber';
-import FloatSelect from '@base/antd/components/FloatSelect';
-import FloatTextarea from '@base/antd/components/FloatTextarea';
-import CountryCurrencySelect from '@base/components/CountryCurrencySelect';
-import InputPhone from '@base/components/InputPhone';
-import PhoneCodeSelect from '@base/components/PhoneCodeSelect';
-import { Button, Col, ColorPicker, Form, FormInstance, Row, Select } from 'antd';
-import React, { useEffect } from 'react';
-import { ISettings } from '../lib/interfaces';
+import FloatInput from "@base/antd/components/FloatInput";
+import FloatInputNumber from "@base/antd/components/FloatInputNumber";
+import FloatSelect from "@base/antd/components/FloatSelect";
+import FloatTextarea from "@base/antd/components/FloatTextarea";
+import CountryCurrencySelect from "@base/components/CountryCurrencySelect";
+import InputPhone from "@base/components/InputPhone";
+import PhoneCodeSelect from "@base/components/PhoneCodeSelect";
+import {
+  Button,
+  Col,
+  ColorPicker,
+  Form,
+  FormInstance,
+  Row,
+  Select,
+} from "antd";
+import React from "react";
+import { ISettings } from "../lib/interfaces";
 
 interface IProps {
   isLoading: boolean;
   form: FormInstance;
-  formType?: 'create' | 'update';
+  formType?: "create" | "update";
   initialValues?: Partial<ISettings>;
   onFinish: (values: ISettings) => void;
 }
 
-const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'create', initialValues, onFinish }) => {
+const SettingsIdentityForm: React.FC<IProps> = ({
+  isLoading,
+  form,
+  formType = "create",
+  initialValues,
+  onFinish,
+}) => {
   const formValues = Form.useWatch([], form);
-
-  useEffect(() => {
-    form.resetFields();
-  }, [form, initialValues]);
 
   return (
     <Form
@@ -40,7 +50,7 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
             rules={[
               {
                 required: true,
-                message: 'Name is required!',
+                message: "Name is required!",
               },
             ]}
             className="!mb-0"
@@ -54,11 +64,11 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
             rules={[
               {
                 required: true,
-                message: 'Initial name is required!',
+                message: "Initial name is required!",
               },
               {
                 pattern: /^[a-z0-9]+$/,
-                message: 'Only lowercase characters and numbers are allowed!',
+                message: "Only lowercase characters and numbers are allowed!",
               },
             ]}
             className="!mb-0"
@@ -71,8 +81,8 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
             name="icon"
             rules={[
               {
-                type: 'url',
-                message: 'Icon url must be a valid!',
+                type: "url",
+                message: "Icon url must be a valid!",
               },
             ]}
             className="!mb-0"
@@ -85,8 +95,8 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
             name="logo"
             rules={[
               {
-                type: 'url',
-                message: 'Logo url must be a valid!',
+                type: "url",
+                message: "Logo url must be a valid!",
               },
             ]}
             className="!mb-0"
@@ -100,7 +110,7 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
             rules={[
               {
                 required: true,
-                message: 'Theme primary color is required!',
+                message: "Theme primary color is required!",
               },
             ]}
             className="!mb-0"
@@ -108,7 +118,9 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
             <ColorPicker
               allowClear
               showText
-              onChange={(color) => form.setFieldValue('themePrimaryColor', color.toHexString())}
+              onChange={(color) =>
+                form.setFieldValue("themePrimaryColor", color.toHexString())
+              }
               className="w-full !justify-start"
             />
           </Form.Item>
@@ -119,7 +131,7 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
             rules={[
               {
                 required: true,
-                message: 'Theme secondary color is required!',
+                message: "Theme secondary color is required!",
               },
             ]}
             className="!mb-0"
@@ -127,7 +139,9 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
             <ColorPicker
               allowClear
               showText
-              onChange={(color) => form.setFieldValue('themeSecondayColor', color.toHexString())}
+              onChange={(color) =>
+                form.setFieldValue("themeSecondayColor", color.toHexString())
+              }
               className="w-full !justify-start"
             />
           </Form.Item>
@@ -138,7 +152,7 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
             rules={[
               {
                 required: true,
-                message: 'Phone code is required!',
+                message: "Phone code is required!",
               },
             ]}
             className="!mb-0"
@@ -147,7 +161,7 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
               isFloat
               showSearch
               code={formValues?.phoneCode}
-              onSelectCode={(code) => form.setFieldValue('phoneCode', code)}
+              onSelectCode={(code) => form.setFieldValue("phoneCode", code)}
             />
           </Form.Item>
         </Col>
@@ -157,7 +171,7 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
             rules={[
               {
                 required: true,
-                message: 'Currency is required!',
+                message: "Currency is required!",
               },
             ]}
             className="!mb-0"
@@ -166,13 +180,18 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
               isFloat
               showSearch
               currency={formValues?.currency}
-              onSelectCurrency={(currency) => form.setFieldValue('currency', currency)}
+              onSelectCurrency={(currency) =>
+                form.setFieldValue("currency", currency)
+              }
             />
           </Form.Item>
         </Col>
         <Col xs={24} xl={16}>
           <Form.Item name="description" className="!mb-0">
-            <FloatTextarea placeholder="Description" autoSize={{ minRows: 1, maxRows: 3 }} />
+            <FloatTextarea
+              placeholder="Description"
+              autoSize={{ minRows: 1, maxRows: 3 }}
+            />
           </Form.Item>
         </Col>
         <Col xs={24} md={12} xl={8}>
@@ -187,11 +206,11 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
         </Col>
         <Col xs={24} md={12} xl={8}>
           <Form.Item
-            name={['socialUrls', 'facebook']}
+            name={["socialUrls", "facebook"]}
             rules={[
               {
-                type: 'url',
-                message: 'Facebook url must be a valid!',
+                type: "url",
+                message: "Facebook url must be a valid!",
               },
             ]}
             className="!mb-0"
@@ -201,11 +220,11 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
         </Col>
         <Col xs={24} md={12} xl={8}>
           <Form.Item
-            name={['socialUrls', 'instagram']}
+            name={["socialUrls", "instagram"]}
             rules={[
               {
-                type: 'url',
-                message: 'Instagram url must be a valid!',
+                type: "url",
+                message: "Instagram url must be a valid!",
               },
             ]}
             className="!mb-0"
@@ -215,11 +234,11 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
         </Col>
         <Col xs={24} md={12} xl={8}>
           <Form.Item
-            name={['socialUrls', 'youtube']}
+            name={["socialUrls", "youtube"]}
             rules={[
               {
-                type: 'url',
-                message: 'YouTube url must be a valid!',
+                type: "url",
+                message: "YouTube url must be a valid!",
               },
             ]}
             className="!mb-0"
@@ -233,7 +252,7 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
             rules={[
               {
                 required: true,
-                message: 'User registration allowance is required!',
+                message: "User registration allowance is required!",
               },
             ]}
             className="!mb-0"
@@ -242,7 +261,9 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
               showSearch
               virtual={false}
               placeholder="User Acceptance"
-              filterOption={(input, option: any) => option.label.toLowerCase().includes(input.toLowerCase())}
+              filterOption={(input, option: any) =>
+                option.label.toLowerCase().includes(input.toLowerCase())
+              }
             >
               <Select.Option value={true}>Accepted</Select.Option>
               <Select.Option value={false}>Not Accepted</Select.Option>
@@ -255,7 +276,7 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
             rules={[
               {
                 required: true,
-                message: 'User verification requirement is required!',
+                message: "User verification requirement is required!",
               },
             ]}
             className="!mb-0"
@@ -264,7 +285,9 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
               showSearch
               virtual={false}
               placeholder="User Verification"
-              filterOption={(input, option: any) => option.label.toLowerCase().includes(input.toLowerCase())}
+              filterOption={(input, option: any) =>
+                option.label.toLowerCase().includes(input.toLowerCase())
+              }
             >
               <Select.Option value={true}>Need</Select.Option>
               <Select.Option value={false}>No Need</Select.Option>
@@ -277,7 +300,7 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
             rules={[
               {
                 required: true,
-                message: 'Web view requirement is required!',
+                message: "Web view requirement is required!",
               },
             ]}
             className="!mb-0"
@@ -286,7 +309,9 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
               showSearch
               virtual={false}
               placeholder="Web View"
-              filterOption={(input, option: any) => option.label.toLowerCase().includes(input.toLowerCase())}
+              filterOption={(input, option: any) =>
+                option.label.toLowerCase().includes(input.toLowerCase())
+              }
             >
               <Select.Option value={true}>Need</Select.Option>
               <Select.Option value={false}>No Need</Select.Option>
@@ -299,18 +324,21 @@ const SettingsIdentityForm: React.FC<IProps> = ({ isLoading, form, formType = 'c
             rules={[
               {
                 required: true,
-                message: 'OTP expiration time is required!',
+                message: "OTP expiration time is required!",
               },
             ]}
             className="!mb-0"
           >
-            <FloatInputNumber placeholder="OTP Expires in Minutes" className="!w-full" />
+            <FloatInputNumber
+              placeholder="OTP Expires in Minutes"
+              className="!w-full"
+            />
           </Form.Item>
         </Col>
         <Col xs={24}>
           <Form.Item className="text-right !mb-0">
             <Button loading={isLoading} type="primary" htmlType="submit">
-              {formType === 'create' ? 'Create' : 'Update'}
+              {formType === "create" ? "Create" : "Update"}
             </Button>
           </Form.Item>
         </Col>

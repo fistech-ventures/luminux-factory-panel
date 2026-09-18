@@ -60,10 +60,6 @@ const ProductsForm: React.FC<IProps> = ({
     }
   };
 
-  useEffect(() => {
-    form.resetFields();
-  }, [form, initialValues]);
-
   const variantsQuery = VariantsHooks.useFind({
     options: {
       page: 1,

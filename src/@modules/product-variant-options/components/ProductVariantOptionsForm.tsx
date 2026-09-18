@@ -38,7 +38,6 @@ const ProductVariantOptionsForm: React.FC<IProps> = ({
   }, [backendError, messageApi]);
 
   useEffect(() => {
-    form.resetFields();
     setSelectedVariantId((initialValues?.variantId as string) ?? null);
   }, [form, initialValues]);
 

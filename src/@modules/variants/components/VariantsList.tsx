@@ -1,4 +1,5 @@
 import ConfirmationDialog from '@base/components/ConfirmationDialog';
+import ActionMenu from '@base/components/ActionMenu';
 import CustomSwitch from '@base/components/CustomSwitch';
 import { Toolbox } from '@lib/utils';
 import { getAccess } from '@modules/auth/lib/utils/client';
@@ -110,8 +111,9 @@ const VariantsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       render: (id) => {
         const item = data?.find((item) => item.id === id);
         return (
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+          <ActionMenu content={<div className="flex flex-col gap-1">
             <Button
+              title="Edit variant"
               onClick={() => {
                 getAccess(['variants:update'], () => {
                   setUpdateItem(item);
@@ -120,7 +122,7 @@ const VariantsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
             >
               <AiFillEdit />
             </Button>
-          </div>
+          </div>} />
         );
       },
     },
@@ -138,6 +140,7 @@ const VariantsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       />
       <Drawer width={640} title={`Update ${updateItem?.title}`} open={!!updateItem?.id} onClose={() => setUpdateItem(null)}>
         <VariantsForm
+          key={updateItem?.id}
           formType="update"
           form={formInstance}
           initialValues={{

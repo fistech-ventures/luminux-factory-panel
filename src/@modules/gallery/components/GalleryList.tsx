@@ -1,4 +1,5 @@
 import ConfirmationDialog from '@base/components/ConfirmationDialog';
+import ActionMenu from '@base/components/ActionMenu';
 import { ImagePaths } from '@lib/constant';
 import { getAccess } from '@modules/auth/lib/utils/client';
 import type { PaginationProps, TableColumnsType } from 'antd';
@@ -122,8 +123,9 @@ const GalleryList: React.FC<IProps> = ({ isLoading, data, pagination, onSelectio
       render: (id) => {
         const item = data?.find((item) => item.id === id);
         return (
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+          <ActionMenu content={<div className="flex flex-col gap-1">
             <Button
+              title="Edit gallery item"
               onClick={() => {
                 getAccess(['gallery:update'], () => {
                   setUpdateItem(item);
@@ -133,6 +135,7 @@ const GalleryList: React.FC<IProps> = ({ isLoading, data, pagination, onSelectio
               <AiFillEdit />
             </Button>
             <Button
+              title="Delete gallery item"
               danger
               onClick={() => {
                 getAccess(['gallery:delete'], () => {
@@ -150,7 +153,7 @@ const GalleryList: React.FC<IProps> = ({ isLoading, data, pagination, onSelectio
             >
               <AiFillDelete />
             </Button>
-          </div>
+          </div>} />
         );
       },
     },
@@ -180,6 +183,7 @@ const GalleryList: React.FC<IProps> = ({ isLoading, data, pagination, onSelectio
         onClose={() => setUpdateItem(null)}
       >
         <GalleryForm
+          key={updateItem?.id}
           formType="update"
           form={formInstance}
           initialValues={updateItem}

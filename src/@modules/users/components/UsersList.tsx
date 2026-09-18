@@ -1,4 +1,5 @@
 import ConfirmationDialog from '@base/components/ConfirmationDialog';
+import ActionMenu from '@base/components/ActionMenu';
 import RecordDetailsModal from '@base/components/RecordDetailsModal';
 import CustomSwitch from '@base/components/CustomSwitch';
 import { Toolbox } from '@lib/utils';
@@ -183,8 +184,9 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       render: (id) => {
         const item = data?.find((item) => item.id === id);
         return (
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+          <ActionMenu content={<div className="flex flex-col gap-1">
             <Button
+              title="View details"
               onClick={() => {
                 getAccess(['users:read'], () => {
                   setDetailsItem(item);
@@ -194,6 +196,7 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               <AiOutlineEye />
             </Button>
             <Button
+              title="Edit user"
               onClick={() => {
                 getAccess(['users:update'], () => {
                   setUpdateItem(item);
@@ -203,6 +206,7 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               <AiFillEdit />
             </Button>
             <Button
+              title="Delete user"
               danger
               onClick={() => {
                 getAccess(['users:delete'], () => {
@@ -236,7 +240,7 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
             >
               <AiFillDelete />
             </Button>
-          </div>
+          </div>} />
         );
       },
     },
@@ -259,6 +263,7 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
         onClose={() => setUpdateItem(null)}
       >
         <UsersForm
+          key={updateItem?.id}
           userId={updateItem?.id as string}
           formType="update"
           form={formInstance}

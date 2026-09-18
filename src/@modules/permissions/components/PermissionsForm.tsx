@@ -66,10 +66,6 @@ const PermissionsForm: React.FC<IProps> = ({ isLoading, form, formType = 'create
     },
   });
 
-  useEffect(() => {
-    form.resetFields();
-  }, [form, initialValues]);
-
   return (
     <React.Fragment>
       {messageHolder}

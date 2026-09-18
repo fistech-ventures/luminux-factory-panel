@@ -45,10 +45,6 @@ const CustomersForm: React.FC<IProps> = ({
     }
   };
 
-  useEffect(() => {
-    form.resetFields();
-  }, [form, initialValues]);
-
   return (
     <React.Fragment>
       {messageHolder}

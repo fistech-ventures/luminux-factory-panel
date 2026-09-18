@@ -22,7 +22,7 @@ import {
   message,
 } from "antd";
 import dayjs from "dayjs";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { ISaleCreate } from "../lib/interfaces";
@@ -48,6 +48,8 @@ const SalesForm: React.FC<IProps> = ({
   const [customerSearchTerm, setCustomerSearchTerm] = useState(null);
   const [productSearchTerm, setProductSearchTerm] = useState(null);
   const [userSearchTerm, setUserSearchTerm] = useState(null);
+  const hasInitializedValues = useRef(false);
+  const initializedRecordId = useRef(initialValues?.id);
   const watchedItems = Form.useWatch("items", form) || [];
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [customerModalForm] = Form.useForm();
@@ -78,15 +80,24 @@ const SalesForm: React.FC<IProps> = ({
     // Only sync the form when initialValues change and there's no backend error,
     // otherwise a parent re-render (e.g. after creating a customer) would wipe
     // the selection made by the user or by the create modal.
-    if (initialValues && !backendError) {
+    const recordChanged = initializedRecordId.current !== initialValues?.id;
+
+    if (
+      initialValues &&
+      !backendError &&
+      (!hasInitializedValues.current || recordChanged)
+    ) {
       form.setFieldsValue({
         ...initialValues,
+        soldById: undefined,
         date: initialValues?.date ? dayjs(initialValues.date) : dayjs(),
         paymentMethod: initialValues?.paymentMethod || "cash",
         items: Toolbox.isNotEmpty(initialValues?.items)
           ? initialValues.items.map((item) => ({ ...item }))
           : [],
       });
+      hasInitializedValues.current = true;
+      initializedRecordId.current = initialValues?.id;
     }
   }, [initialValues, form, backendError]);
 
@@ -108,14 +119,6 @@ const SalesForm: React.FC<IProps> = ({
     options: {
       limit: 20,
       searchTerm: userSearchTerm,
-    },
-  });
-
-  const soldByQuery = UsersHooks.useFindById({
-    id: initialValues?.soldById,
-    config: {
-      queryKey: [],
-      enabled: !!initialValues?.soldById,
     },
   });
 
@@ -147,6 +150,7 @@ const SalesForm: React.FC<IProps> = ({
         form={form}
         initialValues={{
           ...initialValues,
+          soldById: undefined,
           date: initialValues?.date ? dayjs(initialValues.date) : dayjs(),
           paymentMethod: initialValues?.paymentMethod || "cash",
           items: Toolbox.isNotEmpty(initialValues?.items)
@@ -195,7 +199,7 @@ const SalesForm: React.FC<IProps> = ({
               />
             </Form.Item>
           </Col>
-          <Col xs={24}>
+          <Col xs={12}>
             <Form.Item
               name="customerId"
               rules={[{ required: true, message: "Customer is required!" }]}
@@ -221,13 +225,17 @@ const SalesForm: React.FC<IProps> = ({
                 }
                 query={customersQuery}
                 renderFooter={(searchTerm) => {
-                  const customerExists = customersQuery.data?.pages?.some(page =>
-                    page?.data?.some((customer: ICustomer) =>
-                      customer?.name?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-                      customer?.contactNumber?.includes(searchTerm)
-                    )
+                  const customerExists = customersQuery.data?.pages?.some(
+                    (page) =>
+                      page?.data?.some(
+                        (customer: ICustomer) =>
+                          customer?.name
+                            ?.toLowerCase()
+                            .includes(searchTerm?.toLowerCase()) ||
+                          customer?.contactNumber?.includes(searchTerm),
+                      ),
                   );
-                  
+
                   if (!customerExists && searchTerm && searchTerm.length > 2) {
                     return (
                       <Button
@@ -236,7 +244,9 @@ const SalesForm: React.FC<IProps> = ({
                         icon={<AiOutlinePlus />}
                         onClick={() => {
                           setIsCustomerModalOpen(true);
-                          customerModalForm.setFieldsValue({ name: searchTerm });
+                          customerModalForm.setFieldsValue({
+                            name: searchTerm,
+                          });
                         }}
                       >
                         Create Customer: {searchTerm}
@@ -248,7 +258,7 @@ const SalesForm: React.FC<IProps> = ({
               />
             </Form.Item>
           </Col>
-          <Col xs={24}>
+          <Col xs={12}>
             <Form.Item
               name="soldById"
               rules={[{ required: true, message: "Sold by is required!" }]}
@@ -259,9 +269,6 @@ const SalesForm: React.FC<IProps> = ({
                 allowClear
                 virtual={false}
                 placeholder="Sold By"
-                initialOptions={
-                  soldByQuery.data?.data ? [soldByQuery.data.data] : []
-                }
                 option={({ item: user }) => ({
                   key: user?.id,
                   label: user?.fullName || user?.email,
@@ -272,6 +279,27 @@ const SalesForm: React.FC<IProps> = ({
                 }
                 query={usersQuery}
               />
+            </Form.Item>
+          </Col>
+
+          <Col xs={12}>
+            <Form.Item
+              name="shippingTo"
+              rules={[{ required: true, message: "Shipping to is required!" }]}
+              className="mb-0!"
+            >
+              <Input className="w-full" placeholder="Shipping to" />
+            </Form.Item>
+          </Col>
+          <Col xs={12}>
+            <Form.Item
+              name="shippingAddress"
+              rules={[
+                { required: true, message: "Shipping address is required!" },
+              ]}
+              className="mb-0!"
+            >
+              <Input className="w-full" placeholder="Shipping Address" />
             </Form.Item>
           </Col>
           <Col xs={24}>
@@ -453,7 +481,7 @@ const SalesForm: React.FC<IProps> = ({
           </Col>
         </Row>
       </Form>
-      
+
       <Modal
         title="Create New Customer"
         open={isCustomerModalOpen}
@@ -462,10 +490,13 @@ const SalesForm: React.FC<IProps> = ({
           customerModalForm.resetFields();
         }}
         footer={[
-          <Button key="cancel" onClick={() => {
-            setIsCustomerModalOpen(false);
-            customerModalForm.resetFields();
-          }}>
+          <Button
+            key="cancel"
+            onClick={() => {
+              setIsCustomerModalOpen(false);
+              customerModalForm.resetFields();
+            }}
+          >
             Cancel
           </Button>,
           <Button
@@ -477,7 +508,7 @@ const SalesForm: React.FC<IProps> = ({
                 customerCreateFn.mutate(values, {
                   onSuccess: (res) => {
                     if (res.success) {
-                      messageApi.success('Customer created successfully');
+                      messageApi.success("Customer created successfully");
                       setIsCustomerModalOpen(false);
                       customerModalForm.resetFields();
                       form.setFieldsValue({ customerId: res.data.id });
@@ -499,24 +530,24 @@ const SalesForm: React.FC<IProps> = ({
           form={customerModalForm}
           layout="vertical"
           initialValues={{
-            customerType: 'B2C',
+            customerType: "B2C",
           }}
         >
           <Form.Item
             name="name"
-            rules={[{ required: true, message: 'Customer name is required!' }]}
+            rules={[{ required: true, message: "Customer name is required!" }]}
           >
             <Input placeholder="Customer Name" />
           </Form.Item>
           <Form.Item
             name="contactNumber"
-            rules={[{ required: true, message: 'Contact number is required!' }]}
+            rules={[{ required: true, message: "Contact number is required!" }]}
           >
             <Input placeholder="Contact Number" />
           </Form.Item>
           <Form.Item
             name="customerType"
-            rules={[{ required: true, message: 'Customer type is required!' }]}
+            rules={[{ required: true, message: "Customer type is required!" }]}
           >
             <Select
               options={ENUM_CUSTOMER_TYPES.map((type) => ({

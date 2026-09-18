@@ -1,4 +1,5 @@
 import ConfirmationDialog from '@base/components/ConfirmationDialog';
+import ActionMenu from '@base/components/ActionMenu';
 import CustomSwitch from '@base/components/CustomSwitch';
 import { getAccess } from '@modules/auth/lib/utils/client';
 import type { PaginationProps, TableColumnsType } from 'antd';
@@ -111,8 +112,9 @@ const PermissionTypesList: React.FC<IProps> = ({ isLoading, data, pagination }) 
       render: (id) => {
         const item = data?.find((item) => item.id === id);
         return (
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <ActionMenu content={<div className="flex flex-col gap-1">
             <Button
+              title="Edit permission type"
               type="primary"
               onClick={() => {
                 getAccess(['role-manager-permission-types:update'], () => {
@@ -123,6 +125,7 @@ const PermissionTypesList: React.FC<IProps> = ({ isLoading, data, pagination }) 
               <AiFillEdit />
             </Button>
             <Button
+              title="Delete permission type"
               danger
               onClick={() => {
                 getAccess(['role-manager-permission-types:delete'], () => {
@@ -140,7 +143,7 @@ const PermissionTypesList: React.FC<IProps> = ({ isLoading, data, pagination }) 
             >
               <AiFillDelete />
             </Button>
-          </div>
+          </div>} />
         );
       },
     },
@@ -163,6 +166,7 @@ const PermissionTypesList: React.FC<IProps> = ({ isLoading, data, pagination }) 
         onClose={() => setUpdateItem(null)}
       >
         <PermissionTypesForm
+          key={updateItem?.id}
           formType="update"
           form={formInstance}
           initialValues={{ ...updateItem, isActive: updateItem?.isActive }}

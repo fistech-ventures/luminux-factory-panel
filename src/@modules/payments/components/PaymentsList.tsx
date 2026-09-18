@@ -1,4 +1,5 @@
 import RecordDetailsModal from '@base/components/RecordDetailsModal';
+import ActionMenu from '@base/components/ActionMenu';
 import { getAccess } from '@modules/auth/lib/utils/client';
 import { IPayment } from '@modules/payments/lib/interfaces';
 import { Button, Table, TableColumnsType, Tag } from 'antd';
@@ -85,14 +86,15 @@ const PaymentsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
         if (!resource || !id) return 'N/A';
 
         return (
-          <Button
+          <ActionMenu content={<Button
+            title="View details"
             icon={<AiOutlineEye />}
             onClick={() => {
               getAccess(['payments:read'], () => {
                 setDetailsRef({ resource, id: String(id) });
               });
             }}
-          />
+          />} />
         );
       },
     },

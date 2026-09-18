@@ -1,15 +1,16 @@
-import ConfirmationDialog from '@base/components/ConfirmationDialog';
-import RecordDetailsModal from '@base/components/RecordDetailsModal';
-import { ImagePaths } from '@lib/constant';
-import { Toolbox } from '@lib/utils';
-import { getAccess } from '@modules/auth/lib/utils/client';
-import type { PaginationProps, TableColumnsType } from 'antd';
-import { Button, Drawer, Form, Table, message } from 'antd';
-import React, { useState } from 'react';
-import { AiFillEdit, AiFillDelete, AiOutlineEye } from 'react-icons/ai';
-import { ProductsHooks } from '../lib/hooks';
-import { IProduct } from '../lib/interfaces';
-import ProductsForm from './ProductsForm';
+import ConfirmationDialog from "@base/components/ConfirmationDialog";
+import ActionMenu from "@base/components/ActionMenu";
+import RecordDetailsModal from "@base/components/RecordDetailsModal";
+import { ImagePaths } from "@lib/constant";
+import { Toolbox } from "@lib/utils";
+import { getAccess } from "@modules/auth/lib/utils/client";
+import type { PaginationProps, TableColumnsType } from "antd";
+import { Button, Drawer, Form, Image, Table, message } from "antd";
+import React, { useState } from "react";
+import { AiFillEdit, AiFillDelete, AiOutlineEye } from "react-icons/ai";
+import { ProductsHooks } from "../lib/hooks";
+import { IProduct } from "../lib/interfaces";
+import ProductsForm from "./ProductsForm";
 
 interface IProps {
   isLoading: boolean;
@@ -27,7 +28,7 @@ const ProductsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
     title: string;
     content: string;
     onConfirm: () => void;
-  }>({ open: false, title: '', content: '', onConfirm: () => {} });
+  }>({ open: false, title: "", content: "", onConfirm: () => {} });
 
   const productUpdateFn = ProductsHooks.useUpdate({
     config: {
@@ -72,14 +73,15 @@ const ProductsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
 
   const columns: TableColumnsType<(typeof dataSource)[number]> = [
     {
-      key: 'thumbnail',
-      dataIndex: 'thumbnail',
-      title: 'Image',
+      key: "thumbnail",
+      dataIndex: "thumbnail",
+      title: "Image",
       width: 64,
       render: (thumbnail) =>
         thumbnail ? (
-          <img
+          <Image
             src={thumbnail}
+            preview={true}
             alt="product"
             className="w-10 h-10 object-cover rounded-md border border-gray-200"
             onError={(e) => {
@@ -87,95 +89,113 @@ const ProductsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
             }}
           />
         ) : (
-          'N/A'
+          "N/A"
         ),
     },
     {
-      key: 'title',
-      dataIndex: 'title',
-      title: 'Title',
+      key: "title",
+      dataIndex: "title",
+      title: "Title",
     },
     {
-      key: 'productCode',
-      dataIndex: 'productCode',
-      title: 'Product Code',
-      render: (productCode) => productCode || 'N/A',
+      key: "productCode",
+      dataIndex: "productCode",
+      title: "Product Code",
+      render: (productCode) => productCode || "N/A",
     },
     {
-      key: 'sourcingPrice',
-      dataIndex: 'sourcingPrice',
-      title: 'Sourcing',
-      render: (sourcingPrice) => (sourcingPrice != null ? Number(sourcingPrice).toFixed(2) : 'N/A'),
+      key: "sourcingPrice",
+      dataIndex: "sourcingPrice",
+      title: "Sourcing",
+      render: (sourcingPrice) =>
+        sourcingPrice != null ? Number(sourcingPrice).toFixed(2) : "N/A",
     },
     {
-      key: 'sellingPrice',
-      dataIndex: 'sellingPrice',
-      title: 'Selling',
-      render: (sellingPrice) => (sellingPrice != null ? Number(sellingPrice).toFixed(2) : 'N/A'),
+      key: "sellingPrice",
+      dataIndex: "sellingPrice",
+      title: "Selling",
+      render: (sellingPrice) =>
+        sellingPrice != null ? Number(sellingPrice).toFixed(2) : "N/A",
     },
     {
-      key: 'stock',
-      dataIndex: 'stock',
-      title: 'Stock',
+      key: "stock",
+      dataIndex: "stock",
+      title: "Stock",
       render: (stock, record) => (
         <div>
           <div>{stock ?? 0}</div>
-          {record?.variantsCount > 0 && <div className="text-xs text-gray-400">{record.variantsCount} variants</div>}
+          {record?.variantsCount > 0 && (
+            <div className="text-xs text-gray-400">
+              {record.variantsCount} variants
+            </div>
+          )}
         </div>
       ),
     },
     {
-      key: 'saleQuantity',
-      dataIndex: 'saleQuantity',
-      title: 'Sold',
+      key: "saleQuantity",
+      dataIndex: "saleQuantity",
+      title: "Sold",
       render: (saleQuantity) => saleQuantity ?? 0,
     },
     {
-      key: 'id',
-      dataIndex: 'id',
-      title: 'Action',
-      align: 'center',
+      key: "id",
+      dataIndex: "id",
+      title: "Action",
+      align: "center",
       render: (id) => {
         const item = data?.find((item) => item.id === id);
         return (
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-            <Button
-              onClick={() => {
-                getAccess(['products:read'], () => {
-                  setDetailsItem(item);
-                });
-              }}
-            >
-              <AiOutlineEye />
-            </Button>
-            <Button
-              onClick={() => {
-                getAccess(['products:update'], () => {
-                  setUpdateItem(item);
-                });
-              }}
-            >
-              <AiFillEdit />
-            </Button>
-            <Button
-              danger
-              onClick={() => {
-                getAccess(['products:delete'], () => {
-                  setConfirmationDialog({
-                    open: true,
-                    title: 'Delete Product',
-                    content: `Are you sure you want to delete "${item.title}"?`,
-                    onConfirm: () => {
-                      productDeleteFn.mutate(item.id);
-                      setConfirmationDialog({ open: false, title: '', content: '', onConfirm: () => {} });
-                    },
-                  });
-                });
-              }}
-            >
-              <AiFillDelete />
-            </Button>
-          </div>
+          <ActionMenu
+            content={
+              <div className="flex flex-col gap-1">
+                <Button
+                  title="View details"
+                  onClick={() => {
+                    getAccess(["products:read"], () => {
+                      setDetailsItem(item);
+                    });
+                  }}
+                >
+                  <AiOutlineEye />
+                </Button>
+                <Button
+                  title="Edit product"
+                  onClick={() => {
+                    getAccess(["products:update"], () => {
+                      setUpdateItem(item);
+                    });
+                  }}
+                >
+                  <AiFillEdit />
+                </Button>
+                <Button
+                  title="Delete product"
+                  danger
+                  onClick={() => {
+                    getAccess(["products:delete"], () => {
+                      setConfirmationDialog({
+                        open: true,
+                        title: "Delete Product",
+                        content: `Are you sure you want to delete "${item.title}"?`,
+                        onConfirm: () => {
+                          productDeleteFn.mutate(item.id);
+                          setConfirmationDialog({
+                            open: false,
+                            title: "",
+                            content: "",
+                            onConfirm: () => {},
+                          });
+                        },
+                      });
+                    });
+                  }}
+                >
+                  <AiFillDelete />
+                </Button>
+              </div>
+            }
+          />
         );
       },
     },
@@ -191,8 +211,14 @@ const ProductsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
         pagination={pagination}
         scroll={{ x: true }}
       />
-      <Drawer width={760} title={`Update ${updateItem?.title}`} open={!!updateItem?.id} onClose={() => setUpdateItem(null)}>
+      <Drawer
+        width={760}
+        title={`Update ${updateItem?.title}`}
+        open={!!updateItem?.id}
+        onClose={() => setUpdateItem(null)}
+      >
         <ProductsForm
+          key={updateItem?.id}
           formType="update"
           form={formInstance}
           initialValues={{
@@ -201,23 +227,31 @@ const ProductsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           }}
           isLoading={productUpdateFn.isPending}
           onFinish={(values) => {
-            const initialVariants = (updateItem?.variants ?? []).map((variant) => ({
-              id: variant?.id,
-              variantId: variant?.variantId,
-              variantOptionId: variant?.variantOptionId,
-              sku: variant?.sku,
-              sellingPrice: variant?.sellingPrice,
-              stockQuantity: variant?.stockQuantity,
-              position: variant?.position,
-            }));
-            const diffs = Toolbox.computeArrayDiffs<any>(initialVariants, values?.variants ?? [], 'id');
+            const initialVariants = (updateItem?.variants ?? []).map(
+              (variant) => ({
+                id: variant?.id,
+                variantId: variant?.variantId,
+                variantOptionId: variant?.variantOptionId,
+                sku: variant?.sku,
+                sellingPrice: variant?.sellingPrice,
+                stockQuantity: variant?.stockQuantity,
+                position: variant?.position,
+              }),
+            );
+            const diffs = Toolbox.computeArrayDiffs<any>(
+              initialVariants,
+              values?.variants ?? [],
+              "id",
+            );
 
             productUpdateFn.mutate({
               id: updateItem?.id,
               data: {
                 ...values,
                 variants: diffs.map((diff) =>
-                  Toolbox.isNotEmpty(diff?.id) ? diff : Toolbox.omitProps(diff, ['id']),
+                  Toolbox.isNotEmpty(diff?.id)
+                    ? diff
+                    : Toolbox.omitProps(diff, ["id"]),
                 ),
               },
             });
@@ -229,14 +263,21 @@ const ProductsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
         onClose={() => setDetailsItem(null)}
         resource="product"
         id={detailsItem?.id}
-        title={`Product Details - ${detailsItem?.title ?? ''}`}
+        title={`Product Details - ${detailsItem?.title ?? ""}`}
       />
       <ConfirmationDialog
         open={confirmationDialog.open}
         title={confirmationDialog.title}
         content={confirmationDialog.content}
         onConfirm={confirmationDialog.onConfirm}
-        onCancel={() => setConfirmationDialog({ open: false, title: '', content: '', onConfirm: () => {} })}
+        onCancel={() =>
+          setConfirmationDialog({
+            open: false,
+            title: "",
+            content: "",
+            onConfirm: () => {},
+          })
+        }
       />
     </React.Fragment>
   );

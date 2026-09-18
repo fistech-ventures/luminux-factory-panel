@@ -1,4 +1,5 @@
 import RecordDetailsModal from "@base/components/RecordDetailsModal";
+import ActionMenu from "@base/components/ActionMenu";
 import { IAccountTransaction } from "@modules/accounts/lib/interfaces";
 import { getAccess } from "@modules/auth/lib/utils/client";
 import { Button, Table, TableColumnsType, Tag } from "antd";
@@ -94,7 +95,8 @@ const AccountsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
         if (!record?.referenceType || !referenceId) return "N/A";
 
         return (
-          <Button
+          <ActionMenu content={<Button
+            title="View details"
             icon={<AiOutlineEye />}
             onClick={() => {
               getAccess(
@@ -107,7 +109,7 @@ const AccountsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
                 },
               );
             }}
-          />
+          />} />
         );
       },
     },

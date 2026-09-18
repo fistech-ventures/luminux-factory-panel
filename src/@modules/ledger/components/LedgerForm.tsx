@@ -41,10 +41,6 @@ const LedgerForm: React.FC<IProps> = ({ isLoading, form, formType = 'create', in
     }
   };
 
-  useEffect(() => {
-    form.resetFields();
-  }, [form, initialValues]);
-
   const customersQuery = CustomersHooks.useFind({
     options: {
       page: 1,

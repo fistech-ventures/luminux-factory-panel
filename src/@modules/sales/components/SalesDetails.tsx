@@ -75,7 +75,7 @@ const SalesDetails: React.FC<IProps> = ({ id }) => {
           { key: 'paidAmount', label: 'Paid Amount', children: Number(sale?.paidAmount || 0).toFixed(2) },
           { key: 'dueAmount', label: 'Due Amount', children: Number(sale?.dueAmount || 0).toFixed(2) },
           { key: 'paymentMethod', label: 'Payment Method', children: sale?.paymentMethod || 'N/A' },
-          { key: 'soldBy', label: 'Sold By', children: sale?.soldBy?.phoneNumber || 'N/A' },
+          { key: 'soldBy', label: 'Sold By', children: sale?.soldBy?.fullName || 'N/A' },
           {
             key: 'createdAt',
             label: 'Created At',

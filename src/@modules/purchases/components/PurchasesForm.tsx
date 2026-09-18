@@ -24,7 +24,7 @@ import {
   message,
 } from "antd";
 import dayjs from "dayjs";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { IPurchaseCreate } from "../lib/interfaces";
@@ -52,6 +52,8 @@ const PurchasesForm: React.FC<IProps> = ({
   const [supplierSearchTerm, setSupplierSearchTerm] = useState(null);
   const [productSearchTerm, setProductSearchTerm] = useState(null);
   const [userSearchTerm, setUserSearchTerm] = useState(null);
+  const hasInitializedValues = useRef(false);
+  const initializedRecordId = useRef(initialValues?.id);
   const watchedItems = Form.useWatch("items", form) || [];
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
   const [supplierModalForm] = Form.useForm();
@@ -88,7 +90,13 @@ const PurchasesForm: React.FC<IProps> = ({
 
   useEffect(() => {
     // Only reset form when initialValues change and there's no backend error
-    if (initialValues && !backendError) {
+    const recordChanged = initializedRecordId.current !== initialValues?.id;
+
+    if (
+      initialValues &&
+      !backendError &&
+      (!hasInitializedValues.current || recordChanged)
+    ) {
       form.setFieldsValue({
         ...initialValues,
         purchaseDate: initialValues?.purchaseDate
@@ -101,6 +109,8 @@ const PurchasesForm: React.FC<IProps> = ({
             }))
           : [],
       });
+      hasInitializedValues.current = true;
+      initializedRecordId.current = initialValues?.id;
     }
   }, [initialValues, form, backendError]);
 

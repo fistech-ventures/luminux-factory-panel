@@ -42,6 +42,8 @@ export interface ISale extends IBaseEntity {
     address?: string;
     companyName?: string;
   };
+  shippingTo?: string;
+  shippingAddress?: string;
   items: ISaleItem[];
   totalAmount: number;
   discount: number;
@@ -53,6 +55,7 @@ export interface ISale extends IBaseEntity {
   soldBy?: {
     id: TId;
     phoneNumber?: string;
+    fullName?: string;
   };
 }
 

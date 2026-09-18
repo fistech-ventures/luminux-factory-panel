@@ -1,4 +1,5 @@
 import ConfirmationDialog from '@base/components/ConfirmationDialog';
+import ActionMenu from '@base/components/ActionMenu';
 import { getAccess } from '@modules/auth/lib/utils/client';
 import type { PaginationProps, TableColumnsType } from 'antd';
 import { Button, Drawer, Form, Table, message } from 'antd';
@@ -101,8 +102,9 @@ const ProductVariantOptionsList: React.FC<IProps> = ({ isLoading, data, paginati
       render: (id) => {
         const item = data?.find((item) => item.id === id);
         return (
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+          <ActionMenu content={<div className="flex flex-col gap-1">
             <Button
+              title="Edit product variant option"
               onClick={() => {
                 getAccess(['product-variant-options:update'], () => {
                   setUpdateItem(item);
@@ -111,7 +113,7 @@ const ProductVariantOptionsList: React.FC<IProps> = ({ isLoading, data, paginati
             >
               <AiFillEdit />
             </Button>
-          </div>
+          </div>} />
         );
       },
     },
@@ -134,6 +136,7 @@ const ProductVariantOptionsList: React.FC<IProps> = ({ isLoading, data, paginati
         onClose={() => setUpdateItem(null)}
       >
         <ProductVariantOptionsForm
+          key={updateItem?.id}
           formType="update"
           form={formInstance}
           initialValues={{

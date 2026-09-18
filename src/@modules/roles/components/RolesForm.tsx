@@ -36,10 +36,6 @@ const RolesForm: React.FC<IProps> = ({ isLoading, form, formType = 'create', ini
     }
   };
 
-  useEffect(() => {
-    form.resetFields();
-  }, [form, initialValues]);
-
   return (
     <React.Fragment>
       {messageHolder}

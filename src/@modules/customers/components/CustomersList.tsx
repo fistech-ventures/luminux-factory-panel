@@ -1,4 +1,5 @@
 import ConfirmationDialog from "@base/components/ConfirmationDialog";
+import ActionMenu from "@base/components/ActionMenu";
 import RecordDetailsModal from "@base/components/RecordDetailsModal";
 import { Paths } from "@lib/constant";
 import { getAccess } from "@modules/auth/lib/utils/client";
@@ -125,10 +126,9 @@ const CustomersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       render: (id) => {
         const item = data?.find((item) => item.id === id);
         return (
-          <div
-            style={{ display: "flex", gap: "8px", justifyContent: "center" }}
-          >
+          <ActionMenu content={<div className="flex flex-col gap-1">
             <Button
+              title="View ledger"
               onClick={() => {
                 getAccess(["customers:read"], () => {
                   router.push(
@@ -140,6 +140,7 @@ const CustomersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               <FaBook />
             </Button>
             <Button
+              title="View details"
               onClick={() => {
                 getAccess(["customers:read"], () => {
                   setDetailsItem(item);
@@ -149,6 +150,7 @@ const CustomersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               <AiOutlineEye />
             </Button>
             <Button
+              title="Edit customer"
               onClick={() => {
                 getAccess(["customers:update"], () => {
                   setUpdateItem(item);
@@ -158,6 +160,7 @@ const CustomersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               <AiFillEdit />
             </Button>
             <Button
+              title="Delete customer"
               danger
               onClick={() => {
                 getAccess(["customers:delete"], () => {
@@ -180,7 +183,7 @@ const CustomersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
             >
               <AiFillDelete />
             </Button>
-          </div>
+          </div>} />
         );
       },
     },
@@ -203,6 +206,7 @@ const CustomersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
         onClose={() => setUpdateItem(null)}
       >
         <CustomersForm
+          key={updateItem?.id}
           formType="update"
           form={formInstance}
           initialValues={{
