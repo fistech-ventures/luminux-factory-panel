@@ -1,5 +1,11 @@
-import { IBaseEntity, IBaseFilter, IBaseResponse, IMetaResponse, TId } from '@base/interfaces';
-import { ENUM_PAYMENT_METHODS } from '@lib/constant';
+import {
+  IBaseEntity,
+  IBaseFilter,
+  IBaseResponse,
+  IMetaResponse,
+  TId,
+} from "@base/interfaces";
+import { ENUM_PAYMENT_METHODS } from "@lib/constant";
 
 export interface ISalesFilter extends IBaseFilter {
   customerId?: TId;
@@ -44,6 +50,7 @@ export interface ISale extends IBaseEntity {
   };
   shippingTo?: string;
   shippingAddress?: string;
+  shippingContact?: string;
   items: ISaleItem[];
   totalAmount: number;
   discount: number;

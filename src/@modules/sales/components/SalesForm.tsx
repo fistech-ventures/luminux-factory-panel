@@ -217,7 +217,7 @@ const SalesForm: React.FC<IProps> = ({
                 }
                 option={({ item: customer }) => ({
                   key: customer?.id,
-                  label: `${customer?.name} (${customer?.contactNumber})`,
+                  label: `${customer?.companyName} (${customer?.name}) - ${customer?.contactNumber}`,
                   value: customer?.id,
                 })}
                 onChangeSearchTerm={(searchTerm) =>
@@ -300,6 +300,20 @@ const SalesForm: React.FC<IProps> = ({
               className="mb-0!"
             >
               <Input className="w-full" placeholder="Shipping Address" />
+            </Form.Item>
+          </Col>
+          <Col xs={12}>
+            <Form.Item
+              name="shippingContact"
+              rules={[
+                {
+                  required: true,
+                  message: "Shipping contact number is required!",
+                },
+              ]}
+              className="mb-0!"
+            >
+              <Input className="w-full" placeholder="Shipping Contact Number" />
             </Form.Item>
           </Col>
           <Col xs={24}>
