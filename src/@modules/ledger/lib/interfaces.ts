@@ -37,3 +37,43 @@ export interface IBalance {
   totalPaid: number;
   balance: number;
 }
+
+export interface ILedgerStatementRow {
+  date: string;
+  particulars: string | null;
+  narration: string;
+  invoiceNo: string | null;
+  qty: number | null;
+  gross: number | null;
+  debit: number;
+  credit: number;
+  balance: number;
+}
+
+export interface ILedgerStatement {
+  party: {
+    id: string;
+    name: string;
+    contactNumber: string | null;
+    companyName: string | null;
+    address: string | null;
+    customerType?: 'B2B' | 'B2C';
+  };
+  startDate: string | null;
+  endDate: string | null;
+  openingBalance: number;
+  closingBalance: number;
+  totals: {
+    grossTotal: number;
+    debitTotal: number;
+    creditTotal: number;
+  };
+  rows: ILedgerStatementRow[];
+}
+
+export interface ILedgerStatementOptions {
+  entityType: 'customer' | 'supplier';
+  entityId: TId;
+  startDate?: string;
+  endDate?: string;
+}

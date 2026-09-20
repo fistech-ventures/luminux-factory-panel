@@ -3,23 +3,19 @@
 import BaseSearch from '@base/components/BaseSearch';
 import PageHeader from '@base/components/PageHeader';
 import { Toolbox } from '@lib/utils';
-import Authorization from '@modules/auth/components/Authorization';
 import WithAuthorization from '@modules/auth/components/WithAuthorization';
 import LedgerFilter from '@modules/ledger/components/LedgerFilter';
-import LedgerForm from '@modules/ledger/components/LedgerForm';
 import LedgerList from '@modules/ledger/components/LedgerList';
 import { LedgerHooks } from '@modules/ledger/lib/hooks';
 import { ILedgerFilter } from '@modules/ledger/lib/interfaces';
-import { Button, Drawer, Form, message, Statistic, Tag } from 'antd';
+import { message, Statistic, Tag } from 'antd';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useState } from 'react';
+import React from 'react';
 
 const LedgerPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [messageApi, messageHolder] = message.useMessage();
-  const [formInstance] = Form.useForm();
-  const [isDrawerOpen, setDrawerOpen] = useState(false);
+  const [, messageHolder] = message.useMessage();
   const { page = 1, limit = 10, ...rest } = Toolbox.parseQueryParams<ILedgerFilter>(`?${searchParams.toString()}`);
 
   const hasEntityFilter = !!rest?.entityType && !!rest?.entityId;
@@ -60,21 +56,6 @@ const LedgerPage = () => {
 
   const balance = rest?.entityType === 'supplier' ? supplierBalanceQuery.data?.data : customerBalanceQuery.data?.data;
 
-  const ledgerCreateFn = LedgerHooks.useCreate({
-    config: {
-      onSuccess: (res) => {
-        if (!res.success) {
-          messageApi.error(res.message);
-          return;
-        }
-
-        setDrawerOpen(false);
-        formInstance.resetFields();
-        messageApi.success(res.message);
-      },
-    },
-  });
-
   return (
     <React.Fragment>
       {messageHolder}
@@ -82,13 +63,6 @@ const LedgerPage = () => {
         title="Ledger"
         subTitle={<BaseSearch />}
         tags={[<Tag key={1}>Total: {ledgerQuery.data?.meta?.total || 0}</Tag>]}
-        extra={
-          <Authorization allowedAccess={['ledger:write']}>
-            <Button type="primary" onClick={() => setDrawerOpen(true)}>
-              Create Entry
-            </Button>
-          </Authorization>
-        }
       />
       {hasEntityFilter && balance && (
         <div className="grid grid-cols-3 gap-4 mb-4">
@@ -136,18 +110,6 @@ const LedgerPage = () => {
           },
         }}
       />
-      <Drawer width={640} title="Create a new ledger entry" open={isDrawerOpen} onClose={() => setDrawerOpen(false)}>
-        <LedgerForm
-          form={formInstance}
-          initialValues={{
-            transactionDate: new Date().toISOString(),
-            entityType: rest?.entityType || 'customer',
-            entityId: rest?.entityId,
-          }}
-          isLoading={ledgerCreateFn.isPending}
-          onFinish={(values) => ledgerCreateFn.mutate(values)}
-        />
-      </Drawer>
     </React.Fragment>
   );
 };

@@ -154,6 +154,18 @@ const AdminMenu: React.FC<IProps> = ({ className, selectedKeys, openKeys, onOpen
         }),
         getContentAccess({
           content: {
+            key: Paths.admin.ledger.statement,
+            icon: <FaBook />,
+            label: (
+              <CustomLink href={Paths.admin.ledger.statement}>
+                Statements
+              </CustomLink>
+            ),
+          },
+          allowedAccess: [Permissions.LEDGER_READ],
+        }),
+        getContentAccess({
+          content: {
             key: Paths.admin.profit.list,
             icon: <FaChartLine />,
             label: (

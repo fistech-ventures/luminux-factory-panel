@@ -65,6 +65,7 @@ export const Paths = {
     ledger: {
       root: '/admin/ledger',
       list: '/admin/ledger/list',
+      statement: '/admin/ledger/statement',
     },
     profit: {
       root: '/admin/profit',

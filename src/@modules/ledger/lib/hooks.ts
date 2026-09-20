@@ -1,7 +1,7 @@
 import { TId } from '@base/interfaces';
 import { MutationConfig, queryClient, QueryConfig } from '@lib/config';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { ILedgerFilter } from './interfaces';
+import { ILedgerFilter, ILedgerStatementOptions } from './interfaces';
 import { LedgerServices } from './services';
 
 export const LedgerHooks = {
@@ -65,6 +65,23 @@ export const LedgerHooks = {
       queryKey: [...(queryKey || []), LedgerServices.NAME, 'supplier', supplierId, 'balance'],
       queryFn: () => LedgerServices.getSupplierBalance(supplierId),
       enabled: !!supplierId,
+      ...rest,
+    });
+  },
+
+  useGetStatement: ({
+    options,
+    config,
+  }: {
+    options: ILedgerStatementOptions;
+    config?: QueryConfig<typeof LedgerServices.getStatement>;
+  }) => {
+    const { queryKey, ...rest } = config ?? {};
+
+    return useQuery({
+      queryKey: [...(queryKey || []), LedgerServices.NAME, 'statement', options],
+      queryFn: () => LedgerServices.getStatement(options),
+      enabled: !!options?.entityType && !!options?.entityId,
       ...rest,
     });
   },

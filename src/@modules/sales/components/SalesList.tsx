@@ -88,7 +88,7 @@ const SalesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
     id: elem?.id,
     date: elem?.date,
     invoiceNo: elem?.invoiceNo,
-    customerName: elem?.customer?.name,
+    customerName: elem?.customer?.companyName,
     itemsCount: elem?.items?.length,
     totalAmount: elem?.totalAmount,
     discount: elem?.discount,
