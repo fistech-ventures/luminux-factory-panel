@@ -1,6 +1,7 @@
 import FloatInput from "@base/antd/components/FloatInput";
 import InputPhone from "@base/components/InputPhone";
 import { ENUM_CUSTOMER_TYPES } from "@lib/constant";
+import { Toolbox } from "@lib/utils";
 import { Button, Col, Form, FormInstance, Row, Select, message } from "antd";
 import React, { useEffect } from "react";
 import { ICustomerCreate } from "../lib/interfaces";
@@ -57,7 +58,7 @@ const CustomersForm: React.FC<IProps> = ({
           ...initialValues,
           customerType: initialValues?.customerType || "B2B",
         }}
-        onFinish={onFinish}
+        onFinish={(values) => onFinish(formType === "update" ? Toolbox.pickTouchedFields(form, values) : values)}
         onFinishFailed={handleFinishFailed}
         validateMessages={{
           required: "${label} is required!",

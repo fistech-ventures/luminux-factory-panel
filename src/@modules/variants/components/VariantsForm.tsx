@@ -51,7 +51,15 @@ const VariantsForm: React.FC<IProps> = ({ isLoading, form, formType = 'create', 
           ...initialValues,
           options: Toolbox.isNotEmpty(initialValues?.options) ? initialValues.options : [],
         }}
-        onFinish={onFinish}
+        onFinish={(values) => {
+          const submittedValues = {
+            ...values,
+            options: (values.options ?? []).map((option) =>
+              Toolbox.pickProps(option, ['id', 'title', 'isActive']),
+            ),
+          };
+          onFinish(formType === 'update' ? Toolbox.pickTouchedFields(form, submittedValues) : submittedValues);
+        }}
         onFinishFailed={handleFinishFailed}
         validateMessages={{
           required: '${label} is required!',

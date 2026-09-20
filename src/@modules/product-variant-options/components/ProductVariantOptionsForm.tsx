@@ -83,7 +83,7 @@ const ProductVariantOptionsForm: React.FC<IProps> = ({
         layout="vertical"
         form={form}
         initialValues={initialValues}
-        onFinish={onFinish}
+        onFinish={(values) => onFinish(formType === 'update' ? Toolbox.pickTouchedFields(form, values) : values)}
         onFinishFailed={handleFinishFailed}
         validateMessages={{
           required: '${label} is required!',

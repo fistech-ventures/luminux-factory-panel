@@ -14,6 +14,7 @@ import dayjs from "dayjs";
 import React, { useEffect } from "react";
 import { IExpenseCreate } from "../lib/interfaces";
 import { ENUM_PAYMENT_METHODS } from "@lib/constant";
+import { Toolbox } from "@lib/utils";
 
 interface IProps {
   isLoading: boolean;
@@ -68,9 +69,10 @@ const ExpensesForm: React.FC<IProps> = ({
           date: initialValues?.date ? dayjs(initialValues.date) : dayjs(),
           paymentMethod: initialValues?.paymentMethod || "cash",
         }}
-        onFinish={(values) =>
-          onFinish({ ...values, date: dayjs(values.date).format("YYYY-MM-DD") })
-        }
+        onFinish={(values) => {
+          const submittedValues = { ...values, date: dayjs(values.date).format("YYYY-MM-DD") };
+          onFinish(formType === "update" ? Toolbox.pickTouchedFields(form, submittedValues) : submittedValues);
+        }}
         onFinishFailed={handleFinishFailed}
         validateMessages={{
           required: "${label} is required!",

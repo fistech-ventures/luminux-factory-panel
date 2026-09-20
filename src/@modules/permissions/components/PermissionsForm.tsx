@@ -1,6 +1,7 @@
 import FloatSelect from '@base/antd/components/FloatSelect';
 import InfiniteScrollSelect from '@base/components/InfiniteScrollSelect';
 import { Permissions } from '@lib/constant';
+import { Toolbox } from '@lib/utils';
 import { PermissionTypesHooks } from '@modules/permission-types/lib/hooks';
 import { Button, Col, Form, FormInstance, Radio, Row, message } from 'antd';
 import React, { useEffect, useState } from 'react';
@@ -75,7 +76,7 @@ const PermissionsForm: React.FC<IProps> = ({ isLoading, form, formType = 'create
         layout="vertical"
         form={form}
         initialValues={initialValues}
-        onFinish={onFinish}
+        onFinish={(values) => onFinish(formType === 'update' ? Toolbox.pickTouchedFields(form, values) : values)}
         onFinishFailed={handleFinishFailed}
         validateMessages={{
           required: '${label} is required!',

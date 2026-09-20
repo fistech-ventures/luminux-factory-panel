@@ -80,7 +80,7 @@ const AdminLayout: React.FC<IProps> = ({ children }) => {
         collapsible
         trigger={null}
         collapsed={isCollapsed}
-        width={280}
+        width={240}
         style={styles.sider}
         breakpoint="md"
         theme="light"

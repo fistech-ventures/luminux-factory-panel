@@ -75,19 +75,26 @@ const UsersForm: React.FC<IProps> = ({ isLoading, userId, form, formType = 'crea
     },
   });
 
-  /** Backend may return userRoles as [{ roleId }] (flat) or [{ role: { id, title } }] (nested). Extract ids either way. */
-  const normalizeUserRoles = (userRoles: { role?: any; roleId?: any }[]): { id: string; title: string }[] =>
-    (userRoles ?? []).map((userRole) => ({
-      id: userRole?.role?.id ?? userRole?.roleId,
-      title: userRole?.role?.title ?? userRole?.roleId,
-    }));
+  const normalizeUserRoles = (user: any): { id: string; title: string }[] => [
+    ...(user?.roles ?? []).map((role) => ({ id: role?.id != null ? String(role.id) : '', title: role?.title })),
+    ...(user?.userRoles ?? []).map((userRole) => {
+      const roleId = userRole?.role?.id ?? userRole?.roleId;
+      return {
+        id: roleId != null ? String(roleId) : '',
+        title: userRole?.role?.title ?? (roleId != null ? String(roleId) : ''),
+      };
+    }),
+  ].filter((role, index, roles) => role.id && roles.findIndex((item) => item.id === role.id) === index);
 
-  const currentRoleIds = normalizeUserRoles(initialValues?.userRoles ?? [])
+  const currentRoles = normalizeUserRoles(initialValues);
+  const currentRoleIds = currentRoles
     .map((r) => r.id)
     .filter(Boolean);
 
   const availableRoleOptions = Toolbox.toCleanArray(
-    (availableRolesQuery.data?.data ?? []).map((role) => ({
+    [...currentRoles, ...(availableRolesQuery.data?.data ?? [])].filter(
+      (role, index, roles) => roles.findIndex((item) => item?.id === role?.id) === index,
+    ).map((role) => ({
       key: role?.id,
       label: role?.title,
       value: role?.id,
@@ -200,7 +207,7 @@ const UsersForm: React.FC<IProps> = ({ isLoading, userId, form, formType = 'crea
                   listType="picture-card"
                   acceptedTypes={['jpg', 'jpeg', 'png', 'webp', 'avif']}
                   initialValues={Toolbox.isNotEmpty(initialValues?.avatar) ? [initialValues.avatar] : []}
-                  onChange={(urls) => form.setFieldValue('avatar', urls?.[0])}
+                  onChange={(urls) => form.setFields([{ name: 'avatar', value: urls?.[0], touched: true }])}
                 />
               </Form.Item>
             </Col>
@@ -227,7 +234,7 @@ const UsersForm: React.FC<IProps> = ({ isLoading, userId, form, formType = 'crea
               <div className="flex flex-wrap gap-1 mb-2">
                 {currentRoleIds?.length ? (
                   currentRoleIds.map((roleId) => {
-                    const role = (initialValues?.userRoles ?? []).find((userRole) => userRole?.role?.id === roleId)?.role;
+                    const role = currentRoles.find((item) => item.id === roleId);
                     return <Tag key={roleId}>{role?.title || roleId}</Tag>;
                   })
                 ) : (

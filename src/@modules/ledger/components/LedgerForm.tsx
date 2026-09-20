@@ -80,12 +80,13 @@ const LedgerForm: React.FC<IProps> = ({ isLoading, form, formType = 'create', in
           ...initialValues,
           transactionDate: initialValues?.transactionDate ? dayjs(initialValues.transactionDate) : dayjs(),
         }}
-        onFinish={(values) =>
-          onFinish({
+        onFinish={(values) => {
+          const submittedValues = {
             ...values,
             transactionDate: dayjs(values.transactionDate).format('YYYY-MM-DD'),
-          })
-        }
+          };
+          onFinish(formType === 'update' ? Toolbox.pickTouchedFields(form, submittedValues) : submittedValues);
+        }}
         onFinishFailed={handleFinishFailed}
         validateMessages={{
           required: '${label} is required!',

@@ -157,14 +157,22 @@ const SalesForm: React.FC<IProps> = ({
             ? initialValues.items.map((item) => ({ ...item }))
             : [],
         }}
-        onFinish={(values) =>
-          onFinish({
+        onFinish={(values) => {
+          const submittedValues = {
             ...values,
             date: dayjs(values.date).format("YYYY-MM-DD"),
             discount: Number(values.discount) || 0,
             paidAmount: Number(values.paidAmount) || 0,
-          })
-        }
+            items: (values.items ?? []).map((item) =>
+              Toolbox.pickProps(item, ["productId", "variantId", "quantity", "sellingPrice"]),
+            ),
+          };
+          onFinish(
+            formType === "update"
+              ? Toolbox.pickTouchedFields(form, submittedValues)
+              : submittedValues,
+          );
+        }}
         onFinishFailed={handleFinishFailed}
         validateMessages={{
           required: "${label} is required!",

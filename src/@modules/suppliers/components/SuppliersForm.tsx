@@ -1,5 +1,6 @@
 import FloatInput from '@base/antd/components/FloatInput';
 import InputPhone from '@base/components/InputPhone';
+import { Toolbox } from '@lib/utils';
 import { Button, Col, Form, FormInstance, Row, message } from 'antd';
 import React, { useEffect } from 'react';
 import { ISupplierCreate } from '../lib/interfaces';
@@ -46,7 +47,7 @@ const SuppliersForm: React.FC<IProps> = ({ isLoading, form, formType = 'create',
         layout="vertical"
         form={form}
         initialValues={initialValues}
-        onFinish={onFinish}
+        onFinish={(values) => onFinish(formType === 'update' ? Toolbox.pickTouchedFields(form, values) : values)}
         onFinishFailed={handleFinishFailed}
         validateMessages={{
           required: '${label} is required!',

@@ -2,7 +2,6 @@ import ConfirmationDialog from '@base/components/ConfirmationDialog';
 import ActionMenu from '@base/components/ActionMenu';
 import RecordDetailsModal from '@base/components/RecordDetailsModal';
 import CustomSwitch from '@base/components/CustomSwitch';
-import { Toolbox } from '@lib/utils';
 import { getAccess } from '@modules/auth/lib/utils/client';
 import type { PaginationProps, TableColumnsType } from 'antd';
 import { Avatar, Button, Drawer, Form, Table, Tag, message } from 'antd';
@@ -23,6 +22,7 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
   const [formInstance] = Form.useForm();
   const [updateItem, setUpdateItem] = useState<IUser>(null);
   const [detailsItem, setDetailsItem] = useState<IUser>(null);
+  const [backendError, setBackendError] = useState<string | null>(null);
   const [confirmationDialog, setConfirmationDialog] = useState<{
     open: boolean;
     title: string;
@@ -30,30 +30,8 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
     onConfirm: () => void;
   }>({ open: false, title: '', content: '', onConfirm: () => {} });
 
-  const userUpdateFn = UsersHooks.useUpdate({
-    config: {
-      onSuccess: (res) => {
-        if (!res.success) {
-          messageApi.error(res.message);
-          return;
-        }
-
-        setUpdateItem(null);
-        messageApi.success(res.message);
-      },
-    },
-  });
-
-  const userUpdateRolesFn = UsersHooks.useUpdateRoles({
-    config: {
-      onSuccess: (res) => {
-        if (!res.success) {
-          messageApi.error(res.message);
-          return;
-        }
-      },
-    },
-  });
+  const userUpdateFn = UsersHooks.useUpdate();
+  const userUpdateRolesFn = UsersHooks.useUpdateRoles();
 
   const userDeleteFn = UsersHooks.useDelete({
     config: {
@@ -67,30 +45,72 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
     },
   });
 
-  /** Build the initial role-links the backend expects for the PATCH /users/:id/roles diff. Supports both flat and nested userRoles. */
-  const buildInitialRoleLinks = (userRoles: any[]): { role: string }[] =>
-    (userRoles ?? []).map((userRole) => ({ role: userRole?.role?.id ?? userRole?.roleId }));
+  const getRoleIds = (user: IUser): string[] => [
+    ...(user?.roles ?? []).map((role) => (role?.id != null ? String(role.id) : null)),
+    ...(user?.userRoles ?? []).map((userRole) => {
+      const roleId = userRole?.role?.id ?? userRole?.roleId;
+      return roleId != null ? String(roleId) : null;
+    }),
+  ].filter((roleId, index, roleIds) => roleId && roleIds.indexOf(roleId) === index) as string[];
 
   const handleUpdateFinishFn = (values: any) => {
-    const initialRoleLinks = buildInitialRoleLinks(updateItem?.userRoles ?? []);
-    const currentRoleLinks = (values?.roles ?? []).map((roleId: any) => ({ role: roleId }));
-    const roleDiffs = Toolbox.computeArrayDiffs<any>(initialRoleLinks, currentRoleLinks, 'role');
-    const profileData = { ...values };
-    delete profileData.roles;
+    setBackendError(null);
+    const initialRoleIds = getRoleIds(updateItem);
+    const currentRoleIds = values?.roles ?? [];
+    const roleDiffs = [
+      ...currentRoleIds
+        .filter((roleId: string) => !initialRoleIds.includes(roleId))
+        .map((roleId: string) => ({ role: roleId })),
+      ...initialRoleIds
+        .filter((roleId) => !currentRoleIds.includes(roleId))
+        .map((roleId) => ({ role: roleId, isDeleted: true })),
+    ];
+    const profileFields = ['fullName', 'gender', 'phoneNumber', 'password', 'avatar', 'isActive'];
+    const profileData = profileFields.reduce((changedFields, field) => {
+      if (formInstance.isFieldTouched(field)) changedFields[field] = values[field];
+      return changedFields;
+    }, {} as Record<string, unknown>);
 
-    if (roleDiffs.length) {
-      userUpdateRolesFn.mutate({ id: updateItem?.id, data: { roles: roleDiffs } });
-    }
+    const hasProfileChanges = Object.keys(profileData).length > 0;
+    const requests = [
+      ...(roleDiffs.length
+        ? [userUpdateRolesFn.mutateAsync({ id: updateItem?.id, data: { roles: roleDiffs } })]
+        : []),
+      ...(hasProfileChanges
+        ? [userUpdateFn.mutateAsync({ id: updateItem?.id, data: profileData })]
+        : []),
+    ];
 
-    userUpdateFn.mutate({ id: updateItem?.id, data: profileData });
+    if (!requests.length) return;
+
+    Promise.all(requests)
+      .then((responses) => {
+        const failedResponse = responses.find((response) => !response?.success);
+        if (failedResponse) {
+          setBackendError(failedResponse.message || 'Unable to update user.');
+          return;
+        }
+
+        setUpdateItem(null);
+        formInstance.resetFields();
+        messageApi.success('User updated successfully.');
+      })
+      .catch((error) => {
+        const backendMessage = error?.message || error?.errorMessages?.join?.(', ');
+        setBackendError(backendMessage || 'Unable to update user.');
+      });
   };
 
-  /** Backend may return userRoles as [{ roleId }] (flat) or [{ role: { id, title } }] (nested). Normalize to role objects. */
-  const normalizeUserRoles = (userRoles: { role?: any; roleId?: any }[]): any[] =>
-    userRoles?.map((userRole) => ({
-      id: userRole?.role?.id ?? userRole?.roleId,
-      title: userRole?.role?.title ?? userRole?.roleId,
-    })) ?? [];
+  const normalizeUserRoles = (user: IUser): { id: string; title: string }[] => [
+    ...(user?.roles ?? []).map((role) => ({ id: role?.id != null ? String(role.id) : '', title: role?.title })),
+    ...(user?.userRoles ?? []).map((userRole) => {
+      const roleId = userRole?.role?.id ?? userRole?.roleId;
+      return {
+        id: roleId != null ? String(roleId) : '',
+        title: userRole?.role?.title ?? (roleId != null ? String(roleId) : ''),
+      };
+    }),
+  ].filter((role, index, roles) => role.id && roles.findIndex((item) => item.id === role.id) === index);
 
   const dataSource = data?.map((elem) => ({
     key: elem?.id,
@@ -100,7 +120,7 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
     gender: elem?.gender,
     phoneNumber: elem?.phoneNumber,
     email: elem?.email,
-    roles: normalizeUserRoles(elem?.userRoles ?? []),
+    roles: normalizeUserRoles(elem),
     isActive: elem?.isActive,
     createdAt: elem?.createdAt,
   }));
@@ -200,6 +220,7 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               onClick={() => {
                 getAccess(['users:update'], () => {
                   formInstance.resetFields();
+                  setBackendError(null);
                   setUpdateItem(item);
                 });
               }}
@@ -211,8 +232,8 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
               danger
               onClick={() => {
                 getAccess(['users:delete'], () => {
-                  const isSuperAdmin = (item?.userRoles ?? []).some(
-                    (userRole) => (userRole?.role?.title || '').toLowerCase() === 'super admin',
+                  const isSuperAdmin = normalizeUserRoles(item).some(
+                    (role) => role.title?.toLowerCase() === 'super admin',
                   );
 
                   if (isSuperAdmin) {
@@ -271,7 +292,7 @@ const UsersList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           initialValues={updateItem}
           isLoading={userUpdateFn.isPending || userUpdateRolesFn.isPending}
           onFinish={handleUpdateFinishFn}
-          backendError={userUpdateFn.isError ? String(userUpdateFn.error) : null}
+          backendError={backendError}
         />
       </Drawer>
       <RecordDetailsModal

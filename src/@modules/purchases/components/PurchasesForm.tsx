@@ -81,11 +81,26 @@ const PurchasesForm: React.FC<IProps> = ({
   };
 
   const handleFinish = (values: any) => {
-    onFinish({
+    const submittedValues = {
       ...values,
       purchaseDate: dayjs(values.purchaseDate).format("YYYY-MM-DD"),
-      items: (values?.items ?? []).map(({ mode: _mode, ...item }) => item),
-    });
+      items: (values?.items ?? []).map((item) =>
+        Toolbox.pickProps(item, [
+          "productId",
+          "variantId",
+          "productName",
+          "productCode",
+          "quantity",
+          "totalProductCost",
+          "otherCost",
+        ]),
+      ),
+    };
+    onFinish(
+      formType === "update"
+        ? Toolbox.pickTouchedFields(form, submittedValues)
+        : submittedValues,
+    );
   };
 
   useEffect(() => {

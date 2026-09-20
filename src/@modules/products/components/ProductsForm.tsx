@@ -110,7 +110,23 @@ const ProductsForm: React.FC<IProps> = ({
             ? initialValues.variants
             : [],
         }}
-        onFinish={onFinish}
+        onFinish={(values) => {
+          const submittedValues = {
+            ...values,
+            variants: (values.variants ?? []).map((variant) =>
+              Toolbox.pickProps(variant, [
+                'id',
+                'variantId',
+                'variantOptionId',
+                'sku',
+                'sellingPrice',
+                'stockQuantity',
+                'position',
+              ]),
+            ),
+          };
+          onFinish(formType === 'update' ? Toolbox.pickTouchedFields(form, submittedValues) : submittedValues);
+        }}
         onFinishFailed={handleFinishFailed}
         validateMessages={{
           required: "${label} is required!",

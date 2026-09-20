@@ -18,8 +18,10 @@ export interface IUser extends IBaseEntity {
   phoneNumber?: string;
   email: string;
   username?: string;
-  userRoles: {
-    role: IRole;
+  roles?: IRole[];
+  userRoles?: {
+    role?: IRole;
+    roleId?: TId;
   }[];
 }
 

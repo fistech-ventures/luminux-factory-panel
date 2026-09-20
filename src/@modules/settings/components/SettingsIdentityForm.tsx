@@ -5,6 +5,7 @@ import FloatTextarea from "@base/antd/components/FloatTextarea";
 import CountryCurrencySelect from "@base/components/CountryCurrencySelect";
 import InputPhone from "@base/components/InputPhone";
 import PhoneCodeSelect from "@base/components/PhoneCodeSelect";
+import { Toolbox } from "@lib/utils";
 import {
   Button,
   Col,
@@ -41,7 +42,7 @@ const SettingsIdentityForm: React.FC<IProps> = ({
       layout="vertical"
       form={form}
       initialValues={initialValues}
-      onFinish={onFinish}
+      onFinish={(values) => onFinish(formType === "update" ? Toolbox.pickTouchedFields(form, values) : values)}
     >
       <Row gutter={[16, 16]}>
         <Col xs={24} md={12} xl={8}>

@@ -1,4 +1,5 @@
 import FloatInput from '@base/antd/components/FloatInput';
+import { Toolbox } from '@lib/utils';
 import { Button, Col, Form, FormInstance, Row, message } from 'antd';
 import React, { useEffect } from 'react';
 import { IGalleryCreate } from '../lib/interfaces';
@@ -45,7 +46,7 @@ const GalleryForm: React.FC<IProps> = ({ isLoading, form, formType = 'update', i
         layout="vertical"
         form={form}
         initialValues={initialValues}
-        onFinish={onFinish}
+        onFinish={(values) => onFinish(formType === 'update' ? Toolbox.pickTouchedFields(form, values) : values)}
         onFinishFailed={handleFinishFailed}
       >
         <Row gutter={[16, 16]}>

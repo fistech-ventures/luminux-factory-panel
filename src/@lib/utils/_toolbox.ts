@@ -133,6 +133,18 @@ export const Toolbox = {
     return Array.isArray(items) ? items.map(removeProps) : removeProps(items);
   },
 
+  pickTouchedFields: function <T extends Record<string, any>>(
+    form: { isFieldTouched: (name: string) => boolean },
+    values: T,
+  ): Partial<T> {
+    const changed = Object.keys(values).reduce((result, field) => {
+      if (form.isFieldTouched(field)) result[field] = values[field];
+      return result;
+    }, {} as Record<string, any>);
+
+    return changed as Partial<T>;
+  },
+
   debounce: function (func: (...args: any[]) => void, delay: number = 500) {
     let timeoutId: NodeJS.Timeout | undefined;
 
