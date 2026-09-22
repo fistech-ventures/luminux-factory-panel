@@ -69,7 +69,7 @@ const PaymentsForm: React.FC<IProps> = ({ form, initialValues, isLoading, onFini
 
   const customerLabel = (customer: ICustomer) => `${customer.name} (${customer.contactNumber})`;
   const supplierLabel = (supplier: ISupplier) => `${supplier.companyName} (${supplier.contactNumber})`;
-  const saleLabel = (sale: ISale) => sale.invoiceNo || String(sale.id);
+  const saleLabel = (sale: ISale) => `${sale.customer?.companyName} - ${sale.date} - ${sale.invoiceNo} - ${Number(sale.grandTotal || 0).toFixed(2)}`;
   const purchaseLabel = (purchase: IPurchase) =>
     `${purchase.supplier?.companyName || purchase.supplierId} - ${purchase.purchaseDate} - ${Number(purchase.totalPurchaseAmount || 0).toFixed(2)}`;
 

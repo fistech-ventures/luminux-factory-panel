@@ -115,17 +115,21 @@ const ProductsForm: React.FC<IProps> = ({
             ...values,
             variants: (values.variants ?? []).map((variant) =>
               Toolbox.pickProps(variant, [
-                'id',
-                'variantId',
-                'variantOptionId',
-                'sku',
-                'sellingPrice',
-                'stockQuantity',
-                'position',
+                "id",
+                "variantId",
+                "variantOptionId",
+                "sku",
+                "sellingPrice",
+                "stockQuantity",
+                "position",
               ]),
             ),
           };
-          onFinish(formType === 'update' ? Toolbox.pickTouchedFields(form, submittedValues) : submittedValues);
+          onFinish(
+            formType === "update"
+              ? Toolbox.pickTouchedFields(form, submittedValues)
+              : submittedValues,
+          );
         }}
         onFinishFailed={handleFinishFailed}
         validateMessages={{
@@ -142,13 +146,22 @@ const ProductsForm: React.FC<IProps> = ({
               <FloatInput placeholder="Title" />
             </Form.Item>
           </Col>
-          <Col xs={24}>
+          <Col xs={12}>
             <Form.Item
               name="productCode"
               rules={[{ required: true, message: "Product code is required!" }]}
-              className="!mb-0"
+              className="mb-0!"
             >
               <FloatInput placeholder="Product Code (manual, unique)" />
+            </Form.Item>
+          </Col>
+          <Col xs={12}>
+            <Form.Item
+              name="unit"
+              rules={[{ required: true, message: "Unit is required!" }]}
+              className="mb-0!"
+            >
+              <FloatInput placeholder="Unit" />
             </Form.Item>
           </Col>
           <Col xs={24}>
@@ -172,7 +185,13 @@ const ProductsForm: React.FC<IProps> = ({
             </Form.Item>
           </Col>
           <Col xs={8}>
-            <Form.Item name="sourcingPrice" className="!mb-0">
+            <Form.Item
+              name="sourcingPrice"
+              className="!mb-0"
+              rules={[
+                { required: true, message: "Sourcing price is required!" },
+              ]}
+            >
               <InputNumber
                 className="w-full!"
                 placeholder="Sourcing Price"
@@ -182,7 +201,13 @@ const ProductsForm: React.FC<IProps> = ({
             </Form.Item>
           </Col>
           <Col xs={8}>
-            <Form.Item name="sellingPrice" className="!mb-0">
+            <Form.Item
+              name="sellingPrice"
+              className="!mb-0"
+              rules={[
+                { required: true, message: "Selling price is required!" },
+              ]}
+            >
               <InputNumber
                 className="w-full!"
                 placeholder="Selling Price"
@@ -192,7 +217,11 @@ const ProductsForm: React.FC<IProps> = ({
             </Form.Item>
           </Col>
           <Col xs={8}>
-            <Form.Item name="stock" className="mb-0!">
+            <Form.Item
+              name="stock"
+              className="mb-0!"
+              rules={[{ required: true, message: "Stock is required!" }]}
+            >
               <InputNumber
                 className="w-full!"
                 placeholder="Stock"

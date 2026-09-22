@@ -64,6 +64,7 @@ const ProductsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
     thumbnail: elem?.thumbnail,
     sourcingPrice: elem?.sourcingPrice,
     sellingPrice: elem?.sellingPrice,
+    unit: elem?.unit,
     stock: elem?.stock,
     saleQuantity: elem?.saleQuantity,
     variantsCount: elem?.variants?.length,
@@ -102,6 +103,11 @@ const ProductsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       dataIndex: "productCode",
       title: "Product Code",
       render: (productCode) => productCode || "N/A",
+    },
+    {
+      key: "unit",
+      dataIndex: "unit",
+      title: "Unit",
     },
     {
       key: "sourcingPrice",
