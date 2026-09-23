@@ -1,13 +1,15 @@
 import { IBaseEntity, IBaseFilter, IBaseResponse, TId } from '@base/interfaces';
 
+export type TLedgerEntityType = 'customer' | 'supplier' | 'employee';
+
 export interface ILedgerFilter extends IBaseFilter {
-  entityType?: 'customer' | 'supplier';
+  entityType?: TLedgerEntityType;
   entityId?: TId;
   type?: string;
 }
 
 export interface ILedger extends IBaseEntity {
-  entityType: 'customer' | 'supplier';
+  entityType: TLedgerEntityType;
   entityId: TId;
   type: string;
   amount: number;
@@ -22,7 +24,7 @@ export interface ILedgerResponse extends IBaseResponse {
 }
 
 export interface ILedgerCreate {
-  entityType: 'customer' | 'supplier';
+  entityType: TLedgerEntityType;
   entityId: TId;
   type: string;
   amount: number;
@@ -35,6 +37,13 @@ export interface ILedgerCreate {
 export interface IBalance {
   totalDue: number;
   totalPaid: number;
+  balance: number;
+}
+
+/** Cash in hand for an employee: advances received - money spent. */
+export interface IEmployeeBalance {
+  totalAdvance: number;
+  totalExpense: number;
   balance: number;
 }
 
@@ -54,9 +63,15 @@ export interface ILedgerStatement {
   party: {
     id: string;
     name: string;
-    contactNumber: string | null;
-    companyName: string | null;
-    address: string | null;
+    // Employee-specific fields (present when entityType is 'employee')
+    employeeId?: string | null;
+    phoneNumber?: string | null;
+    email?: string | null;
+    designation?: string | null;
+    // Customer/supplier fields (present for those entity types)
+    contactNumber?: string | null;
+    companyName?: string | null;
+    address?: string | null;
     customerType?: 'B2B' | 'B2C';
   };
   startDate: string | null;
@@ -72,7 +87,7 @@ export interface ILedgerStatement {
 }
 
 export interface ILedgerStatementOptions {
-  entityType: 'customer' | 'supplier';
+  entityType: TLedgerEntityType;
   entityId: TId;
   startDate?: string;
   endDate?: string;

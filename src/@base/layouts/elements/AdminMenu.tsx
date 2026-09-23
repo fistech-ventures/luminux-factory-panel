@@ -15,6 +15,7 @@ import {
   MdOutlineLayers,
   MdOutlinePeopleOutline,
   MdOutlineHandshake,
+  MdOutlineBadge,
   MdOutlineReceiptLong,
   MdOutlinePhotoLibrary,
   MdOutlineSettings,
@@ -127,6 +128,18 @@ const AdminMenu: React.FC<IProps> = ({ className, selectedKeys, openKeys, onOpen
             ),
           },
           allowedAccess: [Permissions.SUPPLIERS_READ],
+        }),
+        getContentAccess({
+          content: {
+            key: Paths.admin.employees.list,
+            icon: <MdOutlineBadge />,
+            label: (
+              <CustomLink href={Toolbox.appendPagination(Paths.admin.employees.list)}>
+                Employees
+              </CustomLink>
+            ),
+          },
+          allowedAccess: [Permissions.EMPLOYEES_READ],
         }),
         getContentAccess({
           content: {

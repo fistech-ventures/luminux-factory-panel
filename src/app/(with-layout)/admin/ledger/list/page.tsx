@@ -19,6 +19,7 @@ const LedgerPage = () => {
   const { page = 1, limit = 10, ...rest } = Toolbox.parseQueryParams<ILedgerFilter>(`?${searchParams.toString()}`);
 
   const hasEntityFilter = !!rest?.entityType && !!rest?.entityId;
+  const isEmployee = rest?.entityType === 'employee';
 
   const filteredLedgerQuery = LedgerHooks.useFindFiltered({
     options: {
@@ -54,7 +55,36 @@ const LedgerPage = () => {
     supplierId: rest?.entityType === 'supplier' ? rest?.entityId : null,
   });
 
-  const balance = rest?.entityType === 'supplier' ? supplierBalanceQuery.data?.data : customerBalanceQuery.data?.data;
+  const employeeBalanceQuery = LedgerHooks.useGetEmployeeBalance({
+    employeeId: isEmployee ? rest?.entityId : null,
+  });
+
+  const accountBalance =
+    rest?.entityType === 'supplier'
+      ? supplierBalanceQuery.data?.data
+      : rest?.entityType === 'customer'
+        ? customerBalanceQuery.data?.data
+        : null;
+  const employeeBalance = isEmployee ? employeeBalanceQuery.data?.data : null;
+
+  const summaryItems = isEmployee
+    ? [
+        { title: 'Total Advance', value: employeeBalance?.totalAdvance ?? 0, colorized: false },
+        { title: 'Total Expense', value: employeeBalance?.totalExpense ?? 0, colorized: false },
+        {
+          title: 'Cash In Hand',
+          value: employeeBalance?.balance ?? 0,
+          colorized: true,
+          negativeIsBad: true,
+        },
+      ]
+    : [
+        { title: 'Total Due', value: accountBalance?.totalDue ?? 0, colorized: false },
+        { title: 'Total Paid', value: accountBalance?.totalPaid ?? 0, colorized: false },
+        { title: 'Balance', value: accountBalance?.balance ?? 0, colorized: true, negativeIsBad: false },
+      ];
+
+  const hasBalance = isEmployee ? !!employeeBalance : !!accountBalance;
 
   return (
     <React.Fragment>
@@ -64,22 +94,25 @@ const LedgerPage = () => {
         subTitle={<BaseSearch />}
         tags={[<Tag key={1}>Total: {ledgerQuery.data?.meta?.total || 0}</Tag>]}
       />
-      {hasEntityFilter && balance && (
+      {hasEntityFilter && hasBalance && (
         <div className="grid grid-cols-3 gap-4 mb-4">
-          <div className="bg-white dark:bg-[var(--color-rich-black)] border border-gray-200 rounded-lg p-4">
-            <Statistic title="Total Due" value={balance?.totalDue ?? 0} precision={2} />
-          </div>
-          <div className="bg-white dark:bg-[var(--color-rich-black)] border border-gray-200 rounded-lg p-4">
-            <Statistic title="Total Paid" value={balance?.totalPaid ?? 0} precision={2} />
-          </div>
-          <div className="bg-white dark:bg-[var(--color-rich-black)] border border-gray-200 rounded-lg p-4">
-            <Statistic
-              title="Balance"
-              value={balance?.balance ?? 0}
-              precision={2}
-              valueStyle={{ color: (balance?.balance ?? 0) > 0 ? '#cf1322' : '#3f8600' }}
-            />
-          </div>
+          {summaryItems.map((item) => (
+            <div
+              key={item.title}
+              className="bg-white dark:bg-[var(--color-rich-black)] border border-gray-200 rounded-lg p-4"
+            >
+              <Statistic
+                title={item.title}
+                value={item.value}
+                precision={2}
+                valueStyle={
+                  item.colorized
+                    ? { color: item.value < 0 ? '#cf1322' : '#3f8600' }
+                    : undefined
+                }
+              />
+            </div>
+          ))}
         </div>
       )}
       <LedgerFilter

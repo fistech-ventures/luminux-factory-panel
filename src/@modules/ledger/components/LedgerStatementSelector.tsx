@@ -2,6 +2,7 @@
 
 import { Toolbox } from '@lib/utils';
 import { CustomersHooks } from '@modules/customers/lib/hooks';
+import { EmployeesHooks } from '@modules/employees/lib/hooks';
 import { SuppliersHooks } from '@modules/suppliers/lib/hooks';
 import { ILedgerStatementOptions } from '@modules/ledger/lib/interfaces';
 import { Button, DatePicker, Form, Modal, Select } from 'antd';
@@ -12,17 +13,33 @@ interface IProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (options: ILedgerStatementOptions) => void;
+  initialValues?: Partial<ILedgerStatementOptions>;
 }
 
-const LedgerStatementSelector: React.FC<IProps> = ({ open, onClose, onSubmit }) => {
+const PARTY_LABELS: Record<string, string> = {
+  customer: 'Customer',
+  supplier: 'Supplier',
+  employee: 'Employee',
+};
+
+const LedgerStatementSelector: React.FC<IProps> = ({ open, onClose, onSubmit, initialValues }) => {
   const [form] = Form.useForm();
   const entityType = Form.useWatch('entityType', form);
   const customersQuery = CustomersHooks.useFind({ options: { page: 1, limit: 300 } });
   const suppliersQuery = SuppliersHooks.useFind({ options: { page: 1, limit: 300 } });
+  const employeesQuery = EmployeesHooks.useFind({ options: { page: 1, limit: 300 } });
 
-  const partyOptions = entityType === 'supplier'
-    ? suppliersQuery.data?.data?.map((supplier) => ({ label: supplier.companyName, value: supplier.id }))
-    : customersQuery.data?.data?.map((customer) => ({ label: customer.companyName, value: customer.id }));
+  const partyOptions =
+    entityType === 'supplier'
+      ? suppliersQuery.data?.data?.map((supplier) => ({ label: supplier.companyName, value: supplier.id }))
+      : entityType === 'employee'
+        ? employeesQuery.data?.data?.map((employee) => ({
+            label: `${employee.name} (${employee.employeeId})`,
+            value: employee.id,
+          }))
+        : customersQuery.data?.data?.map((customer) => ({ label: customer.companyName || customer.name, value: customer.id }));
+
+  const partyLabel = PARTY_LABELS[entityType] || 'Party';
 
   const handleClose = () => {
     form.resetFields();
@@ -34,6 +51,7 @@ const LedgerStatementSelector: React.FC<IProps> = ({ open, onClose, onSubmit }) 
       <Form
         form={form}
         layout="vertical"
+        initialValues={initialValues}
         onFinish={(values) => {
           const range = values.dateRange;
           onSubmit({
@@ -55,16 +73,17 @@ const LedgerStatementSelector: React.FC<IProps> = ({ open, onClose, onSubmit }) 
             options={[
               { label: 'Customer', value: 'customer' },
               { label: 'Supplier', value: 'supplier' },
+              { label: 'Employee', value: 'employee' },
             ]}
             onChange={() => form.setFieldValue('entityId', undefined)}
           />
         </Form.Item>
-        <Form.Item name="entityId" label="Party" rules={[{ required: true, message: 'Select a party.' }]}>
+        <Form.Item name="entityId" label={partyLabel} rules={[{ required: true, message: 'Select a party.' }]}>
           <Select
             showSearch
             allowClear
             disabled={!entityType}
-            placeholder={entityType === 'supplier' ? 'Search suppliers' : 'Search customers'}
+            placeholder={`Search ${partyLabel.toLowerCase()}s`}
             options={Toolbox.toCleanArray(partyOptions)}
             filterOption={(input, option) => String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())}
           />

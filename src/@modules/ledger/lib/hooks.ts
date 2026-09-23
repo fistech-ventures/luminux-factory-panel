@@ -69,6 +69,23 @@ export const LedgerHooks = {
     });
   },
 
+  useGetEmployeeBalance: ({
+    employeeId,
+    config,
+  }: {
+    employeeId: TId;
+    config?: QueryConfig<typeof LedgerServices.getEmployeeBalance>;
+  }) => {
+    const { queryKey, ...rest } = config ?? {};
+
+    return useQuery({
+      queryKey: [...(queryKey || []), LedgerServices.NAME, 'employee', employeeId, 'balance'],
+      queryFn: () => LedgerServices.getEmployeeBalance(employeeId),
+      enabled: !!employeeId,
+      ...rest,
+    });
+  },
+
   useGetStatement: ({
     options,
     config,

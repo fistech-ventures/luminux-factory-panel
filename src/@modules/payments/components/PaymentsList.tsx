@@ -40,7 +40,9 @@ const PaymentsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       dataIndex: 'entityType',
       title: 'Entity Type',
       render: (type) => (
-        <Tag color={type === 'customer' ? 'blue' : 'orange'}>{type === 'customer' ? 'Customer' : 'Supplier'}</Tag>
+        <Tag color={type === 'customer' ? 'blue' : type === 'employee' ? 'green' : 'orange'}>
+          {type === 'customer' ? 'Customer' : type === 'employee' ? 'Employee' : 'Supplier'}
+        </Tag>
       ),
     },
     {
