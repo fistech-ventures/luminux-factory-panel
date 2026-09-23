@@ -39,6 +39,7 @@ const ProductsForm: React.FC<IProps> = ({
   const [messageApi, messageHolder] = message.useMessage();
   const watchedVariants = Form.useWatch("variants", form) || [];
   const watchedSkus = Form.useWatch("skus", form) || [];
+  const hasDetailedInventory = watchedVariants.length > 0 || watchedSkus.length > 0;
   const initialValuesRef = useRef(initialValues);
   const initialRecordId = (initialValues as { id?: string } | undefined)?.id;
 
@@ -201,15 +202,14 @@ const ProductsForm: React.FC<IProps> = ({
             <Form.Item
               name="sourcingPrice"
               className="!mb-0"
-              rules={[
-                { required: true, message: "Sourcing price is required!" },
-              ]}
+              rules={hasDetailedInventory ? [] : [{ required: true, message: "Sourcing price is required!" }]}
             >
               <InputNumber
                 className="w-full!"
                 placeholder="Sourcing Price"
                 min={0}
                 precision={2}
+                disabled={hasDetailedInventory}
               />
             </Form.Item>
           </Col>
@@ -217,15 +217,14 @@ const ProductsForm: React.FC<IProps> = ({
             <Form.Item
               name="sellingPrice"
               className="!mb-0"
-              rules={[
-                { required: true, message: "Selling price is required!" },
-              ]}
+              rules={hasDetailedInventory ? [] : [{ required: true, message: "Selling price is required!" }]}
             >
               <InputNumber
                 className="w-full!"
                 placeholder="Selling Price"
                 min={0}
                 precision={2}
+                disabled={hasDetailedInventory}
               />
             </Form.Item>
           </Col>
@@ -233,14 +232,14 @@ const ProductsForm: React.FC<IProps> = ({
             <Form.Item
               name="stock"
               className="mb-0!"
-              rules={[{ required: true, message: "Stock is required!" }]}
+              rules={hasDetailedInventory ? [] : [{ required: true, message: "Stock is required!" }]}
             >
               <InputNumber
                 className="w-full!"
                 placeholder="Stock"
                 min={0}
                 precision={0}
-                disabled={watchedVariants?.length > 0}
+                disabled={hasDetailedInventory}
               />
             </Form.Item>
           </Col>

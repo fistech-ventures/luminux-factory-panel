@@ -89,7 +89,7 @@ const LedgerFilter: React.FC<IProps> = ({ initialValues, onChange }) => {
       <Button type="primary" icon={<FaFilter />} onClick={() => setDrawerOpen(true)} ghost>
         Filter
       </Button>
-      <Drawer width={380} title="Filter" open={isDrawerOpen} onClose={() => setDrawerOpen(false)}>
+      <Drawer width={460} title="Filter" open={isDrawerOpen} onClose={() => setDrawerOpen(false)}>
         <Form
           form={formInstance}
           onFinish={(values) => {

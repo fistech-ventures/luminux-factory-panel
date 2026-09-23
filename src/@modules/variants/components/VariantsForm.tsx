@@ -108,21 +108,6 @@ const VariantsForm: React.FC<IProps> = ({ isLoading, form, formType = 'create', 
                           onClick={() => remove(field.name)}
                         />
                       </Space.Compact>
-                      <Form.Item
-                        {...field}
-                        name={[field.name, 'isActive']}
-                        className="!mb-0 mt-2"
-                        initialValue={true}
-                      >
-                        <Radio.Group buttonStyle="solid" size="small" className="w-full text-center">
-                          <Radio.Button className="w-1/2" value={true}>
-                            Active
-                          </Radio.Button>
-                          <Radio.Button className="w-1/2" value={false}>
-                            Inactive
-                          </Radio.Button>
-                        </Radio.Group>
-                      </Form.Item>
                       {formType === 'update' && (
                         <Form.Item {...field} name={[field.name, 'id']} className="!mb-0 hidden">
                           <FloatInput />

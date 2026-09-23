@@ -179,7 +179,7 @@ const PurchasesForm: React.FC<IProps> = ({
     updated[idx] =
       mode === "existing"
         ? { ...updated[idx], productName: null, productCode: null }
-        : { ...updated[idx], productId: null, variantId: null };
+        : { ...updated[idx], productId: null, variantId: null, skuId: null };
 
     form.setFieldsValue({ items: updated });
   };
@@ -310,11 +310,6 @@ const PurchasesForm: React.FC<IProps> = ({
                       ? findProductVariantOptions(currentRow?.productId)
                       : [];
                     const skus = isExisting ? findProductSkus(currentRow?.productId) : [];
-                            {skus.length > 0 && (
-                              <Form.Item {...field} name={[field.name, "skuId"]} rules={[{ required: true, message: "Combination is required!" }]} className="mb-0!">
-                                <Select showSearch placeholder="Sellable combination" options={skus.map((sku) => ({ value: sku.id, label: `${sku.productCode} - ${(sku.values ?? []).map((value) => value.variantOption?.title).join(" / ")}` }))} />
-                              </Form.Item>
-                            )}
 
                     return (
                       <div
@@ -373,35 +368,67 @@ const PurchasesForm: React.FC<IProps> = ({
                                   label: `${product?.title} (${product?.productCode})`,
                                   value: product?.id,
                                 })}
+                                onChange={(productId) => {
+                                  const items = [...(form.getFieldValue("items") || [])];
+                                  items[idx] = { ...items[idx], productId, variantId: null, skuId: null };
+                                  form.setFieldsValue({ items });
+                                }}
                                 onChangeSearchTerm={(searchTerm) =>
                                   setProductSearchTerm(searchTerm)
                                 }
                                 query={productsQuery}
                               />
                             </Form.Item>
-                            <Form.Item
-                              {...field}
-                              name={[field.name, "variantId"]}
-                              className="mb-0!"
-                            >
-                              <Select
-                                showSearch
-                                allowClear
-                                placeholder="Variant (optional)"
-                                options={Toolbox.toCleanArray(
-                                  variantOptions.map((variant) => ({
-                                    key: variant?.id,
-                                    label: `${variant?.variant?.title}: ${variant?.variantOption?.title}`,
-                                    value: variant?.id,
-                                  })),
-                                )}
-                                filterOption={(input, option) =>
-                                  String(option?.label ?? "")
-                                    .toLowerCase()
-                                    .includes(input.toLowerCase())
-                                }
-                              />
-                            </Form.Item>
+                            {skus.length === 0 && (
+                              <Form.Item
+                                {...field}
+                                name={[field.name, "variantId"]}
+                                className="mb-0!"
+                              >
+                                <Select
+                                  showSearch
+                                  allowClear
+                                  placeholder="Variant (optional)"
+                                  options={Toolbox.toCleanArray(
+                                    variantOptions.map((variant) => ({
+                                      key: variant?.id,
+                                      label: `${variant?.variant?.title}: ${variant?.variantOption?.title}`,
+                                      value: variant?.id,
+                                    })),
+                                  )}
+                                  filterOption={(input, option) =>
+                                    String(option?.label ?? "")
+                                      .toLowerCase()
+                                      .includes(input.toLowerCase())
+                                  }
+                                />
+                              </Form.Item>
+                            )}
+                            {skus.length > 0 && (
+                              <Form.Item
+                                {...field}
+                                name={[field.name, "skuId"]}
+                                rules={[{
+                                  required: true,
+                                  message: "Combination is required!",
+                                }]}
+                                className="mb-0!"
+                              >
+                                <Select
+                                  showSearch
+                                  placeholder="Sellable combination"
+                                  options={skus.map((sku) => ({
+                                    value: sku.id,
+                                    label: `${sku.productCode} - ${(sku.values ?? [])
+                                      .map((value) => value.variantOption?.title)
+                                      .join(" / ")}`,
+                                  }))}
+                                  onChange={() => {
+                                    form.setFieldValue(["items", idx, "variantId"], null);
+                                  }}
+                                />
+                              </Form.Item>
+                            )}
                           </div>
                         ) : (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">

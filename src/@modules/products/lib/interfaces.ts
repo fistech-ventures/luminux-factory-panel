@@ -78,12 +78,12 @@ export interface IProductsResponse extends IBaseResponse {
 export interface IProductCreate {
   title: string;
   description?: string;
-  sourcingPrice: number;
-  sellingPrice: number;
+  sourcingPrice?: number;
+  sellingPrice?: number;
   thumbnail?: string;
   productCode: string;
   unit?: string;
-  stock: number;
+  stock?: number;
   variants?: IProductVariantLink[];
   skus?: IProductVariantSku[];
   createdBy?: TId;
