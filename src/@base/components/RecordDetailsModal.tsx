@@ -3,6 +3,7 @@ import { TId } from '@base/interfaces';
 import CustomersDetails from '@modules/customers/components/CustomersDetails';
 import EmployeesDetails from '@modules/employees/components/EmployeesDetails';
 import ExpensesDetails from '@modules/expenses/components/ExpensesDetails';
+import InvestmentsDetails from '@modules/investments/components/InvestmentsDetails';
 import LedgerDetails from '@modules/ledger/components/LedgerDetails';
 import PaymentsDetails from '@modules/payments/components/PaymentsDetails';
 import ProductsDetails from '@modules/products/components/ProductsDetails';
@@ -22,6 +23,7 @@ export type TRecordResource =
   | 'customer'
   | 'supplier'
   | 'employee'
+  | 'investment'
   | 'user'
   | 'ledger';
 
@@ -45,6 +47,8 @@ const RECORD_RESOURCE_ALIASES: Record<string, TRecordResource> = {
   suppliers: 'supplier',
   employee: 'employee',
   employees: 'employee',
+  investment: 'investment',
+  investments: 'investment',
   user: 'user',
   users: 'user',
   ledger: 'ledger',
@@ -60,6 +64,7 @@ const RECORD_TITLES: Record<TRecordResource, string> = {
   customer: 'Customer Details',
   supplier: 'Supplier Details',
   employee: 'Employee Details',
+  investment: 'Investment Details',
   user: 'User Details',
   ledger: 'Ledger Entry Details',
 };
@@ -120,6 +125,7 @@ const RecordDetailsModal: React.FC<IProps> = ({ open, onClose, resource, id, tit
         {open && resolvedResource === 'customer' && <CustomersDetails id={id} />}
         {open && resolvedResource === 'supplier' && <SuppliersDetails id={id} />}
         {open && resolvedResource === 'employee' && <EmployeesDetails id={id} />}
+        {open && resolvedResource === 'investment' && <InvestmentsDetails id={id} />}
         {open && resolvedResource === 'user' && <UsersDetails id={id} />}
         {open && resolvedResource === 'ledger' && <LedgerDetails id={id} onViewReference={handleViewReferenceFn} />}
         {open && !resolvedResource && (
