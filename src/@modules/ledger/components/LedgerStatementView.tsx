@@ -63,9 +63,12 @@ const LedgerStatementView: React.FC<IProps> = ({ options, query }) => {
           <div>
             <Typography.Title level={4} className="!mb-1">{statement.party.name}</Typography.Title>
             {statement.party.customerType && <Tag>{statement.party.customerType}</Tag>}
+            {statement.party.employeeId && <Tag color="green">{statement.party.employeeId}</Tag>}
             <div className="mt-2 text-gray-500">
-              <div>{statement.party.contactNumber || missingValue}</div>
-              <div>{statement.party.address || missingValue}</div>
+              <div>{statement.party.contactNumber || statement.party.phoneNumber || missingValue}</div>
+              {statement.party.email && <div>{statement.party.email}</div>}
+              {statement.party.designation && <div>{statement.party.designation}</div>}
+              {statement.party.address && <div>{statement.party.address}</div>}
             </div>
           </div>
           <Typography.Text type="secondary">

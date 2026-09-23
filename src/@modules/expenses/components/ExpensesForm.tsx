@@ -1,4 +1,5 @@
 import FloatInput from "@base/antd/components/FloatInput";
+import InfiniteScrollSelect from "@base/components/InfiniteScrollSelect";
 import {
   Button,
   Col,
@@ -11,10 +12,12 @@ import {
   message,
 } from "antd";
 import dayjs from "dayjs";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { IExpenseCreate } from "../lib/interfaces";
 import { ENUM_PAYMENT_METHODS } from "@lib/constant";
 import { Toolbox } from "@lib/utils";
+import { EmployeesHooks } from "@modules/employees/lib/hooks";
+import { IEmployee } from "@modules/employees/lib/interfaces";
 
 interface IProps {
   isLoading: boolean;
@@ -34,6 +37,12 @@ const ExpensesForm: React.FC<IProps> = ({
   backendError,
 }) => {
   const [messageApi, messageHolder] = message.useMessage();
+  const [employeeSearchTerm, setEmployeeSearchTerm] = useState(null);
+
+  const employeesQuery = EmployeesHooks.useFindInfinite({
+    options: { limit: 20, searchTerm: employeeSearchTerm },
+    config: { queryKey: [] },
+  });
 
   useEffect(() => {
     if (backendError) {
@@ -129,12 +138,28 @@ const ExpensesForm: React.FC<IProps> = ({
             </Form.Item>
           </Col>
           <Col xs={12}>
+            <Form.Item name="spentBy" className="mb-0!">
+              <FloatInput placeholder="Spent By (auto-filled for employees)" />
+            </Form.Item>
+          </Col>
+          <Col xs={24}>
             <Form.Item
-              name="spentBy"
-              rules={[{ required: true, message: "Spent by is required!" }]}
+              name="employeeId"
               className="mb-0!"
+              extra="Link this expense to an employee. It is then settled from their advance and will not reduce the company balance."
             >
-              <FloatInput placeholder="Spent By (name)" />
+              <InfiniteScrollSelect<IEmployee>
+                showSearch
+                allowClear
+                placeholder="Employee (optional)"
+                option={({ item }) => ({
+                  key: item.id,
+                  value: item.id,
+                  label: `${item.name} (${item.employeeId})`,
+                })}
+                onChangeSearchTerm={setEmployeeSearchTerm}
+                query={employeesQuery}
+              />
             </Form.Item>
           </Col>
           <Col xs={24}>

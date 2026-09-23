@@ -2,6 +2,8 @@ import InfiniteScrollSelect from "@base/components/InfiniteScrollSelect";
 import { ENUM_PAYMENT_METHODS } from "@lib/constant";
 import { CustomersHooks } from "@modules/customers/lib/hooks";
 import { ICustomer } from "@modules/customers/lib/interfaces";
+import { EmployeesHooks } from "@modules/employees/lib/hooks";
+import { IEmployee } from "@modules/employees/lib/interfaces";
 import { PurchasesHooks } from "@modules/purchases/lib/hooks";
 import { IPurchase } from "@modules/purchases/lib/interfaces";
 import { SalesHooks } from "@modules/sales/lib/hooks";
@@ -14,6 +16,11 @@ import React, { useState } from "react";
 import { IPaymentCreate } from "../lib/interfaces";
 
 const PAYMENT_METHODS = ENUM_PAYMENT_METHODS as readonly string[];
+const ENTITY_LABELS: Record<string, string> = {
+  customer: "Customer",
+  supplier: "Supplier",
+  employee: "Employee",
+};
 
 interface IProps {
   form: any;
@@ -36,6 +43,10 @@ const PaymentsForm: React.FC<IProps> = ({ form, initialValues, isLoading, onFini
     options: { limit: 20, searchTerm: entityType === "supplier" ? entitySearchTerm : null },
     config: { queryKey: [], enabled: entityType === "supplier" },
   });
+  const employeesQuery = EmployeesHooks.useFindInfinite({
+    options: { limit: 20, searchTerm: entityType === "employee" ? entitySearchTerm : null },
+    config: { queryKey: [], enabled: entityType === "employee" },
+  });
   const salesQuery = SalesHooks.useFindInfinite({
     options: { limit: 20, searchTerm: referenceType === "sale" ? referenceSearchTerm : null },
     config: { queryKey: [], enabled: referenceType === "sale" },
@@ -53,6 +64,10 @@ const PaymentsForm: React.FC<IProps> = ({ form, initialValues, isLoading, onFini
     id: initialValues?.entityType === "supplier" ? initialValues.entityId : undefined,
     config: { queryKey: [], enabled: initialValues?.entityType === "supplier" && !!initialValues.entityId },
   });
+  const employeeQuery = EmployeesHooks.useFindById({
+    id: initialValues?.entityType === "employee" ? initialValues.entityId : undefined,
+    config: { queryKey: [], enabled: initialValues?.entityType === "employee" && !!initialValues.entityId },
+  });
   const saleQuery = SalesHooks.useFindById({
     id: initialValues?.referenceType === "sale" ? initialValues.referenceId : undefined,
     config: { queryKey: [], enabled: initialValues?.referenceType === "sale" && !!initialValues.referenceId },
@@ -64,14 +79,33 @@ const PaymentsForm: React.FC<IProps> = ({ form, initialValues, isLoading, onFini
 
   const customerInitial = customerQuery.data?.data ? [customerQuery.data.data] : [];
   const supplierInitial = supplierQuery.data?.data ? [supplierQuery.data.data] : [];
+  const employeeInitial = employeeQuery.data?.data ? [employeeQuery.data.data] : [];
   const saleInitial = saleQuery.data?.data ? [saleQuery.data.data] : [];
   const purchaseInitial = purchaseQuery.data?.data ? [purchaseQuery.data.data] : [];
 
   const customerLabel = (customer: ICustomer) => `${customer.name} (${customer.contactNumber})`;
   const supplierLabel = (supplier: ISupplier) => `${supplier.companyName} (${supplier.contactNumber})`;
+  const employeeLabel = (employee: IEmployee) =>
+    `${employee.name} (${employee.employeeId})${employee.designation ? ` - ${employee.designation}` : ""}`;
   const saleLabel = (sale: ISale) => `${sale.customer?.companyName} - ${sale.date} - ${sale.invoiceNo} - ${Number(sale.grandTotal || 0).toFixed(2)}`;
   const purchaseLabel = (purchase: IPurchase) =>
     `${purchase.supplier?.companyName || purchase.supplierId} - ${purchase.purchaseDate} - ${Number(purchase.totalPurchaseAmount || 0).toFixed(2)}`;
+
+  const entityLabel = ENTITY_LABELS[entityType] || "Party";
+  const entityInitialOptions =
+    entityType === "supplier" ? supplierInitial : entityType === "employee" ? employeeInitial : customerInitial;
+  const entityQuery =
+    entityType === "supplier" ? suppliersQuery : entityType === "employee" ? employeesQuery : customersQuery;
+  const entityOption = ({ item }: { item: ICustomer | ISupplier | IEmployee }) => ({
+    key: item.id,
+    value: item.id,
+    label:
+      entityType === "supplier"
+        ? supplierLabel(item as ISupplier)
+        : entityType === "employee"
+          ? employeeLabel(item as IEmployee)
+          : customerLabel(item as ICustomer),
+  });
 
   return (
     <Form
@@ -92,26 +126,23 @@ const PaymentsForm: React.FC<IProps> = ({ form, initialValues, isLoading, onFini
         <Select placeholder="Select entity type" onChange={() => form.setFieldValue("entityId", undefined)}>
           <Select.Option value="customer">Customer</Select.Option>
           <Select.Option value="supplier">Supplier</Select.Option>
+          <Select.Option value="employee">Employee (advance)</Select.Option>
         </Select>
       </Form.Item>
 
       <Form.Item
         name="entityId"
-        label={entityType === "supplier" ? "Supplier" : "Customer"}
+        label={entityLabel}
         rules={[{ required: true, message: "Please select entity" }]}
       >
-        <InfiniteScrollSelect<ICustomer | ISupplier>
+        <InfiniteScrollSelect<ICustomer | ISupplier | IEmployee>
           showSearch
           allowClear
-          placeholder={entityType === "supplier" ? "Supplier" : "Customer"}
-          initialOptions={entityType === "supplier" ? supplierInitial : customerInitial}
-          option={({ item }) => ({
-            key: item.id,
-            value: item.id,
-            label: entityType === "supplier" ? supplierLabel(item as ISupplier) : customerLabel(item as ICustomer),
-          })}
+          placeholder={entityLabel}
+          initialOptions={entityInitialOptions}
+          option={entityOption}
           onChangeSearchTerm={setEntitySearchTerm}
-          query={entityType === "supplier" ? suppliersQuery : customersQuery}
+          query={entityQuery}
         />
       </Form.Item>
 
@@ -131,28 +162,32 @@ const PaymentsForm: React.FC<IProps> = ({ form, initialValues, isLoading, onFini
         <DatePicker style={{ width: "100%" }} />
       </Form.Item>
 
-      <Form.Item name="referenceType" label="Reference Type">
-        <Select placeholder="Select reference type" allowClear onChange={() => form.setFieldValue("referenceId", undefined)}>
-          <Select.Option value="sale">Sale</Select.Option>
-          <Select.Option value="purchase">Purchase</Select.Option>
-        </Select>
-      </Form.Item>
+      {entityType !== "employee" && (
+        <React.Fragment>
+          <Form.Item name="referenceType" label="Reference Type">
+            <Select placeholder="Select reference type" allowClear onChange={() => form.setFieldValue("referenceId", undefined)}>
+              <Select.Option value="sale">Sale</Select.Option>
+              <Select.Option value="purchase">Purchase</Select.Option>
+            </Select>
+          </Form.Item>
 
-      <Form.Item name="referenceId" label={referenceType === "purchase" ? "Purchase" : "Sale"}>
-        <InfiniteScrollSelect<ISale | IPurchase>
-          showSearch
-          allowClear
-          placeholder={referenceType === "purchase" ? "Purchase" : "Sale"}
-          initialOptions={referenceType === "purchase" ? purchaseInitial : saleInitial}
-          option={({ item }) => ({
-            key: item.id,
-            value: item.id,
-            label: referenceType === "purchase" ? purchaseLabel(item as IPurchase) : saleLabel(item as ISale),
-          })}
-          onChangeSearchTerm={setReferenceSearchTerm}
-          query={referenceType === "purchase" ? purchasesQuery : salesQuery}
-        />
-      </Form.Item>
+          <Form.Item name="referenceId" label={referenceType === "purchase" ? "Purchase" : "Sale"}>
+            <InfiniteScrollSelect<ISale | IPurchase>
+              showSearch
+              allowClear
+              placeholder={referenceType === "purchase" ? "Purchase" : "Sale"}
+              initialOptions={referenceType === "purchase" ? purchaseInitial : saleInitial}
+              option={({ item }) => ({
+                key: item.id,
+                value: item.id,
+                label: referenceType === "purchase" ? purchaseLabel(item as IPurchase) : saleLabel(item as ISale),
+              })}
+              onChangeSearchTerm={setReferenceSearchTerm}
+              query={referenceType === "purchase" ? purchasesQuery : salesQuery}
+            />
+          </Form.Item>
+        </React.Fragment>
+      )}
 
       <Form.Item name="note" label="Note"><Input.TextArea rows={3} placeholder="Enter note" /></Form.Item>
 

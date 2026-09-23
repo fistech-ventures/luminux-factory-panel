@@ -3,6 +3,7 @@ import { ENUM_PAYMENT_METHODS } from '@lib/constant';
 
 export interface IExpensesFilter extends IBaseFilter {
   spentBy?: string;
+  employeeId?: string;
   paymentMethod?: ENUM_PAYMENT_METHODS;
 }
 
@@ -11,7 +12,9 @@ export interface IExpense extends IBaseEntity {
   purpose: string;
   amountSpent: number;
   paymentMethod: ENUM_PAYMENT_METHODS;
-  spentBy: string;
+  /** Employee who spent the money out of their advance (uuid), when linked. */
+  employeeId?: string;
+  spentBy?: string;
 }
 
 export interface IExpensesResponse extends IBaseResponse {
@@ -24,6 +27,9 @@ export interface IExpenseCreate {
   purpose: string;
   amountSpent: number;
   paymentMethod: ENUM_PAYMENT_METHODS;
-  spentBy: string;
+  /** When set, the expense is settled from the employee's advance. */
+  employeeId?: string;
+  /** Auto-filled from the employee's name when employeeId is given. */
+  spentBy?: string;
   createdBy?: string;
 }

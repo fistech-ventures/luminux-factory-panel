@@ -2,6 +2,7 @@
 
 import { Toolbox } from '@lib/utils';
 import { CustomersHooks } from '@modules/customers/lib/hooks';
+import { EmployeesHooks } from '@modules/employees/lib/hooks';
 import { SuppliersHooks } from '@modules/suppliers/lib/hooks';
 import { Button, DatePicker, Drawer, Form, Radio, Select, Space } from 'antd';
 import dayjs from 'dayjs';
@@ -37,6 +38,13 @@ const LedgerFilter: React.FC<IProps> = ({ initialValues, onChange }) => {
     },
   });
 
+  const employeesQuery = EmployeesHooks.useFind({
+    options: {
+      page: 1,
+      limit: 300,
+    },
+  });
+
   useEffect(() => {
     formInstance.resetFields();
 
@@ -64,11 +72,17 @@ const LedgerFilter: React.FC<IProps> = ({ initialValues, onChange }) => {
           label: supplier?.companyName,
           value: supplier?.id,
         }))
-      : customersQuery.data?.data?.map((customer) => ({
-          key: customer?.id,
-          label: customer?.name,
-          value: customer?.id,
-        }));
+      : entityType === 'employee'
+        ? employeesQuery.data?.data?.map((employee) => ({
+            key: employee?.id,
+            label: `${employee?.name} (${employee?.employeeId})`,
+            value: employee?.id,
+          }))
+        : customersQuery.data?.data?.map((customer) => ({
+            key: customer?.id,
+            label: customer?.name,
+            value: customer?.id,
+          }));
 
   return (
     <div className="flex flex-wrap gap-3 justify-end mb-4">
@@ -90,14 +104,17 @@ const LedgerFilter: React.FC<IProps> = ({ initialValues, onChange }) => {
         >
           <Form.Item name="entityType" className="!mb-0">
             <Radio.Group buttonStyle="solid" className="w-full text-center">
-              <Radio.Button className="w-1/3" value="">
+              <Radio.Button className="w-1/4" value="">
                 All
               </Radio.Button>
-              <Radio.Button className="w-1/3" value="customer">
+              <Radio.Button className="w-1/4" value="customer">
                 Customer
               </Radio.Button>
-              <Radio.Button className="w-1/3" value="supplier">
+              <Radio.Button className="w-1/4" value="supplier">
                 Supplier
+              </Radio.Button>
+              <Radio.Button className="w-1/4" value="employee">
+                Employee
               </Radio.Button>
             </Radio.Group>
           </Form.Item>
@@ -106,7 +123,9 @@ const LedgerFilter: React.FC<IProps> = ({ initialValues, onChange }) => {
               <Select
                 allowClear
                 showSearch
-                placeholder={entityType === 'supplier' ? 'Supplier' : 'Customer'}
+                placeholder={
+                  entityType === 'supplier' ? 'Supplier' : entityType === 'employee' ? 'Employee' : 'Customer'
+                }
                 options={Toolbox.toCleanArray(entityOptions)}
                 filterOption={(input, option) =>
                   String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
@@ -118,10 +137,17 @@ const LedgerFilter: React.FC<IProps> = ({ initialValues, onChange }) => {
             <Select
               allowClear
               placeholder="Type"
-              options={[
-                { key: 'due', label: 'Due', value: 'due' },
-                { key: 'paid', label: 'Paid', value: 'paid' },
-              ]}
+              options={
+                entityType === 'employee'
+                  ? [
+                      { key: 'advance', label: 'Advance', value: 'advance' },
+                      { key: 'expense', label: 'Expense', value: 'expense' },
+                    ]
+                  : [
+                      { key: 'due', label: 'Due', value: 'due' },
+                      { key: 'paid', label: 'Paid', value: 'paid' },
+                    ]
+              }
             />
           </Form.Item>
           <Form.Item name="dateRange" className="!mb-0">

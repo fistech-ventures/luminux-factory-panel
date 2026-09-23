@@ -58,6 +58,10 @@ export const Paths = {
       root: '/admin/suppliers',
       list: '/admin/suppliers/list',
     },
+    employees: {
+      root: '/admin/employees',
+      list: '/admin/employees/list',
+    },
     expenses: {
       root: '/admin/expenses',
       list: '/admin/expenses/list',

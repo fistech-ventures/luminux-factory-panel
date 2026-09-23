@@ -56,12 +56,15 @@ const PrintStatementPage = () => {
           <p>{settingsQuery.data?.data?.phone || ''}</p>
         </div>
       </header>
-      <h2 className="mb-4 text-lg font-bold">Statement of Account - {statement.party.companyName}</h2>
+      <h2 className="mb-4 text-lg font-bold">Statement of Account - {statement.party.name || statement.party.companyName}</h2>
       <section className="mb-5 flex justify-between gap-6 border-b pb-4">
         <div>
           {statement.party.customerType && <Tag>{statement.party.customerType}</Tag>}
-          <p>{statement.party.contactNumber || '—'}</p>
-          <p>{statement.party.address || '—'}</p>
+          {statement.party.employeeId && <Tag color="green">{statement.party.employeeId}</Tag>}
+          <p>{statement.party.contactNumber || statement.party.phoneNumber || '—'}</p>
+          {statement.party.email && <p>{statement.party.email}</p>}
+          {statement.party.designation && <p>{statement.party.designation}</p>}
+          {statement.party.address && <p>{statement.party.address}</p>}
         </div>
         <p>
           {statement.startDate && statement.endDate

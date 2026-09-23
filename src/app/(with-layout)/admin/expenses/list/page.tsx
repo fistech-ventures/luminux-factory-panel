@@ -10,6 +10,7 @@ import Authorization from "@modules/auth/components/Authorization";
 import WithAuthorization from "@modules/auth/components/WithAuthorization";
 import ExpensesForm from "@modules/expenses/components/ExpensesForm";
 import ExpensesList from "@modules/expenses/components/ExpensesList";
+import { EmployeesHooks } from "@modules/employees/lib/hooks";
 import { ExpensesHooks } from "@modules/expenses/lib/hooks";
 import { IExpensesFilter } from "@modules/expenses/lib/interfaces";
 import { Button, Drawer, Form, message, Select, Tag } from "antd";
@@ -35,6 +36,8 @@ const ExpensesPage = () => {
       limit,
     },
   });
+
+  const employeesQuery = EmployeesHooks.useFind({ options: { page: 1, limit: 300 } });
 
   const expenseCreateFn = ExpensesHooks.useCreate({
     config: {
@@ -92,6 +95,18 @@ const ExpensesPage = () => {
                 options={ENUM_PAYMENT_METHODS.map((method) => ({
                   value: method,
                   label: method,
+                }))}
+              />
+            </Form.Item>
+            <Form.Item name="employeeId" className="!mb-0">
+              <Select
+                allowClear
+                showSearch
+                placeholder="Employee"
+                optionFilterProp="label"
+                options={employeesQuery.data?.data?.map((employee) => ({
+                  value: employee.id,
+                  label: `${employee.name} (${employee.employeeId})`,
                 }))}
               />
             </Form.Item>

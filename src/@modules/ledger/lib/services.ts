@@ -3,6 +3,7 @@ import { AxiosSecureInstance } from '@lib/config';
 import { responseHandlerFn, Toolbox } from '@lib/utils';
 import {
   IBalance,
+  IEmployeeBalance,
   ILedger,
   ILedgerCreate,
   ILedgerFilter,
@@ -55,6 +56,15 @@ export const LedgerServices = {
   getSupplierBalance: async (supplierId: TId): Promise<IBaseResponse<IBalance>> => {
     try {
       const res = await AxiosSecureInstance.get(`${END_POINT}/supplier/${supplierId}/balance`);
+      return Promise.resolve(res?.data);
+    } catch (error) {
+      throw responseHandlerFn(error);
+    }
+  },
+
+  getEmployeeBalance: async (employeeId: TId): Promise<IBaseResponse<IEmployeeBalance>> => {
+    try {
+      const res = await AxiosSecureInstance.get(`${END_POINT}/employee/${employeeId}/balance`);
       return Promise.resolve(res?.data);
     } catch (error) {
       throw responseHandlerFn(error);

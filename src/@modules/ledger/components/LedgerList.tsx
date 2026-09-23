@@ -77,13 +77,19 @@ const LedgerList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       key: 'entityType',
       dataIndex: 'entityType',
       title: 'Entity',
-      render: (entityType) => <Tag color={entityType === 'supplier' ? 'geekblue' : 'purple'}>{entityType}</Tag>,
+      render: (entityType) => (
+        <Tag color={entityType === 'supplier' ? 'geekblue' : entityType === 'employee' ? 'green' : 'purple'}>
+          {entityType}
+        </Tag>
+      ),
     },
     {
       key: 'type',
       dataIndex: 'type',
       title: 'Type',
-      render: (type) => <Tag color={type === 'paid' ? 'green' : 'orange'}>{type}</Tag>,
+      render: (type) => (
+        <Tag color={type === 'paid' || type === 'advance' ? 'green' : 'orange'}>{type}</Tag>
+      ),
     },
     {
       key: 'amount',

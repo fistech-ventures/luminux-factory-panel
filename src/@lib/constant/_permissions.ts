@@ -59,6 +59,11 @@ export const Permissions = {
   SUPPLIERS_UPDATE: 'suppliers:update',
   SUPPLIERS_DELETE: 'suppliers:delete',
 
+  EMPLOYEES_READ: 'employees:read',
+  EMPLOYEES_WRITE: 'employees:write',
+  EMPLOYEES_UPDATE: 'employees:update',
+  EMPLOYEES_DELETE: 'employees:delete',
+
   EXPENSES_READ: 'expenses:read',
   EXPENSES_WRITE: 'expenses:write',
   EXPENSES_UPDATE: 'expenses:update',

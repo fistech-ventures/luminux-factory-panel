@@ -2,6 +2,7 @@ import ConfirmationDialog from "@base/components/ConfirmationDialog";
 import ActionMenu from "@base/components/ActionMenu";
 import RecordDetailsModal from "@base/components/RecordDetailsModal";
 import { getAccess } from "@modules/auth/lib/utils/client";
+import { EmployeesHooks } from "@modules/employees/lib/hooks";
 import type { PaginationProps, TableColumnsType } from "antd";
 import { Button, Drawer, Form, Table, message } from "antd";
 import React, { useState } from "react";
@@ -27,6 +28,9 @@ const ExpensesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
     content: string;
     onConfirm: () => void;
   }>({ open: false, title: "", content: "", onConfirm: () => {} });
+
+  const employeesQuery = EmployeesHooks.useFind({ options: { page: 1, limit: 300 } });
+  const employeeMap = new Map(employeesQuery.data?.data?.map((employee) => [employee.id, employee]));
 
   const expenseUpdateFn = ExpensesHooks.useUpdate({
     config: {
@@ -61,6 +65,7 @@ const ExpensesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
     purpose: elem?.purpose,
     amountSpent: elem?.amountSpent,
     paymentMethod: elem?.paymentMethod,
+    employeeId: elem?.employeeId,
     spentBy: elem?.spentBy,
     createdAt: elem?.createdAt,
     createdBy: elem?.createdBy,
@@ -97,6 +102,13 @@ const ExpensesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       dataIndex: "spentBy",
       title: "Spent By",
       render: (spentBy) => spentBy || "N/A",
+    },
+    {
+      key: "employeeId",
+      dataIndex: "employeeId",
+      title: "Employee",
+      render: (employeeId) =>
+        employeeId ? employeeMap.get(employeeId)?.name || "Employee" : "N/A",
     },
     {
       key: "createdBy",
