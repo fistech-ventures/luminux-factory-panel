@@ -17,6 +17,7 @@ export interface ISaleItem {
   id?: TId;
   productId: TId;
   variantId?: TId;
+  skuId?: TId;
   quantity: number;
   sellingPrice: number;
   sourcingPrice?: number;

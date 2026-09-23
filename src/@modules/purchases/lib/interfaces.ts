@@ -10,6 +10,7 @@ export interface IPurchaseItem {
   id?: TId;
   productId?: TId;
   variantId?: TId;
+  skuId?: TId;
   productName?: string;
   productCode?: string;
   quantity: number;

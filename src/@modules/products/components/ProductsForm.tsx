@@ -38,6 +38,7 @@ const ProductsForm: React.FC<IProps> = ({
 }) => {
   const [messageApi, messageHolder] = message.useMessage();
   const watchedVariants = Form.useWatch("variants", form) || [];
+  const watchedSkus = Form.useWatch("skus", form) || [];
   const initialValuesRef = useRef(initialValues);
   const initialRecordId = (initialValues as { id?: string } | undefined)?.id;
 
@@ -124,6 +125,18 @@ const ProductsForm: React.FC<IProps> = ({
                 "position",
               ]),
             ),
+            skus: (values.skus ?? []).map((sku: any) => ({
+              ...Toolbox.pickProps(sku, [
+                "id",
+                "productCode",
+                "sourcingPrice",
+                "sellingPrice",
+                "stockQuantity",
+              ]),
+              values: (sku.values ?? []).map((value: any) =>
+                Toolbox.pickProps(value, ["id", "variantId", "variantOptionId"]),
+              ),
+            })),
           };
           onFinish(
             formType === "update"
@@ -233,8 +246,58 @@ const ProductsForm: React.FC<IProps> = ({
           </Col>
           <Col xs={24}>
             <Divider orientation="left" plain>
-              Variants
+              Sellable combinations
             </Divider>
+            <Form.List name="skus">
+              {(skuFields, { add: addSku, remove: removeSku }) => (
+                <div className="flex flex-col gap-2">
+                  {skuFields.map((skuField, skuIndex) => {
+                    const sku = watchedSkus[skuIndex] ?? {};
+                    return (
+                      <div key={skuField.key} className="border border-blue-200 rounded-lg p-3 flex flex-col gap-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <Form.Item {...skuField} name={[skuField.name, "productCode"]} rules={[{ required: true, message: "SKU code is required!" }]} className="!mb-0">
+                            <FloatInput placeholder="SKU / Product Code" />
+                          </Form.Item>
+                          <Button type="text" danger icon={<MdOutlineDeleteOutline />} onClick={() => removeSku(skuField.name)} />
+                          <Form.Item {...skuField} name={[skuField.name, "sourcingPrice"]} rules={[{ required: true }]} className="!mb-0"><InputNumber className="w-full!" min={0} precision={2} placeholder="Sourcing Price" /></Form.Item>
+                          <Form.Item {...skuField} name={[skuField.name, "sellingPrice"]} rules={[{ required: true }]} className="!mb-0"><InputNumber className="w-full!" min={0} precision={2} placeholder="Selling Price" /></Form.Item>
+                          <Form.Item {...skuField} name={[skuField.name, "stockQuantity"]} rules={[{ required: true }]} className="!mb-0"><InputNumber className="w-full!" min={0} precision={0} placeholder="Stock" /></Form.Item>
+                        </div>
+                        <Form.List name={[skuField.name, "values"]}>
+                          {(valueFields, { add: addValue, remove: removeValue }) => (
+                            <div className="flex flex-col gap-2">
+                              {valueFields.map((valueField, valueIndex) => {
+                                const value = sku.values?.[valueIndex] ?? {};
+                                return (
+                                  <div key={valueField.key} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+                                    <Form.Item {...valueField} name={[valueField.name, "variantId"]} rules={[{ required: true }]} className="!mb-0">
+                                      <Select showSearch placeholder="Attribute" options={allVariants.map((variant) => ({ label: variant.title, value: variant.id }))} onChange={() => {
+                                        const next = [...(form.getFieldValue(["skus", skuIndex, "values"]) ?? [])];
+                                        next[valueIndex] = { ...next[valueIndex], variantOptionId: undefined };
+                                        form.setFieldValue(["skus", skuIndex, "values"], next);
+                                      }} />
+                                    </Form.Item>
+                                    <Form.Item {...valueField} name={[valueField.name, "variantOptionId"]} rules={[{ required: true }]} className="!mb-0">
+                                      <Select showSearch placeholder="Option" options={Toolbox.toCleanArray(findVariantOptions(value.variantId)?.map((option) => ({ label: option.title, value: option.id })))} />
+                                    </Form.Item>
+                                    <Button type="text" danger icon={<MdOutlineDeleteOutline />} onClick={() => removeValue(valueField.name)} />
+                                  </div>
+                                );
+                              })}
+                              <Button type="dashed" onClick={() => addValue({})}>Add attribute</Button>
+                            </div>
+                          )}
+                        </Form.List>
+                        {formType === "update" && <Form.Item {...skuField} name={[skuField.name, "id"]} className="!mb-0 hidden"><FloatInput /></Form.Item>}
+                      </div>
+                    );
+                  })}
+                  <Button block type="dashed" onClick={() => addSku({ values: [] })}>Add combination</Button>
+                </div>
+              )}
+            </Form.List>
+            <Divider plain>Legacy variants</Divider>
             <Form.List name="variants">
               {(fields, { add, remove }) => (
                 <div className="flex flex-col gap-2">

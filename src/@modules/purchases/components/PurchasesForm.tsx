@@ -88,6 +88,7 @@ const PurchasesForm: React.FC<IProps> = ({
         Toolbox.pickProps(item, [
           "productId",
           "variantId",
+                    "skuId",
           "productName",
           "productCode",
           "quantity",
@@ -167,6 +168,9 @@ const PurchasesForm: React.FC<IProps> = ({
     );
     return product?.variants ?? [];
   };
+
+  const findProductSkus = (productId: string) =>
+    loadedProducts.find((item: IProduct) => item.id === productId)?.skus ?? [];
 
   const handleItemModeChangeFn = (idx: number, mode: "existing" | "new") => {
     const currentItems = form.getFieldValue("items") || [];
@@ -305,6 +309,12 @@ const PurchasesForm: React.FC<IProps> = ({
                     const variantOptions = isExisting
                       ? findProductVariantOptions(currentRow?.productId)
                       : [];
+                    const skus = isExisting ? findProductSkus(currentRow?.productId) : [];
+                            {skus.length > 0 && (
+                              <Form.Item {...field} name={[field.name, "skuId"]} rules={[{ required: true, message: "Combination is required!" }]} className="mb-0!">
+                                <Select showSearch placeholder="Sellable combination" options={skus.map((sku) => ({ value: sku.id, label: `${sku.productCode} - ${(sku.values ?? []).map((value) => value.variantOption?.title).join(" / ")}` }))} />
+                              </Form.Item>
+                            )}
 
                     return (
                       <div

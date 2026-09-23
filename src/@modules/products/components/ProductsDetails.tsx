@@ -5,7 +5,7 @@ import { Descriptions, Divider, Table, TableColumnsType } from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
 import { ProductsHooks } from '../lib/hooks';
-import { IProductVariantLink } from '../lib/interfaces';
+import { IProductVariantLink, IProductVariantSku } from '../lib/interfaces';
 
 interface IProps {
   id: TId;
@@ -32,6 +32,18 @@ const variantColumns: TableColumnsType<TProductVariant> = [
     title: 'Stock',
     render: (stockQuantity) => stockQuantity ?? 0,
   },
+];
+
+const skuColumns: TableColumnsType<IProductVariantSku> = [
+  {
+    key: 'values',
+    title: 'Combination',
+    render: (_, sku) => (sku.values ?? []).map((value) => `${value.variant?.title}: ${value.variantOption?.title}`).join(' / ') || 'N/A',
+  },
+  { key: 'productCode', dataIndex: 'productCode', title: 'SKU' },
+  { key: 'sourcingPrice', dataIndex: 'sourcingPrice', title: 'Cost', render: (value) => Number(value ?? 0).toFixed(2) },
+  { key: 'sellingPrice', dataIndex: 'sellingPrice', title: 'Selling Price', render: (value) => Number(value ?? 0).toFixed(2) },
+  { key: 'stockQuantity', dataIndex: 'stockQuantity', title: 'Stock' },
 ];
 
 const ProductsDetails: React.FC<IProps> = ({ id }) => {
@@ -99,6 +111,21 @@ const ProductsDetails: React.FC<IProps> = ({ id }) => {
         pagination={false}
         scroll={{ x: true }}
       />
+      {(product?.skus?.length ?? 0) > 0 && (
+        <>
+          <Divider orientation="left" plain>
+            Sellable combinations ({product?.skus?.length ?? 0})
+          </Divider>
+          <Table<IProductVariantSku>
+            size="small"
+            rowKey={(sku) => String(sku.id ?? sku.productCode)}
+            dataSource={product?.skus ?? []}
+            columns={skuColumns}
+            pagination={false}
+            scroll={{ x: true }}
+          />
+        </>
+      )}
     </DetailsBody>
   );
 };

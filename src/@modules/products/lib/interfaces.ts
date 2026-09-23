@@ -34,6 +34,24 @@ export interface IProductVariantRelation {
   };
 }
 
+export interface IProductVariantSkuValue {
+  id?: TId;
+  variantId: TId;
+  variantOptionId: TId;
+  variant?: { id: TId; title: string };
+  variantOption?: { id: TId; title: string };
+}
+
+export interface IProductVariantSku {
+  id?: TId;
+  productCode: string;
+  sourcingPrice: number;
+  sellingPrice: number;
+  stockQuantity: number;
+  saleQuantity?: number;
+  values: IProductVariantSkuValue[];
+}
+
 export interface IProduct extends IBaseEntity {
   title: string;
   description?: string;
@@ -49,6 +67,7 @@ export interface IProduct extends IBaseEntity {
   b2bSoldQuantity: number;
   b2cSoldQuantity: number;
   variants: (IProductVariantLink & IProductVariantRelation)[];
+  skus: IProductVariantSku[];
 }
 
 export interface IProductsResponse extends IBaseResponse {
@@ -66,5 +85,6 @@ export interface IProductCreate {
   unit?: string;
   stock: number;
   variants?: IProductVariantLink[];
+  skus?: IProductVariantSku[];
   createdBy?: TId;
 }

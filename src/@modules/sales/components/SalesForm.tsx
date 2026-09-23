@@ -132,6 +132,9 @@ const SalesForm: React.FC<IProps> = ({
     return product?.variants ?? [];
   };
 
+  const findProductSkus = (productId: string) =>
+    loadedProducts.find((item: IProduct) => item.id === productId)?.skus ?? [];
+
   const totalAmount = watchedItems?.reduce(
     (sum: number, item: any) =>
       sum + (Number(item?.quantity) || 0) * (Number(item?.sellingPrice) || 0),
@@ -164,7 +167,7 @@ const SalesForm: React.FC<IProps> = ({
             discount: Number(values.discount) || 0,
             paidAmount: Number(values.paidAmount) || 0,
             items: (values.items ?? []).map((item) =>
-              Toolbox.pickProps(item, ["productId", "variantId", "quantity", "sellingPrice"]),
+              Toolbox.pickProps(item, ["productId", "variantId", "skuId", "quantity", "sellingPrice"]),
             ),
           };
           onFinish(
@@ -337,6 +340,7 @@ const SalesForm: React.FC<IProps> = ({
                     const variantOptions = findProductVariantOptions(
                       currentRow?.productId,
                     );
+                    const skus = findProductSkus(currentRow?.productId);
 
                     return (
                       <div
@@ -401,6 +405,11 @@ const SalesForm: React.FC<IProps> = ({
                             }
                           />
                         </Form.Item>
+                        {skus.length > 0 && (
+                          <Form.Item {...field} name={[field.name, "skuId"]} rules={[{ required: true, message: "Combination is required!" }]} className="mb-0!">
+                            <Select showSearch placeholder="Sellable combination" options={skus.map((sku) => ({ value: sku.id, label: `${sku.productCode} - ${(sku.values ?? []).map((value) => value.variantOption?.title).join(" / ")}` }))} />
+                          </Form.Item>
+                        )}
                         <div className="grid grid-cols-2 gap-2">
                           <Form.Item
                             {...field}
