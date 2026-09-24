@@ -19,6 +19,20 @@ const escapeHtml = (value: unknown) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 
+const getSaleItemDetails = (item: ISale['items'][number]) => {
+  if (item.sku) {
+    const values = (item.sku.values ?? [])
+      .map((value) => value.variantOption?.title || value.variant?.title)
+      .filter(Boolean)
+      .join(" / ");
+    return [item.sku.name, item.sku.productCode, values].filter(Boolean).join(" - ");
+  }
+
+  return [item.variant?.variant?.title, item.variant?.variantOption?.title]
+    .filter(Boolean)
+    .join(": ");
+};
+
 const printSale = (sale: ISale) => {
   const printWindow = window.open("", "_blank", "width=900,height=700");
   if (!printWindow) return;
@@ -26,7 +40,7 @@ const printSale = (sale: ISale) => {
   const items = (sale.items ?? [])
     .map(
       (item, index) => `
-        <tr><td>${index + 1}</td><td><strong>${escapeHtml(item.product?.title)}</strong>${item.variant?.title ? `<small>${escapeHtml(item.variant.title)}</small>` : ""}</td><td class="num">${item.quantity}</td><td class="num">${Number(item.sellingPrice ?? 0).toFixed(2)}</td><td class="num">${Number(item.totalPrice ?? item.quantity * item.sellingPrice).toFixed(2)}</td></tr>`,
+        <tr><td>${index + 1}</td><td><strong>${escapeHtml(item.product?.title)}</strong>${getSaleItemDetails(item) ? `<small>${escapeHtml(getSaleItemDetails(item))}</small>` : ""}</td><td class="num">${item.quantity}${item.sku?.unit || item.product?.unit ? ` ${escapeHtml(item.sku?.unit || item.product?.unit)}` : ""}</td><td class="num">${Number(item.sellingPrice ?? 0).toFixed(2)}</td><td class="num">${Number(item.totalAmount ?? item.totalPrice ?? item.quantity * item.sellingPrice).toFixed(2)}</td></tr>`,
     )
     .join("");
 

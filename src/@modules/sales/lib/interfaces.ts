@@ -21,6 +21,7 @@ export interface ISaleItem {
   quantity: number;
   sellingPrice: number;
   sourcingPrice?: number;
+  totalAmount?: number;
   totalPrice?: number;
   product?: {
     id: TId;
@@ -28,10 +29,23 @@ export interface ISaleItem {
     productCode: string;
     sellingPrice: number;
     stock: number;
+    unit?: string;
   };
   variant?: {
     id: TId;
     title: string;
+    variant?: { title: string };
+    variantOption?: { title: string };
+  };
+  sku?: {
+    id: TId;
+    name?: string;
+    productCode: string;
+    unit?: string;
+    values?: Array<{
+      variant?: { title: string };
+      variantOption?: { title: string };
+    }>;
   };
 }
 
