@@ -22,10 +22,10 @@ const escapeHtml = (value: unknown) =>
 const getSaleItemDetails = (item: ISale['items'][number]) => {
   if (item.sku) {
     const values = (item.sku.values ?? [])
-      .map((value) => value.variantOption?.title || value.variant?.title)
+      .map((value) => [value.variant?.title, value.variantOption?.title].filter(Boolean).join(": "))
       .filter(Boolean)
-      .join(" / ");
-    return [item.sku.name, item.sku.productCode, values].filter(Boolean).join(" - ");
+      .join(", ");
+    return values || item.sku.name || "";
   }
 
   return [item.variant?.variant?.title, item.variant?.variantOption?.title]
