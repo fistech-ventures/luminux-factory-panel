@@ -49,6 +49,16 @@ export const Permissions = {
   SALES_UPDATE: 'sales:update',
   SALES_DELETE: 'sales:delete',
 
+  REPORTS_READ: 'reports:read',
+  REPORTS_WRITE: 'reports:write',
+  REPORTS_UPDATE: 'reports:update',
+  REPORTS_DELETE: 'reports:delete',
+
+  GALLERY_READ: 'gallery:read',
+  GALLERY_WRITE: 'gallery:write',
+  GALLERY_UPDATE: 'gallery:update',
+  GALLERY_DELETE: 'gallery:delete',
+
   CUSTOMERS_READ: 'customers:read',
   CUSTOMERS_WRITE: 'customers:write',
   CUSTOMERS_UPDATE: 'customers:update',
@@ -83,11 +93,6 @@ export const Permissions = {
   PAYMENTS_WRITE: 'payments:write',
   PAYMENTS_UPDATE: 'payments:update',
   PAYMENTS_DELETE: 'payments:delete',
-
-  GALLERY_READ: 'gallery:read',
-  GALLERY_WRITE: 'gallery:write',
-  GALLERY_UPDATE: 'gallery:update',
-  GALLERY_DELETE: 'gallery:delete',
 
   SETTINGS_READ: 'settings:read',
 } as const;

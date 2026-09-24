@@ -126,18 +126,21 @@ const ProductsForm: React.FC<IProps> = ({
                 "position",
               ]),
             ),
-            skus: (values.skus ?? []).map((sku: any) => ({
-              ...Toolbox.pickProps(sku, [
-                "id",
-                "productCode",
-                "sourcingPrice",
-                "sellingPrice",
-                "stockQuantity",
-              ]),
-              values: (sku.values ?? []).map((value: any) =>
-                Toolbox.pickProps(value, ["id", "variantId", "variantOptionId"]),
-              ),
-            })),
+            skus: (values.skus ?? []).map((sku: any) => {
+              const normalizedSku = {
+                ...Toolbox.pickProps(sku, [
+                  "productCode",
+                  "sourcingPrice",
+                  "sellingPrice",
+                  "stockQuantity",
+                ]),
+                values: (sku.values ?? []).map((value: any) =>
+                  Toolbox.pickProps(value, ["variantId", "variantOptionId"]),
+                ),
+              };
+
+              return sku.id ? { id: sku.id, ...normalizedSku } : normalizedSku;
+            }),
           };
           onFinish(
             formType === "update"

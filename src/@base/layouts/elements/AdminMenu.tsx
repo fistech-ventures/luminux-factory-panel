@@ -25,7 +25,6 @@ import {
   MdOutlineInventory2,
   MdOutlineLayers,
   MdOutlinePeopleOutline,
-  MdOutlinePhotoLibrary,
   MdOutlinePointOfSale,
   MdOutlineReceiptLong,
   MdOutlineSettings,
@@ -256,7 +255,7 @@ const AdminMenu: React.FC<IProps> = ({
                   icon: <FaChartLine />,
                   label: link(Paths.admin.profit.list, "Profit"),
                 },
-                allowedAccess: [Permissions.SALES_READ],
+                allowedAccess: [Permissions.REPORTS_READ],
               }),
               getContentAccess({
                 content: {
@@ -264,29 +263,11 @@ const AdminMenu: React.FC<IProps> = ({
                   icon: <FaChartBar />,
                   label: link(Paths.admin.loss.list, "Loss"),
                 },
-                allowedAccess: [Permissions.SALES_READ],
+                allowedAccess: [Permissions.REPORTS_READ],
               }),
             ],
           },
-          allowedAccess: [Permissions.SALES_READ],
-        }),
-        getContentAccess({
-          content: {
-            key: "workspace",
-            icon: <MdOutlineReceiptLong />,
-            label: "Workspace",
-            children: [
-              getContentAccess({
-                content: {
-                  key: Paths.admin.gallery.list,
-                  icon: <MdOutlinePhotoLibrary />,
-                  label: link(Paths.admin.gallery.list, "Gallery"),
-                },
-                allowedAccess: [Permissions.GALLERY_READ],
-              }),
-            ],
-          },
-          allowedAccess: [Permissions.EXPENSES_READ, Permissions.GALLERY_READ],
+          allowedAccess: [Permissions.REPORTS_READ],
         }),
         getContentAccess({
           content: {

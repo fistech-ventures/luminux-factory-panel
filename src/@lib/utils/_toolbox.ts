@@ -134,11 +134,15 @@ export const Toolbox = {
   },
 
   pickTouchedFields: function <T extends Record<string, any>>(
-    form: { isFieldTouched: (name: string) => boolean },
+    form: {
+      isFieldTouched: (name: string) => boolean;
+      isFieldsTouched?: (nameList?: string[], allFieldsTouched?: boolean) => boolean;
+    },
     values: T,
   ): Partial<T> {
     const changed = Object.keys(values).reduce((result, field) => {
-      if (form.isFieldTouched(field)) result[field] = values[field];
+      const isNestedFieldTouched = form.isFieldsTouched?.([field], false);
+      if (form.isFieldTouched(field) || isNestedFieldTouched) result[field] = values[field];
       return result;
     }, {} as Record<string, any>);
 

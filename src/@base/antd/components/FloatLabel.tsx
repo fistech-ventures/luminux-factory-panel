@@ -62,7 +62,7 @@ const FloatLabel: React.FC<IProps> = ({
       {children}
       <label
         className={cn(
-          "pointer-events-none absolute left-0 top-0 flex h-full origin-top-left items-center overflow-hidden text-ellipsis whitespace-nowrap transition-all ease-in-out text-base before:content-[''] before:absolute before:left-0 before:top-0 before:w-full before:h-full before:-z-10",
+          "pointer-events-none absolute left-0 top-0 z-10 flex h-full origin-top-left items-center overflow-hidden text-ellipsis whitespace-nowrap transition-all ease-in-out text-base before:content-[''] before:absolute before:left-0 before:top-0 before:w-full before:h-full before:-z-10",
           { 'before:bg-[var(--bg-before)]': focused || hasValue },
         )}
         style={{

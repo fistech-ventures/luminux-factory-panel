@@ -1,5 +1,6 @@
 import { IBaseEntity, IBaseFilter, IBaseResponse, IMetaResponse, TId } from '@base/interfaces';
 import { ENUM_PAYMENT_METHODS } from '@lib/constant';
+import { IProductVariantLink, IProductVariantSku } from '@modules/products/lib/interfaces';
 
 export interface IPurchasesFilter extends IBaseFilter {
   supplierId?: TId;
@@ -13,6 +14,10 @@ export interface IPurchaseItem {
   skuId?: TId;
   productName?: string;
   productCode?: string;
+  unit?: string;
+  variants?: IProductVariantLink[];
+  skus?: IProductVariantSku[];
+  combinations?: IPurchaseCombination[];
   quantity: number;
   totalProductCost: number;
   otherCost: number;
@@ -21,6 +26,7 @@ export interface IPurchaseItem {
     id: TId;
     title: string;
     productCode: string;
+    unit?: string;
   };
 }
 
@@ -63,4 +69,16 @@ export interface IPurchaseCreate {
   paymentMethod: ENUM_PAYMENT_METHODS;
   purchasedById: TId;
   createdBy?: TId;
+}
+
+export interface IPurchaseCombination {
+  id?: TId;
+  name: string;
+  productCode: string;
+  quantity: number;
+  unit: string;
+  totalProductCost: number;
+  otherCost: number;
+  sourcingPrice?: number;
+  values: IProductVariantSku['values'];
 }

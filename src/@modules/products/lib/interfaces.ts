@@ -44,6 +44,8 @@ export interface IProductVariantSkuValue {
 
 export interface IProductVariantSku {
   id?: TId;
+  name?: string;
+  unit?: string;
   productCode: string;
   sourcingPrice: number;
   sellingPrice: number;

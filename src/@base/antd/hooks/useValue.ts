@@ -13,7 +13,7 @@ interface IProps {
   onMouseLeave?: (...args: any) => void;
 }
 
-const useValue = ({ id, defaultValue, value, onFocus, onBlur, onMouseEnter, onMouseLeave }: IProps) => {
+const useValue = ({ defaultValue, value, onFocus, onBlur, onMouseEnter, onMouseLeave }: IProps) => {
   const initFlag = useRef(false);
   const [isFocus, setFocus] = useState(false);
   const [isHover, setHover] = useState(false);
@@ -70,8 +70,8 @@ const useValue = ({ id, defaultValue, value, onFocus, onBlur, onMouseEnter, onMo
   }, [value]);
 
   useEffect(() => {
-    if (form && id) setInputValue(changeValue);
-  }, [id, changeValue, form]);
+    if (form && memoName) setInputValue(changeValue);
+  }, [changeValue, form, memoName]);
 
   return {
     hasValue: Array.isArray(inputValue) ? inputValue.length > 0 : typeof value === 'number' ? true : !!inputValue,
