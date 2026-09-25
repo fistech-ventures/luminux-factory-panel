@@ -65,6 +65,7 @@ const ProductsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
     sourcingPrice: elem?.sourcingPrice,
     sellingPrice: elem?.sellingPrice,
     unit: elem?.unit,
+    warranty: elem.warranty,
     stock: elem?.stock,
     saleQuantity: elem?.saleQuantity,
     variantsCount: elem?.variants?.length,
@@ -108,6 +109,11 @@ const ProductsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       key: "unit",
       dataIndex: "unit",
       title: "Unit",
+    },
+    {
+      key: "warranty",
+      dataIndex: "warranty",
+      title: "Warranty",
     },
     {
       key: "sourcingPrice",

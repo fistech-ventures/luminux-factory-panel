@@ -1,11 +1,10 @@
-import DetailsBody from '@base/components/DetailsBody';
-import { TId } from '@base/interfaces';
-import { ImagePaths } from '@lib/constant';
-import { Descriptions, Divider, Table, TableColumnsType } from 'antd';
-import dayjs from 'dayjs';
-import React from 'react';
-import { ProductsHooks } from '../lib/hooks';
-import { IProductVariantLink, IProductVariantSku } from '../lib/interfaces';
+import DetailsBody from "@base/components/DetailsBody";
+import { TId } from "@base/interfaces";
+import { Descriptions, Divider, Table, TableColumnsType } from "antd";
+import dayjs from "dayjs";
+import React from "react";
+import { ProductsHooks } from "../lib/hooks";
+import { IProductVariantLink, IProductVariantSku } from "../lib/interfaces";
 
 interface IProps {
   id: TId;
@@ -17,37 +16,64 @@ type TProductVariant = IProductVariantLink & {
 };
 
 const variantColumns: TableColumnsType<TProductVariant> = [
-  { key: 'variant', title: 'Variant', render: (_, variant) => variant?.variant?.title || 'N/A' },
-  { key: 'variantOption', title: 'Option', render: (_, variant) => variant?.variantOption?.title || 'N/A' },
-  { key: 'sku', dataIndex: 'sku', title: 'SKU', render: (sku) => sku || 'N/A' },
   {
-    key: 'sellingPrice',
-    dataIndex: 'sellingPrice',
-    title: 'Selling Price',
-    render: (sellingPrice) => (sellingPrice != null ? Number(sellingPrice).toFixed(2) : 'N/A'),
+    key: "variant",
+    title: "Variant",
+    render: (_, variant) => variant?.variant?.title || "N/A",
   },
   {
-    key: 'stockQuantity',
-    dataIndex: 'stockQuantity',
-    title: 'Stock',
+    key: "variantOption",
+    title: "Option",
+    render: (_, variant) => variant?.variantOption?.title || "N/A",
+  },
+  { key: "sku", dataIndex: "sku", title: "SKU", render: (sku) => sku || "N/A" },
+  {
+    key: "sellingPrice",
+    dataIndex: "sellingPrice",
+    title: "Selling Price",
+    render: (sellingPrice) =>
+      sellingPrice != null ? Number(sellingPrice).toFixed(2) : "N/A",
+  },
+  {
+    key: "stockQuantity",
+    dataIndex: "stockQuantity",
+    title: "Stock",
     render: (stockQuantity) => stockQuantity ?? 0,
   },
 ];
 
 const skuColumns: TableColumnsType<IProductVariantSku> = [
   {
-    key: 'values',
-    title: 'Combination',
-    render: (_, sku) => (sku.values ?? []).map((value) => `${value.variant?.title}: ${value.variantOption?.title}`).join(' / ') || 'N/A',
+    key: "values",
+    title: "Combination",
+    render: (_, sku) =>
+      (sku.values ?? [])
+        .map(
+          (value) => `${value.variant?.title}: ${value.variantOption?.title}`,
+        )
+        .join(" / ") || "N/A",
   },
-  { key: 'productCode', dataIndex: 'productCode', title: 'SKU' },
-  { key: 'sourcingPrice', dataIndex: 'sourcingPrice', title: 'Cost', render: (value) => Number(value ?? 0).toFixed(2) },
-  { key: 'sellingPrice', dataIndex: 'sellingPrice', title: 'Selling Price', render: (value) => Number(value ?? 0).toFixed(2) },
-  { key: 'stockQuantity', dataIndex: 'stockQuantity', title: 'Stock' },
+  { key: "productCode", dataIndex: "productCode", title: "SKU" },
+  {
+    key: "sourcingPrice",
+    dataIndex: "sourcingPrice",
+    title: "Cost",
+    render: (value) => Number(value ?? 0).toFixed(2),
+  },
+  {
+    key: "sellingPrice",
+    dataIndex: "sellingPrice",
+    title: "Selling Price",
+    render: (value) => Number(value ?? 0).toFixed(2),
+  },
+  { key: "stockQuantity", dataIndex: "stockQuantity", title: "Stock" },
 ];
 
 const ProductsDetails: React.FC<IProps> = ({ id }) => {
-  const query = ProductsHooks.useFindById({ id, config: { queryKey: [], enabled: !!id } });
+  const query = ProductsHooks.useFindById({
+    id,
+    config: { queryKey: [], enabled: !!id },
+  });
   const product = query.data?.data;
 
   return (
@@ -57,59 +83,62 @@ const ProductsDetails: React.FC<IProps> = ({ id }) => {
         size="small"
         column={{ xs: 1, sm: 2 }}
         items={[
+          { key: "title", label: "Title", children: product?.title || "N/A" },
           {
-            key: 'thumbnail',
-            label: 'Image',
-            span: 2,
-            children: product?.thumbnail ? (
-              <img
-                src={product.thumbnail}
-                alt={product?.title}
-                className="w-24 h-24 object-cover rounded-md border border-gray-200"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = ImagePaths.notFound;
-                }}
-              />
-            ) : (
-              'N/A'
-            ),
+            key: "productCode",
+            label: "Product Code",
+            children: product?.productCode || "N/A",
           },
-          { key: 'title', label: 'Title', children: product?.title || 'N/A' },
-          { key: 'productCode', label: 'Product Code', children: product?.productCode || 'N/A' },
-          { key: 'sourcingPrice', label: 'Sourcing Price', children: Number(product?.sourcingPrice || 0).toFixed(2) },
-          { key: 'sellingPrice', label: 'Selling Price', children: Number(product?.sellingPrice || 0).toFixed(2) },
-          { key: 'stock', label: 'Stock', children: product?.stock ?? 0 },
-          { key: 'saleQuantity', label: 'Sold Quantity', children: product?.saleQuantity ?? 0 },
           {
-            key: 'averageB2BSalesPrice',
-            label: 'Avg B2B Price',
+            key: "sourcingPrice",
+            label: "Sourcing Price",
+            children: Number(product?.sourcingPrice || 0).toFixed(2),
+          },
+          {
+            key: "sellingPrice",
+            label: "Selling Price",
+            children: Number(product?.sellingPrice || 0).toFixed(2),
+          },
+          { key: "stock", label: "Stock", children: product?.stock ?? 0 },
+          {
+            key: "saleQuantity",
+            label: "Sold Quantity",
+            children: product?.saleQuantity ?? 0,
+          },
+          {
+            key: "averageB2BSalesPrice",
+            label: "Avg B2B Price",
             children: Number(product?.averageB2BSalesPrice || 0).toFixed(2),
           },
           {
-            key: 'averageB2CSalesPrice',
-            label: 'Avg B2C Price',
+            key: "averageB2CSalesPrice",
+            label: "Avg B2C Price",
             children: Number(product?.averageB2CSalesPrice || 0).toFixed(2),
           },
-          { key: 'b2bSoldQuantity', label: 'B2B Sold', children: product?.b2bSoldQuantity ?? 0 },
-          { key: 'b2cSoldQuantity', label: 'B2C Sold', children: product?.b2cSoldQuantity ?? 0 },
           {
-            key: 'createdAt',
-            label: 'Created At',
-            children: product?.createdAt ? dayjs(product.createdAt).format('YYYY-MM-DD HH:mm') : 'N/A',
+            key: "b2bSoldQuantity",
+            label: "B2B Sold",
+            children: product?.b2bSoldQuantity ?? 0,
           },
-          { key: 'warranty', label: 'Warranty', span: 2, children: product?.warranty || 'N/A' },
+          {
+            key: "b2cSoldQuantity",
+            label: "B2C Sold",
+            children: product?.b2cSoldQuantity ?? 0,
+          },
+          {
+            key: "createdAt",
+            label: "Created At",
+            children: product?.createdAt
+              ? dayjs(product.createdAt).format("YYYY-MM-DD HH:mm")
+              : "N/A",
+          },
+          {
+            key: "warranty",
+            label: "Warranty",
+            span: 2,
+            children: product?.warranty || "N/A",
+          },
         ]}
-      />
-      <Divider orientation="left" plain>
-        Variants ({product?.variants?.length ?? 0})
-      </Divider>
-      <Table<TProductVariant>
-        size="small"
-        rowKey={(variant) => String(variant?.id ?? variant?.variantId)}
-        dataSource={product?.variants ?? []}
-        columns={variantColumns}
-        pagination={false}
-        scroll={{ x: true }}
       />
       {(product?.skus?.length ?? 0) > 0 && (
         <>
@@ -126,6 +155,17 @@ const ProductsDetails: React.FC<IProps> = ({ id }) => {
           />
         </>
       )}
+      <Divider orientation="left" plain>
+        Variants ({product?.variants?.length ?? 0})
+      </Divider>
+      <Table<TProductVariant>
+        size="small"
+        rowKey={(variant) => String(variant?.id ?? variant?.variantId)}
+        dataSource={product?.variants ?? []}
+        columns={variantColumns}
+        pagination={false}
+        scroll={{ x: true }}
+      />
     </DetailsBody>
   );
 };
