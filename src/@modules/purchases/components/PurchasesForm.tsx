@@ -1,4 +1,3 @@
-import FloatInput from "@base/antd/components/FloatInput";
 import InfiniteScrollSelect from "@base/components/InfiniteScrollSelect";
 import { Toolbox } from "@lib/utils";
 import { ENUM_PAYMENT_METHODS } from "@lib/constant";
@@ -88,14 +87,27 @@ const PurchasesForm: React.FC<IProps> = ({
       purchaseDate: dayjs(values.purchaseDate).format("YYYY-MM-DD"),
       items: (values?.items ?? []).map((item) => {
         const combinations = item.combinations ?? [];
-        const normalizedItem = item.mode === "new"
-          ? {
-            ...item,
-            quantity: combinations.reduce((sum, combination) => sum + (Number(combination.quantity) || 0), 0),
-            totalProductCost: combinations.reduce((sum, combination) => sum + (Number(combination.totalProductCost) || 0), 0),
-            otherCost: combinations.reduce((sum, combination) => sum + (Number(combination.otherCost) || 0), 0),
-          }
-          : item;
+        const normalizedItem =
+          item.mode === "new"
+            ? {
+                ...item,
+                quantity: combinations.reduce(
+                  (sum, combination) =>
+                    sum + (Number(combination.quantity) || 0),
+                  0,
+                ),
+                totalProductCost: combinations.reduce(
+                  (sum, combination) =>
+                    sum + (Number(combination.totalProductCost) || 0),
+                  0,
+                ),
+                otherCost: combinations.reduce(
+                  (sum, combination) =>
+                    sum + (Number(combination.otherCost) || 0),
+                  0,
+                ),
+              }
+            : item;
 
         return Toolbox.pickProps(normalizedItem, [
           "productId",
@@ -136,10 +148,10 @@ const PurchasesForm: React.FC<IProps> = ({
           : dayjs(),
         items: Toolbox.isNotEmpty(initialValues?.items)
           ? initialValues.items.map((item) => ({
-            ...item,
-            unit: item?.unit ?? item?.product?.unit,
-            mode: item?.productId ? "existing" : "new",
-          }))
+              ...item,
+              unit: item?.unit ?? item?.product?.unit,
+              mode: item?.productId ? "existing" : "new",
+            }))
           : [],
       });
       hasInitializedValues.current = true;
@@ -186,6 +198,15 @@ const PurchasesForm: React.FC<IProps> = ({
   const findVariantOptions = (variantId: string) =>
     allVariants.find((variant) => variant.id === variantId)?.options ?? [];
 
+  const filterVariantOption = (input: string, option: { value?: string | number }) => {
+    const variant = allVariants.find((item) => item.id === option?.value);
+    const searchTerm = input.toLowerCase();
+    return [
+      variant?.title,
+      ...(variant?.options ?? []).map((variantOption) => variantOption.title),
+    ].some((value) => value?.toLowerCase().includes(searchTerm));
+  };
+
   const findProductVariantOptions = (productId: string) => {
     const product = loadedProducts.find(
       (item: IProduct) => item.id === productId,
@@ -202,26 +223,48 @@ const PurchasesForm: React.FC<IProps> = ({
 
     updated[idx] =
       mode === "existing"
-        ? { ...updated[idx], productName: null, productCode: null, unit: null, variants: [], skus: [], combinations: [] }
-        : { ...updated[idx], productId: null, variantId: null, skuId: null, unit: null, combinations: [] };
+        ? {
+            ...updated[idx],
+            productName: null,
+            productCode: null,
+            unit: null,
+            variants: [],
+            skus: [],
+            combinations: [],
+          }
+        : {
+            ...updated[idx],
+            productId: null,
+            variantId: null,
+            skuId: null,
+            unit: null,
+            combinations: [],
+          };
 
     form.setFieldsValue({ items: updated });
   };
 
-  const totalPurchaseAmount = watchedItems?.reduce(
-    (sum: number, item: any) => {
-      const combinations = item?.combinations ?? [];
-      const totalProductCost = item?.mode === "new"
-        ? combinations.reduce((total, combination) => total + (Number(combination?.totalProductCost) || 0), 0)
+  const totalPurchaseAmount = watchedItems?.reduce((sum: number, item: any) => {
+    const combinations = item?.combinations ?? [];
+    const totalProductCost =
+      item?.mode === "new"
+        ? combinations.reduce(
+            (total, combination) =>
+              total + (Number(combination?.totalProductCost) || 0),
+            0,
+          )
         : Number(item?.totalProductCost) || 0;
-      const otherCost = item?.mode === "new"
-        ? combinations.reduce((total, combination) => total + (Number(combination?.otherCost) || 0), 0)
+    const otherCost =
+      item?.mode === "new"
+        ? combinations.reduce(
+            (total, combination) =>
+              total + (Number(combination?.otherCost) || 0),
+            0,
+          )
         : Number(item?.otherCost) || 0;
 
-      return sum + totalProductCost + otherCost;
-    },
-    0,
-  );
+    return sum + totalProductCost + otherCost;
+  }, 0);
 
   return (
     <React.Fragment>
@@ -239,10 +282,10 @@ const PurchasesForm: React.FC<IProps> = ({
           paymentMethod: initialValues?.paymentMethod || "cash",
           items: Toolbox.isNotEmpty(initialValues?.items)
             ? initialValues.items.map((item) => ({
-              ...item,
-              unit: item?.unit ?? item?.product?.unit,
-              mode: item?.productId ? "existing" : "new",
-            }))
+                ...item,
+                unit: item?.unit ?? item?.product?.unit,
+                mode: item?.productId ? "existing" : "new",
+              }))
             : [],
         }}
         onFinish={handleFinish}
@@ -271,7 +314,7 @@ const PurchasesForm: React.FC<IProps> = ({
               ]}
               className="mb-0!"
             >
-              <FloatInput placeholder="Purchase Type (e.g. Bangladesh, China)" />
+              <Input placeholder="Purchase Type (e.g. Bangladesh, China)" />
             </Form.Item>
           </Col>
           <Col xs={24}>
@@ -300,11 +343,15 @@ const PurchasesForm: React.FC<IProps> = ({
                 }
                 query={suppliersQuery}
                 renderFooter={(searchTerm) => {
-                  const supplierExists = suppliersQuery.data?.pages?.some(page =>
-                    page?.data?.some((supplier: ISupplier) =>
-                      supplier?.companyName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-                      supplier?.contactNumber?.includes(searchTerm)
-                    )
+                  const supplierExists = suppliersQuery.data?.pages?.some(
+                    (page) =>
+                      page?.data?.some(
+                        (supplier: ISupplier) =>
+                          supplier?.companyName
+                            ?.toLowerCase()
+                            .includes(searchTerm?.toLowerCase()) ||
+                          supplier?.contactNumber?.includes(searchTerm),
+                      ),
                   );
 
                   if (!supplierExists && searchTerm && searchTerm.length > 2) {
@@ -315,7 +362,9 @@ const PurchasesForm: React.FC<IProps> = ({
                         icon={<AiOutlinePlus />}
                         onClick={() => {
                           setIsSupplierModalOpen(true);
-                          supplierModalForm.setFieldsValue({ companyName: searchTerm });
+                          supplierModalForm.setFieldsValue({
+                            companyName: searchTerm,
+                          });
                         }}
                       >
                         Create Supplier: {searchTerm}
@@ -339,12 +388,31 @@ const PurchasesForm: React.FC<IProps> = ({
                     const currentRow = currentItems[idx] ?? {};
                     const isExisting = currentRow?.mode !== "new";
                     const selectedProduct = loadedProducts.find(
-                      (product: IProduct) => product.id === currentRow?.productId,
+                      (product: IProduct) =>
+                        product.id === currentRow?.productId,
                     );
                     const variantOptions = isExisting
                       ? findProductVariantOptions(currentRow?.productId)
                       : [];
-                    const skus = isExisting ? findProductSkus(currentRow?.productId) : [];
+                    const skus = isExisting
+                      ? findProductSkus(currentRow?.productId)
+                      : [];
+                    const filterSkuOption = (
+                      input: string,
+                      option: { value?: string | number },
+                    ) => {
+                      const sku = skus.find((item) => item.id === option?.value);
+                      const searchTerm = input.toLowerCase();
+                      return [
+                        sku?.productCode,
+                        ...(sku?.values ?? []).flatMap((value) => [
+                          value.variant?.title,
+                          value.variantOption?.title,
+                        ]),
+                      ].some((value) =>
+                        value?.toLowerCase().includes(searchTerm),
+                      );
+                    };
 
                     return (
                       <div
@@ -404,7 +472,9 @@ const PurchasesForm: React.FC<IProps> = ({
                                   value: product?.id,
                                 })}
                                 onChange={(productId) => {
-                                  const items = [...(form.getFieldValue("items") || [])];
+                                  const items = [
+                                    ...(form.getFieldValue("items") || []),
+                                  ];
                                   const product = loadedProducts.find(
                                     (item: IProduct) => item.id === productId,
                                   );
@@ -452,10 +522,12 @@ const PurchasesForm: React.FC<IProps> = ({
                               <Form.Item
                                 {...field}
                                 name={[field.name, "skuId"]}
-                                rules={[{
-                                  required: true,
-                                  message: "Combination is required!",
-                                }]}
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: "Combination is required!",
+                                  },
+                                ]}
                                 className="mb-0!"
                               >
                                 <Select
@@ -463,12 +535,20 @@ const PurchasesForm: React.FC<IProps> = ({
                                   placeholder="Sellable combination"
                                   options={skus.map((sku) => ({
                                     value: sku.id,
-                                    label: `${sku.productCode} - ${(sku.values ?? [])
-                                      .map((value) => value.variantOption?.title)
+                                    label: `${sku.productCode} - ${(
+                                      sku.values ?? []
+                                    )
+                                      .map(
+                                        (value) => value.variantOption?.title,
+                                      )
                                       .join(" / ")}`,
                                   }))}
+                                      filterOption={filterSkuOption}
                                   onChange={() => {
-                                    form.setFieldValue(["items", idx, "variantId"], null);
+                                    form.setFieldValue(
+                                      ["items", idx, "variantId"],
+                                      null,
+                                    );
                                   }}
                                 />
                               </Form.Item>
@@ -487,7 +567,7 @@ const PurchasesForm: React.FC<IProps> = ({
                               ]}
                               className="mb-0!"
                             >
-                              <FloatInput placeholder="New Product Name" />
+                              <Input placeholder="New Product Name" />
                             </Form.Item>
                             <Form.Item
                               {...field}
@@ -500,31 +580,85 @@ const PurchasesForm: React.FC<IProps> = ({
                               ]}
                               className="mb-0!"
                             >
-                              <FloatInput placeholder="New Product Code" />
+                              <Input placeholder="New Product Code" />
                             </Form.Item>
                             <Form.Item
                               {...field}
                               name={[field.name, "unit"]}
-                              rules={[{ required: true, message: "Unit is required!" }]}
+                              rules={[
+                                {
+                                  required: true,
+                                  message: "Unit is required!",
+                                },
+                              ]}
                               className="mb-0!"
                             >
-                              <FloatInput placeholder="Unit" />
+                              <Input placeholder="Unit" />
                             </Form.Item>
                           </div>
                         )}
                         {isExisting && (
                           <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-                            <Form.Item {...field} name={[field.name, "quantity"]} rules={[{ required: true, message: "Quantity is required!" }]} className="mb-0!">
-                              <InputNumber className="w-full!" placeholder="Quantity" min={1} precision={0} />
+                            <Form.Item
+                              {...field}
+                              name={[field.name, "quantity"]}
+                              rules={[
+                                {
+                                  required: true,
+                                  message: "Quantity is required!",
+                                },
+                              ]}
+                              className="mb-0!"
+                            >
+                              <InputNumber
+                                className="w-full!"
+                                placeholder="Quantity"
+                                min={1}
+                                precision={0}
+                              />
                             </Form.Item>
-                            <Form.Item {...field} name={[field.name, "unit"]} className="mb-0!">
-                              <Input placeholder="Unit" value={currentRow?.unit ?? selectedProduct?.unit} readOnly />
+                            <Form.Item
+                              {...field}
+                              name={[field.name, "unit"]}
+                              className="mb-0!"
+                            >
+                              <Input
+                                placeholder="Unit"
+                                value={
+                                  currentRow?.unit ?? selectedProduct?.unit
+                                }
+                                readOnly
+                              />
                             </Form.Item>
-                            <Form.Item {...field} name={[field.name, "totalProductCost"]} rules={[{ required: true, message: "Total cost is required!" }]} className="mb-0!">
-                              <InputNumber className="w-full!" placeholder="Total Product Cost" min={0} precision={2} />
+                            <Form.Item
+                              {...field}
+                              name={[field.name, "totalProductCost"]}
+                              rules={[
+                                {
+                                  required: true,
+                                  message: "Total cost is required!",
+                                },
+                              ]}
+                              className="mb-0!"
+                            >
+                              <InputNumber
+                                className="w-full!"
+                                placeholder="Total Product Cost"
+                                min={0}
+                                precision={2}
+                              />
                             </Form.Item>
-                            <Form.Item {...field} name={[field.name, "otherCost"]} className="mb-0!">
-                              <InputNumber className="w-full!" placeholder="Other Cost" min={0} precision={2} />
+                            <Form.Item
+                              {...field}
+                              name={[field.name, "otherCost"]}
+                              className="mb-0!"
+                            >
+                              <InputNumber
+                                className="w-full!"
+                                placeholder="Other Cost"
+                                min={0}
+                                precision={2}
+                              />
                             </Form.Item>
                           </div>
                         )}
@@ -532,94 +666,369 @@ const PurchasesForm: React.FC<IProps> = ({
                           <>
                             <Divider plain>Sellable combinations</Divider>
                             <Form.List name={[field.name, "combinations"]}>
-                              {(skuFields, { add: addSku, remove: removeSku }) => (
+                              {(
+                                skuFields,
+                                { add: addSku, remove: removeSku },
+                              ) => (
                                 <div className="flex flex-col gap-2">
-                                  {skuFields.map((skuField, combinationIndex) => {
-                                    const combination = currentRow?.combinations?.[combinationIndex] ?? {};
-                                    const sourcingPrice = (Number(combination.quantity) > 0)
-                                      ? (Number(combination.totalProductCost || 0) + Number(combination.otherCost || 0)) / Number(combination.quantity)
-                                      : 0;
+                                  {skuFields.map(
+                                    (skuField, combinationIndex) => {
+                                      const combination =
+                                        currentRow?.combinations?.[
+                                          combinationIndex
+                                        ] ?? {};
+                                      const sourcingPrice =
+                                        Number(combination.quantity) > 0
+                                          ? (Number(
+                                              combination.totalProductCost || 0,
+                                            ) +
+                                              Number(
+                                                combination.otherCost || 0,
+                                              )) /
+                                            Number(combination.quantity)
+                                          : 0;
 
-                                    return (
-                                      <div key={skuField.key} className="border border-blue-200 rounded-lg p-3 flex flex-col gap-2">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                          <Form.Item {...skuField} name={[skuField.name, "name"]} rules={[{ required: true, message: "Combination name is required!" }]} className="!mb-0">
-                                            <FloatInput placeholder="Combination Name" />
-                                          </Form.Item>
-                                          <Form.Item {...skuField} name={[skuField.name, "productCode"]} rules={[{ required: true, message: "Combination code is required!" }]} className="!mb-0">
-                                            <FloatInput placeholder="Combination Code" />
-                                          </Form.Item>
-                                          <Form.Item {...skuField} name={[skuField.name, "quantity"]} rules={[{ required: true, message: "Combination quantity is required!" }]} className="!mb-0">
-                                            <InputNumber className="w-full!" min={1} precision={0} placeholder="Quantity" />
-                                          </Form.Item>
-                                          <Form.Item {...skuField} name={[skuField.name, "unit"]} rules={[{ required: true, message: "Combination unit is required!" }]} className="!mb-0">
-                                            <FloatInput placeholder="Unit" />
-                                          </Form.Item>
-                                          <Form.Item {...skuField} name={[skuField.name, "totalProductCost"]} rules={[{ required: true, message: "Combination cost is required!" }]} className="!mb-0">
-                                            <InputNumber className="w-full!" min={0} precision={2} placeholder="Total Product Cost" />
-                                          </Form.Item>
-                                          <Form.Item {...skuField} name={[skuField.name, "otherCost"]} className="!mb-0">
-                                            <InputNumber className="w-full!" min={0} precision={2} placeholder="Other Cost" />
-                                          </Form.Item>
-                                          <Input value={`Sourcing Price: ${sourcingPrice.toFixed(2)}`} readOnly />
-                                          <Button type="text" danger icon={<MdOutlineDeleteOutline />} onClick={() => removeSku(skuField.name)} />
+                                      return (
+                                        <div
+                                          key={skuField.key}
+                                          className="border border-blue-200 rounded-lg p-3 flex flex-col gap-2"
+                                        >
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                            <Form.Item
+                                              {...skuField}
+                                              name={[
+                                                skuField.name,
+                                                "productCode",
+                                              ]}
+                                              rules={[
+                                                {
+                                                  required: true,
+                                                  message:
+                                                    "SKU/Combination code is required!",
+                                                },
+                                              ]}
+                                              className="!mb-0"
+                                            >
+                                              <Input placeholder="SKU/Combination code" />
+                                            </Form.Item>
+                                            <Form.Item
+                                              {...skuField}
+                                              name={[skuField.name, "quantity"]}
+                                              rules={[
+                                                {
+                                                  required: true,
+                                                  message:
+                                                    "Combination quantity is required!",
+                                                },
+                                              ]}
+                                              className="!mb-0"
+                                            >
+                                              <InputNumber
+                                                className="w-full!"
+                                                min={1}
+                                                precision={0}
+                                                placeholder="Quantity"
+                                              />
+                                            </Form.Item>
+                                            <Form.Item
+                                              {...skuField}
+                                              name={[
+                                                skuField.name,
+                                                "totalProductCost",
+                                              ]}
+                                              rules={[
+                                                {
+                                                  required: true,
+                                                  message:
+                                                    "Combination cost is required!",
+                                                },
+                                              ]}
+                                              className="!mb-0"
+                                            >
+                                              <InputNumber
+                                                className="w-full!"
+                                                min={0}
+                                                precision={2}
+                                                placeholder="Total Product Cost"
+                                              />
+                                            </Form.Item>
+                                            <Form.Item
+                                              {...skuField}
+                                              name={[
+                                                skuField.name,
+                                                "otherCost",
+                                              ]}
+                                              className="!mb-0"
+                                            >
+                                              <InputNumber
+                                                className="w-full!"
+                                                min={0}
+                                                precision={2}
+                                                placeholder="Other Cost"
+                                              />
+                                            </Form.Item>
+                                            <Input
+                                              value={`Sourcing Price: ${sourcingPrice.toFixed(2)}`}
+                                              readOnly
+                                            />
+                                            <Button
+                                              type="text"
+                                              danger
+                                              icon={<MdOutlineDeleteOutline />}
+                                              onClick={() =>
+                                                removeSku(skuField.name)
+                                              }
+                                            />
+                                          </div>
+                                          <Form.List
+                                            name={[skuField.name, "values"]}
+                                          >
+                                            {(
+                                              valueFields,
+                                              {
+                                                add: addValue,
+                                                remove: removeValue,
+                                              },
+                                            ) => (
+                                              <div className="flex flex-col gap-2">
+                                                {valueFields.map(
+                                                  (valueField, valueIndex) => {
+                                                    const values =
+                                                      combination.values ?? [];
+                                                    const value =
+                                                      values[valueIndex] ?? {};
+                                                    return (
+                                                      <div
+                                                        key={valueField.key}
+                                                        className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center"
+                                                      >
+                                                        <Form.Item
+                                                          {...valueField}
+                                                          name={[
+                                                            valueField.name,
+                                                            "variantId",
+                                                          ]}
+                                                          rules={[
+                                                            { required: true },
+                                                          ]}
+                                                          className="!mb-0"
+                                                        >
+                                                          <Select
+                                                            showSearch
+                                                            placeholder="Attribute"
+                                                            options={allVariants.map(
+                                                              (variant) => ({
+                                                                label:
+                                                                  variant.title,
+                                                                value:
+                                                                  variant.id,
+                                                              }),
+                                                            )}
+                                                            filterOption={filterVariantOption}
+                                                            onChange={() => {
+                                                              const next = [
+                                                                ...(form.getFieldValue(
+                                                                  [
+                                                                    "items",
+                                                                    idx,
+                                                                    "combinations",
+                                                                    combinationIndex,
+                                                                    "values",
+                                                                  ],
+                                                                ) ?? []),
+                                                              ];
+                                                              next[valueIndex] =
+                                                                {
+                                                                  ...next[
+                                                                    valueIndex
+                                                                  ],
+                                                                  variantOptionId:
+                                                                    undefined,
+                                                                };
+                                                              form.setFieldValue(
+                                                                [
+                                                                  "items",
+                                                                  idx,
+                                                                  "combinations",
+                                                                  combinationIndex,
+                                                                  "values",
+                                                                ],
+                                                                next,
+                                                              );
+                                                            }}
+                                                          />
+                                                        </Form.Item>
+                                                        <Form.Item
+                                                          {...valueField}
+                                                          name={[
+                                                            valueField.name,
+                                                            "variantOptionId",
+                                                          ]}
+                                                          rules={[
+                                                            { required: true },
+                                                          ]}
+                                                          className="!mb-0"
+                                                        >
+                                                          <Select
+                                                            showSearch
+                                                            placeholder="Option"
+                                                            options={Toolbox.toCleanArray(
+                                                              findVariantOptions(
+                                                                value.variantId,
+                                                              ).map(
+                                                                (option) => ({
+                                                                  label:
+                                                                    option.title,
+                                                                  value:
+                                                                    option.id,
+                                                                }),
+                                                              ),
+                                                            )}
+                                                          />
+                                                        </Form.Item>
+                                                        <Button
+                                                          type="text"
+                                                          danger
+                                                          icon={
+                                                            <MdOutlineDeleteOutline />
+                                                          }
+                                                          onClick={() =>
+                                                            removeValue(
+                                                              valueField.name,
+                                                            )
+                                                          }
+                                                        />
+                                                      </div>
+                                                    );
+                                                  },
+                                                )}
+                                                <Button
+                                                  type="dashed"
+                                                  onClick={() => addValue({})}
+                                                >
+                                                  Add attribute
+                                                </Button>
+                                              </div>
+                                            )}
+                                          </Form.List>
                                         </div>
-                                        <Form.List name={[skuField.name, "values"]}>
-                                          {(valueFields, { add: addValue, remove: removeValue }) => (
-                                            <div className="flex flex-col gap-2">
-                                              {valueFields.map((valueField, valueIndex) => {
-                                                const values = combination.values ?? [];
-                                                const value = values[valueIndex] ?? {};
-                                                return (
-                                                  <div key={valueField.key} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
-                                                    <Form.Item {...valueField} name={[valueField.name, "variantId"]} rules={[{ required: true }]} className="!mb-0">
-                                                      <Select showSearch placeholder="Attribute" options={allVariants.map((variant) => ({ label: variant.title, value: variant.id }))} onChange={() => {
-                                                        const next = [...(form.getFieldValue(["items", idx, "combinations", combinationIndex, "values"]) ?? [])];
-                                                        next[valueIndex] = { ...next[valueIndex], variantOptionId: undefined };
-                                                        form.setFieldValue(["items", idx, "combinations", combinationIndex, "values"], next);
-                                                      }} />
-                                                    </Form.Item>
-                                                    <Form.Item {...valueField} name={[valueField.name, "variantOptionId"]} rules={[{ required: true }]} className="!mb-0">
-                                                      <Select showSearch placeholder="Option" options={Toolbox.toCleanArray(findVariantOptions(value.variantId).map((option) => ({ label: option.title, value: option.id })))} />
-                                                    </Form.Item>
-                                                    <Button type="text" danger icon={<MdOutlineDeleteOutline />} onClick={() => removeValue(valueField.name)} />
-                                                  </div>
-                                                );
-                                              })}
-                                              <Button type="dashed" onClick={() => addValue({})}>Add attribute</Button>
-                                            </div>
-                                          )}
-                                        </Form.List>
-                                      </div>
-                                    );
-                                  })}
-                                  <Button block type="dashed" onClick={() => addSku({ values: [], otherCost: 0 })}>Add combination</Button>
+                                      );
+                                    },
+                                  )}
+                                  <Button
+                                    block
+                                    type="dashed"
+                                    onClick={() =>
+                                      addSku({ values: [] })
+                                    }
+                                  >
+                                    Add combination
+                                  </Button>
                                 </div>
                               )}
                             </Form.List>
                             <Divider plain>Legacy variants</Divider>
                             <Form.List name={[field.name, "variants"]}>
-                              {(variantFields, { add: addVariant, remove: removeVariant }) => (
+                              {(
+                                variantFields,
+                                { add: addVariant, remove: removeVariant },
+                              ) => (
                                 <div className="flex flex-col gap-2">
                                   {variantFields.map((variantField) => {
-                                    const variants = form.getFieldValue(["items", idx, "variants"]) ?? [];
-                                    const variant = variants[variantField.name] ?? {};
+                                    const variants =
+                                      form.getFieldValue([
+                                        "items",
+                                        idx,
+                                        "variants",
+                                      ]) ?? [];
+                                    const variant =
+                                      variants[variantField.name] ?? {};
                                     return (
-                                      <div key={variantField.key} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-center">
-                                        <Form.Item {...variantField} name={[variantField.name, "variantId"]} rules={[{ required: true }]} className="!mb-0">
-                                          <Select showSearch placeholder="Variant" options={allVariants.map((item) => ({ label: item.title, value: item.id }))} />
+                                      <div
+                                        key={variantField.key}
+                                        className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-center"
+                                      >
+                                        <Form.Item
+                                          {...variantField}
+                                          name={[
+                                            variantField.name,
+                                            "variantId",
+                                          ]}
+                                          rules={[{ required: true }]}
+                                          className="!mb-0"
+                                        >
+                                          <Select
+                                            showSearch
+                                            placeholder="Variant"
+                                            options={allVariants.map(
+                                              (item) => ({
+                                                label: item.title,
+                                                value: item.id,
+                                              }),
+                                            )}
+                                            filterOption={filterVariantOption}
+                                          />
                                         </Form.Item>
-                                        <Form.Item {...variantField} name={[variantField.name, "variantOptionId"]} rules={[{ required: true }]} className="!mb-0">
-                                          <Select showSearch placeholder="Variant option" options={Toolbox.toCleanArray(findVariantOptions(variant.variantId).map((option) => ({ label: option.title, value: option.id })))} />
+                                        <Form.Item
+                                          {...variantField}
+                                          name={[
+                                            variantField.name,
+                                            "variantOptionId",
+                                          ]}
+                                          rules={[{ required: true }]}
+                                          className="!mb-0"
+                                        >
+                                          <Select
+                                            showSearch
+                                            placeholder="Variant option"
+                                            options={Toolbox.toCleanArray(
+                                              findVariantOptions(
+                                                variant.variantId,
+                                              ).map((option) => ({
+                                                label: option.title,
+                                                value: option.id,
+                                              })),
+                                            )}
+                                            filterOption={(input, option) =>
+                                              String(option?.label ?? '')
+                                                .toLowerCase()
+                                                .includes(input.toLowerCase())
+                                            }
+                                          />
                                         </Form.Item>
-                                        <Form.Item {...variantField} name={[variantField.name, "stockQuantity"]} className="!mb-0">
-                                          <InputNumber className="w-full!" min={0} precision={0} placeholder="Stock" />
+                                        <Form.Item
+                                          {...variantField}
+                                          name={[
+                                            variantField.name,
+                                            "stockQuantity",
+                                          ]}
+                                          className="!mb-0"
+                                        >
+                                          <InputNumber
+                                            className="w-full!"
+                                            min={0}
+                                            precision={0}
+                                            placeholder="Stock"
+                                          />
                                         </Form.Item>
-                                        <Button type="text" danger icon={<MdOutlineDeleteOutline />} onClick={() => removeVariant(variantField.name)} />
+                                        <Button
+                                          type="text"
+                                          danger
+                                          icon={<MdOutlineDeleteOutline />}
+                                          onClick={() =>
+                                            removeVariant(variantField.name)
+                                          }
+                                        />
                                       </div>
                                     );
                                   })}
-                                  <Button block type="dashed" onClick={() => addVariant({})}>Add variant</Button>
+                                  <Button
+                                    block
+                                    type="dashed"
+                                    onClick={() => addVariant({})}
+                                  >
+                                    Add variant
+                                  </Button>
                                 </div>
                               )}
                             </Form.List>
@@ -723,10 +1132,13 @@ const PurchasesForm: React.FC<IProps> = ({
           supplierModalForm.resetFields();
         }}
         footer={[
-          <Button key="cancel" onClick={() => {
-            setIsSupplierModalOpen(false);
-            supplierModalForm.resetFields();
-          }}>
+          <Button
+            key="cancel"
+            onClick={() => {
+              setIsSupplierModalOpen(false);
+              supplierModalForm.resetFields();
+            }}
+          >
             Cancel
           </Button>,
           <Button
@@ -738,7 +1150,7 @@ const PurchasesForm: React.FC<IProps> = ({
                 supplierCreateFn.mutate(values, {
                   onSuccess: (res) => {
                     if (res.success) {
-                      messageApi.success('Supplier created successfully');
+                      messageApi.success("Supplier created successfully");
                       setIsSupplierModalOpen(false);
                       supplierModalForm.resetFields();
                       form.setFieldsValue({ supplierId: res.data.id });
@@ -756,19 +1168,16 @@ const PurchasesForm: React.FC<IProps> = ({
           </Button>,
         ]}
       >
-        <Form
-          form={supplierModalForm}
-          layout="vertical"
-        >
+        <Form form={supplierModalForm} layout="vertical">
           <Form.Item
             name="companyName"
-            rules={[{ required: true, message: 'Company name is required!' }]}
+            rules={[{ required: true, message: "Company name is required!" }]}
           >
             <Input placeholder="Company Name" />
           </Form.Item>
           <Form.Item
             name="contactNumber"
-            rules={[{ required: true, message: 'Contact number is required!' }]}
+            rules={[{ required: true, message: "Contact number is required!" }]}
           >
             <Input placeholder="Contact Number" />
           </Form.Item>

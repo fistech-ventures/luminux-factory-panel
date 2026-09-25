@@ -9,6 +9,7 @@ import {
   Divider,
   Form,
   FormInstance,
+  Input,
   InputNumber,
   Row,
   Select,
@@ -88,6 +89,15 @@ const ProductsForm: React.FC<IProps> = ({
   const findVariantOptions = (variantId: string) => {
     const variant = allVariants.find((item) => item.id === variantId);
     return variant?.options ?? [];
+  };
+
+  const filterVariantOption = (input: string, option: { value?: string | number }) => {
+    const variant = allVariants.find((item) => item.id === option?.value);
+    const searchTerm = input.toLowerCase();
+    return [
+      variant?.title,
+      ...(variant?.options ?? []).map((variantOption) => variantOption.title),
+    ].some((value) => value?.toLowerCase().includes(searchTerm));
   };
 
   const handleVariantChangeFn = (idx: number) => {
@@ -182,8 +192,8 @@ const ProductsForm: React.FC<IProps> = ({
             </Form.Item>
           </Col>
           <Col xs={24}>
-            <Form.Item name="description" className="!mb-0">
-              <FloatInput placeholder="Description" />
+            <Form.Item name="warranty" className="!mb-0">
+              <Input placeholder="Warranty" />
             </Form.Item>
           </Col>
           <Col xs={24}>
@@ -274,14 +284,14 @@ const ProductsForm: React.FC<IProps> = ({
                                 return (
                                   <div key={valueField.key} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
                                     <Form.Item {...valueField} name={[valueField.name, "variantId"]} rules={[{ required: true }]} className="!mb-0">
-                                      <Select showSearch placeholder="Attribute" options={allVariants.map((variant) => ({ label: variant.title, value: variant.id }))} onChange={() => {
+                                      <Select showSearch placeholder="Attribute" options={allVariants.map((variant) => ({ label: variant.title, value: variant.id }))} filterOption={filterVariantOption} onChange={() => {
                                         const next = [...(form.getFieldValue(["skus", skuIndex, "values"]) ?? [])];
                                         next[valueIndex] = { ...next[valueIndex], variantOptionId: undefined };
                                         form.setFieldValue(["skus", skuIndex, "values"], next);
                                       }} />
                                     </Form.Item>
                                     <Form.Item {...valueField} name={[valueField.name, "variantOptionId"]} rules={[{ required: true }]} className="!mb-0">
-                                      <Select showSearch placeholder="Option" options={Toolbox.toCleanArray(findVariantOptions(value.variantId)?.map((option) => ({ label: option.title, value: option.id })))} />
+                                      <Select showSearch placeholder="Option" options={Toolbox.toCleanArray(findVariantOptions(value.variantId)?.map((option) => ({ label: option.title, value: option.id })))} filterOption={(input, option) => String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())} />
                                     </Form.Item>
                                     <Button type="text" danger icon={<MdOutlineDeleteOutline />} onClick={() => removeValue(valueField.name)} />
                                   </div>
@@ -332,11 +342,7 @@ const ProductsForm: React.FC<IProps> = ({
                                 label: variant?.title,
                                 value: variant?.id,
                               }))}
-                              filterOption={(input, option) =>
-                                String(option?.label ?? "")
-                                  .toLowerCase()
-                                  .includes(input.toLowerCase())
-                              }
+                              filterOption={filterVariantOption}
                               onChange={() => handleVariantChangeFn(idx)}
                             />
                           </Form.Item>
@@ -370,11 +376,7 @@ const ProductsForm: React.FC<IProps> = ({
                                 }),
                               ),
                             )}
-                            filterOption={(input, option) =>
-                              String(option?.label ?? "")
-                                .toLowerCase()
-                                .includes(input.toLowerCase())
-                            }
+                            filterOption={(input, option) => String(option?.label ?? "").toLowerCase().includes(input.toLowerCase())}
                           />
                         </Form.Item>
                         <div className="grid grid-cols-2 gap-2">

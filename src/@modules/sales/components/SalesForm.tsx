@@ -341,6 +341,22 @@ const SalesForm: React.FC<IProps> = ({
                       currentRow?.productId,
                     );
                     const skus = findProductSkus(currentRow?.productId);
+                    const filterSkuOption = (
+                      input: string,
+                      option: { value?: string | number },
+                    ) => {
+                      const sku = skus.find((item) => item.id === option?.value);
+                      const searchTerm = input.toLowerCase();
+                      return [
+                        sku?.productCode,
+                        ...(sku?.values ?? []).flatMap((value) => [
+                          value.variant?.title,
+                          value.variantOption?.title,
+                        ]),
+                      ].some((value) =>
+                        value?.toLowerCase().includes(searchTerm),
+                      );
+                    };
 
                     return (
                       <div
@@ -418,6 +434,7 @@ const SalesForm: React.FC<IProps> = ({
                               showSearch
                               placeholder="Sellable combination"
                               options={skus.map((sku) => ({ value: sku.id, label: `${sku.productCode} - ${(sku.values ?? []).map((value) => value.variantOption?.title).join(" / ")}` }))}
+                              filterOption={filterSkuOption}
                               onChange={(skuId) => {
                                 const sku = skus.find((item) => item.id === skuId);
                                 if (sku?.sellingPrice == null) return;

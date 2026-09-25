@@ -30,6 +30,7 @@ export interface ISaleItem {
     sellingPrice: number;
     stock: number;
     unit?: string;
+    warranty?: string;
   };
   variant?: {
     id: TId;

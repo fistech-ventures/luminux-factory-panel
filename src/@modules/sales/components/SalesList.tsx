@@ -40,7 +40,7 @@ const printSale = (sale: ISale) => {
   const items = (sale.items ?? [])
     .map(
       (item, index) => `
-        <tr><td>${index + 1}</td><td><strong>${escapeHtml(item.product?.title)}</strong>${getSaleItemDetails(item) ? `<small>${escapeHtml(getSaleItemDetails(item))}</small>` : ""}</td><td class="num">${item.quantity}${item.sku?.unit || item.product?.unit ? ` ${escapeHtml(item.sku?.unit || item.product?.unit)}` : ""}</td><td class="num">${Number(item.sellingPrice ?? 0).toFixed(2)}</td><td class="num">${Number(item.totalAmount ?? item.totalPrice ?? item.quantity * item.sellingPrice).toFixed(2)}</td></tr>`,
+        <tr><td>${index + 1}</td><td><strong>${escapeHtml(item.product?.title)}</strong>${getSaleItemDetails(item) ? `<small>${escapeHtml(getSaleItemDetails(item))}</small>` : ""}${item.product?.warranty ? `<small>Warranty: ${escapeHtml(item.product.warranty)}</small>` : ""}</td><td class="num">${item.quantity}${item.sku?.unit || item.product?.unit ? ` ${escapeHtml(item.sku?.unit || item.product?.unit)}` : ""}</td><td class="num">${Number(item.sellingPrice ?? 0).toFixed(2)}</td><td class="num">${Number(item.totalAmount ?? item.totalPrice ?? item.quantity * item.sellingPrice).toFixed(2)}</td></tr>`,
     )
     .join("");
 

@@ -97,7 +97,7 @@ const ProductsDetails: React.FC<IProps> = ({ id }) => {
             label: 'Created At',
             children: product?.createdAt ? dayjs(product.createdAt).format('YYYY-MM-DD HH:mm') : 'N/A',
           },
-          { key: 'description', label: 'Description', span: 2, children: product?.description || 'N/A' },
+          { key: 'warranty', label: 'Warranty', span: 2, children: product?.warranty || 'N/A' },
         ]}
       />
       <Divider orientation="left" plain>
