@@ -56,7 +56,7 @@ export interface IProductVariantSku {
 
 export interface IProduct extends IBaseEntity {
   title: string;
-  description?: string;
+  warranty?: string;
   sourcingPrice: number;
   sellingPrice: number;
   thumbnail?: string;
@@ -79,7 +79,7 @@ export interface IProductsResponse extends IBaseResponse {
 
 export interface IProductCreate {
   title: string;
-  description?: string;
+  warranty?: string;
   sourcingPrice?: number;
   sellingPrice?: number;
   thumbnail?: string;

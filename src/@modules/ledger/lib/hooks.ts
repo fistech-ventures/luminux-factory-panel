@@ -86,6 +86,16 @@ export const LedgerHooks = {
     });
   },
 
+  useGetBalanceSummary: ({ config }: { config?: QueryConfig<typeof LedgerServices.getBalanceSummary> } = {}) => {
+    const { queryKey, ...rest } = config ?? {};
+
+    return useQuery({
+      queryKey: [...(queryKey || []), LedgerServices.NAME, 'balance-summary'],
+      queryFn: LedgerServices.getBalanceSummary,
+      ...rest,
+    });
+  },
+
   useGetStatement: ({
     options,
     config,

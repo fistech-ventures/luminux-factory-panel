@@ -40,6 +40,11 @@ export interface IBalance {
   balance: number;
 }
 
+export interface ILedgerBalanceSummary {
+  customerDue: number;
+  supplierDue: number;
+}
+
 /** Cash in hand for an employee: advances received - money spent. */
 export interface IEmployeeBalance {
   totalAdvance: number;

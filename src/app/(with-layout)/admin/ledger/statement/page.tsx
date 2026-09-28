@@ -5,7 +5,7 @@ import LedgerStatementSelector from '@modules/ledger/components/LedgerStatementS
 import LedgerStatementView from '@modules/ledger/components/LedgerStatementView';
 import { LedgerHooks } from '@modules/ledger/lib/hooks';
 import { ILedgerStatementOptions } from '@modules/ledger/lib/interfaces';
-import { Button } from 'antd';
+import { Button, Statistic } from 'antd';
 import { useSearchParams } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 import { FiFileText } from 'react-icons/fi';
@@ -13,6 +13,7 @@ import { FiFileText } from 'react-icons/fi';
 const LedgerStatementPage = () => {
   const searchParams = useSearchParams();
   const [isSelectorOpen, setSelectorOpen] = useState(false);
+  const balanceSummaryQuery = LedgerHooks.useGetBalanceSummary();
 
   // Supports deep-links, e.g. ?entityType=employee&entityId=<uuid>&startDate=…&endDate=…
   const initialOptions = useMemo<ILedgerStatementOptions>(() => {
@@ -45,6 +46,16 @@ const LedgerStatementPage = () => {
           </Button>
         }
       />
+      {balanceSummaryQuery.data?.data && (
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="bg-white dark:bg-(--color-rich-black) border border-gray-200 rounded-lg p-4">
+            <Statistic title="Customer Due" value={balanceSummaryQuery.data.data.customerDue} precision={2} />
+          </div>
+          <div className="bg-white dark:bg-(--color-rich-black) border border-gray-200 rounded-lg p-4">
+            <Statistic title="Supplier Due" value={balanceSummaryQuery.data.data.supplierDue} precision={2} />
+          </div>
+        </div>
+      )}
       {!statementOptions && (
         <div className="flex min-h-64 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white p-8 text-gray-500">
           Select a customer, supplier or employee to view their statement.
