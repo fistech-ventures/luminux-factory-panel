@@ -152,11 +152,17 @@ const ProductsForm: React.FC<IProps> = ({
               return sku.id ? { id: sku.id, ...normalizedSku } : normalizedSku;
             }),
           };
-          onFinish(
-            formType === "update"
-              ? Toolbox.pickTouchedFields(form, submittedValues)
-              : submittedValues,
-          );
+          if (formType === "update") {
+            onFinish({
+              ...Toolbox.pickTouchedFields(form, submittedValues),
+              title: submittedValues.title,
+              productCode: submittedValues.productCode,
+              variants: submittedValues.variants,
+              skus: submittedValues.skus,
+            });
+          } else {
+            onFinish(submittedValues);
+          }
         }}
         onFinishFailed={handleFinishFailed}
         validateMessages={{
