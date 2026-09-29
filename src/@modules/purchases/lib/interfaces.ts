@@ -28,6 +28,20 @@ export interface IPurchaseItem {
     productCode: string;
     unit?: string;
   };
+  sku?: {
+    id: TId;
+    productCode: string;
+    values?: Array<{
+      variant?: { title: string };
+      variantOption?: { title: string };
+    }>;
+  };
+  variant?: {
+    id: TId;
+    sku?: string;
+    variant?: { title: string };
+    variantOption?: { title: string };
+  };
 }
 
 export interface IPurchase extends IBaseEntity {
@@ -73,6 +87,9 @@ export interface IPurchaseCreate {
 
 export interface IPurchaseCombination {
   id?: TId;
+  skuId?: TId;
+  variantId?: TId;
+  selectionKey?: string;
   name: string;
   productCode: string;
   quantity: number;

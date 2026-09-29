@@ -196,7 +196,7 @@ const PurchasesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
           }}
           isLoading={purchaseUpdateFn.isPending}
           onFinish={(values) =>
-            purchaseUpdateFn.mutate({
+            purchaseUpdateFn.mutateAsync({
               id: updateItem?.id,
               data: values,
             })

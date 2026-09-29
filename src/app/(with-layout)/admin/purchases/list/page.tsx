@@ -116,7 +116,7 @@ const PurchasesPage = () => {
             purchaseDate: new Date().toISOString(),
           }}
           isLoading={purchaseCreateFn.isPending}
-          onFinish={(values) => purchaseCreateFn.mutate(values)}
+          onFinish={(values) => purchaseCreateFn.mutateAsync(values)}
           _onSuccess={() => {
             setDrawerOpen(false);
             formInstance.resetFields();

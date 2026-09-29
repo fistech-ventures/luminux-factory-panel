@@ -19,7 +19,27 @@ const itemColumns: TableColumnsType<IPurchaseItem> = [
   {
     key: 'productCode',
     title: 'Code',
-    render: (_, item) => item?.product?.productCode || item?.productCode || 'N/A',
+    render: (_, item) =>
+      item?.sku?.productCode ||
+      item?.variant?.sku ||
+      item?.product?.productCode ||
+      item?.productCode ||
+      'N/A',
+  },
+  {
+    key: 'combination',
+    title: 'Combination',
+    render: (_, item) => {
+      if (item?.sku?.values?.length) {
+        return item.sku.values
+          .map((value) => `${value.variant?.title ?? ''}: ${value.variantOption?.title ?? ''}`)
+          .join(' / ');
+      }
+      if (item?.variant) {
+        return `${item.variant.variant?.title ?? ''}: ${item.variant.variantOption?.title ?? ''}`;
+      }
+      return 'N/A';
+    },
   },
   {
     key: 'quantity',

@@ -4,6 +4,33 @@ import { getNotificationInstance } from '@lib/utils';
 import { getAuthToken, refreshAuthToken } from '@modules/auth/lib/utils/client';
 import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
+const getApiErrorMessage = (error: AxiosError): string => {
+  const data = error.response?.data as { message?: unknown; error?: unknown } | undefined;
+  const apiMessage = data?.message;
+
+  if (typeof apiMessage === 'string' && apiMessage.trim()) return apiMessage;
+  if (Array.isArray(apiMessage)) {
+    const messages = apiMessage.filter((item): item is string => typeof item === 'string' && !!item.trim());
+    if (messages.length) return messages.join('\n');
+  }
+  if (typeof data?.error === 'string' && data.error.trim()) return data.error;
+  return error.response?.statusText || error.message || 'Request failed. Please try again.';
+};
+
+const notifyApiError = (error: AxiosError): void => {
+  if (axios.isCancel(error)) return;
+
+  const errorMessage = getApiErrorMessage(error);
+  try {
+    getNotificationInstance().error({
+      key: `api-error-${error.response?.status ?? 'network'}-${errorMessage.slice(0, 80)}`,
+      message: errorMessage,
+    });
+  } catch {
+    // Requests can fail before the app-level notification holder mounts.
+  }
+};
+
 const requestInterceptorFn = (config: InternalAxiosRequestConfig) => {
   // No scope manipulation needed since base URL already includes internal scope
   if (config?.scope) delete config.scope;
@@ -24,13 +51,8 @@ AxiosInstance.interceptors.request.use(requestInterceptorFn, (error: AxiosError)
 AxiosInstance.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError<IBaseResponse>) => {
-    const notification = getNotificationInstance();
-
-    if (error.config.method === 'get') {
-      notification.error({ message: error.response?.data?.message || error.response?.statusText });
-    }
-
-    return error.response;
+    notifyApiError(error);
+    return Promise.reject(error);
   },
 );
 
@@ -78,6 +100,8 @@ AxiosSecureInstance.interceptors.response.use(
       // Refresh failed, clear session and redirect to login
       const { clearAuthSession } = await import('@modules/auth/lib/utils/client');
       clearAuthSession();
+
+      notifyApiError(error);
       
       // Only redirect if not already on auth page
       if (typeof window !== 'undefined' && !window.location.pathname.includes('/auth')) {
@@ -87,14 +111,7 @@ AxiosSecureInstance.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    const notification = getNotificationInstance();
-
-    if (error.response?.status === 403) {
-      notification.error({ message: error.response?.data?.message || error.response?.statusText });
-    } else if (error.config.method === 'get') {
-      notification.error({ message: error.response?.data?.message || error.response?.statusText });
-    }
-
+    notifyApiError(error);
     return Promise.reject(error);
   },
 );

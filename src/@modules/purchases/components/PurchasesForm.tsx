@@ -35,7 +35,7 @@ interface IProps {
   form: FormInstance;
   formType?: "create" | "update";
   initialValues?: any;
-  onFinish: (values: IPurchaseCreate) => void;
+  onFinish: (values: IPurchaseCreate) => Promise<unknown> | unknown;
   backendError?: string | null;
   _onSuccess?: () => void;
 }
@@ -81,33 +81,31 @@ const PurchasesForm: React.FC<IProps> = ({
     }
   };
 
-  const handleFinish = (values: any) => {
+  const handleFinish = async (values: any) => {
     const submittedValues = {
       ...values,
       purchaseDate: dayjs(values.purchaseDate).format("YYYY-MM-DD"),
       items: (values?.items ?? []).map((item) => {
         const combinations = item.combinations ?? [];
-        const normalizedItem =
-          item.mode === "new"
-            ? {
-                ...item,
-                quantity: combinations.reduce(
-                  (sum, combination) =>
-                    sum + (Number(combination.quantity) || 0),
-                  0,
-                ),
-                totalProductCost: combinations.reduce(
-                  (sum, combination) =>
-                    sum + (Number(combination.totalProductCost) || 0),
-                  0,
-                ),
-                otherCost: combinations.reduce(
-                  (sum, combination) =>
-                    sum + (Number(combination.otherCost) || 0),
-                  0,
-                ),
-              }
-            : item;
+        const normalizedItem = combinations.length
+          ? {
+              ...item,
+              quantity: combinations.reduce(
+                (sum, combination) => sum + (Number(combination.quantity) || 0),
+                0,
+              ),
+              totalProductCost: combinations.reduce(
+                (sum, combination) =>
+                  sum + (Number(combination.totalProductCost) || 0),
+                0,
+              ),
+              otherCost: combinations.reduce(
+                (sum, combination) => sum + (Number(combination.otherCost) || 0),
+                0,
+              ),
+              combinations: combinations.map(({ selectionKey: _selectionKey, ...combination }) => combination),
+            }
+          : item;
 
         return Toolbox.pickProps(normalizedItem, [
           "productId",
@@ -125,11 +123,23 @@ const PurchasesForm: React.FC<IProps> = ({
         ]);
       }),
     };
-    onFinish(
-      formType === "update"
-        ? Toolbox.pickTouchedFields(form, submittedValues)
-        : submittedValues,
-    );
+    try {
+      const result = await onFinish(
+        formType === "update"
+          ? Toolbox.pickTouchedFields(form, submittedValues)
+          : submittedValues,
+      );
+      if (
+        result &&
+        typeof result === "object" &&
+        "success" in result &&
+        result.success === true
+      ) {
+        _onSuccess?.();
+      }
+    } catch {
+      return;
+    }
   };
 
   useEffect(() => {
@@ -247,7 +257,7 @@ const PurchasesForm: React.FC<IProps> = ({
   const totalPurchaseAmount = watchedItems?.reduce((sum: number, item: any) => {
     const combinations = item?.combinations ?? [];
     const totalProductCost =
-      item?.mode === "new"
+      combinations.length
         ? combinations.reduce(
             (total, combination) =>
               total + (Number(combination?.totalProductCost) || 0),
@@ -255,7 +265,7 @@ const PurchasesForm: React.FC<IProps> = ({
           )
         : Number(item?.totalProductCost) || 0;
     const otherCost =
-      item?.mode === "new"
+      combinations.length
         ? combinations.reduce(
             (total, combination) =>
               total + (Number(combination?.otherCost) || 0),
@@ -397,6 +407,22 @@ const PurchasesForm: React.FC<IProps> = ({
                     const skus = isExisting
                       ? findProductSkus(currentRow?.productId)
                       : [];
+                    const existingCombinationOptions = [
+                      ...skus.map((sku) => ({
+                        value: `sku:${sku.id}`,
+                        label: `${sku.productCode} - ${(sku.values ?? [])
+                          .map((value) => `${value.variant?.title ?? ""}: ${value.variantOption?.title ?? ""}`)
+                          .join(" / ")}`,
+                      })),
+                      ...variantOptions.map((variant) => ({
+                        value: `variant:${variant.id}`,
+                        label: `${variant.variant?.title ?? "Variant"}: ${variant.variantOption?.title ?? "Option"}${variant.sku ? ` (${variant.sku})` : ""}`,
+                      })),
+                    ];
+                    const useExistingCombinationLines =
+                      isExisting &&
+                      formType === "create" &&
+                      existingCombinationOptions.length > 0;
                     const filterSkuOption = (
                       input: string,
                       option: { value?: string | number },
@@ -449,6 +475,7 @@ const PurchasesForm: React.FC<IProps> = ({
                           />
                         </div>
                         {isExisting ? (
+                          <>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                             <Form.Item
                               {...field}
@@ -484,6 +511,7 @@ const PurchasesForm: React.FC<IProps> = ({
                                     unit: product?.unit ?? null,
                                     variantId: null,
                                     skuId: null,
+                                    combinations: [],
                                   };
                                   form.setFieldsValue({ items });
                                 }}
@@ -493,7 +521,7 @@ const PurchasesForm: React.FC<IProps> = ({
                                 query={productsQuery}
                               />
                             </Form.Item>
-                            {skus.length === 0 && (
+                            {!useExistingCombinationLines && skus.length === 0 && (
                               <Form.Item
                                 {...field}
                                 name={[field.name, "variantId"]}
@@ -518,7 +546,7 @@ const PurchasesForm: React.FC<IProps> = ({
                                 />
                               </Form.Item>
                             )}
-                            {skus.length > 0 && (
+                            {!useExistingCombinationLines && skus.length > 0 && (
                               <Form.Item
                                 {...field}
                                 name={[field.name, "skuId"]}
@@ -554,6 +582,105 @@ const PurchasesForm: React.FC<IProps> = ({
                               </Form.Item>
                             )}
                           </div>
+                          {useExistingCombinationLines && (
+                            <>
+                              <Divider plain>Purchase combinations</Divider>
+                              <Form.List
+                                name={[field.name, "combinations"]}
+                                rules={[
+                                  {
+                                    validator: async (_, value) => {
+                                      if (!value?.length) {
+                                        throw new Error("Add at least one combination!");
+                                      }
+                                    },
+                                  },
+                                ]}
+                              >
+                                {(combinationFields, { add, remove }) => (
+                                  <div className="flex flex-col gap-2">
+                                    {combinationFields.map((combinationField) => (
+                                      <div
+                                        key={combinationField.key}
+                                        className="grid grid-cols-1 md:grid-cols-5 gap-2 items-start"
+                                      >
+                                        <Form.Item
+                                          {...combinationField}
+                                          name={[combinationField.name, "selectionKey"]}
+                                          rules={[{ required: true, message: "Select a combination!" }]}
+                                          className="mb-0!"
+                                        >
+                                          <Select
+                                            showSearch
+                                            allowClear
+                                            placeholder="SKU / Variant"
+                                            options={existingCombinationOptions}
+                                            onChange={(selectionKey) => {
+                                              const [kind, id] = String(selectionKey ?? "").split(":");
+                                              const sku = kind === "sku"
+                                                ? skus.find((candidate) => candidate.id === id)
+                                                : undefined;
+                                              const variant = kind === "variant"
+                                                ? variantOptions.find((candidate) => candidate.id === id)
+                                                : undefined;
+                                              const combinations = [
+                                                ...(form.getFieldValue(["items", idx, "combinations"]) ?? []),
+                                              ];
+                                              combinations[combinationField.name] = {
+                                                ...combinations[combinationField.name],
+                                                selectionKey,
+                                                skuId: sku?.id,
+                                                variantId: variant?.id,
+                                                productCode: sku?.productCode ?? variant?.sku ?? variant?.variantOption?.title,
+                                                name: sku?.name ?? variant?.variantOption?.title,
+                                              };
+                                              form.setFieldValue(
+                                                ["items", idx, "combinations"],
+                                                combinations,
+                                              );
+                                            }}
+                                          />
+                                        </Form.Item>
+                                        <Form.Item
+                                          {...combinationField}
+                                          name={[combinationField.name, "quantity"]}
+                                          rules={[{ required: true, message: "Quantity is required!" }]}
+                                          className="mb-0!"
+                                        >
+                                          <InputNumber className="w-full!" min={1} precision={0} placeholder="Quantity" />
+                                        </Form.Item>
+                                        <Form.Item
+                                          {...combinationField}
+                                          name={[combinationField.name, "totalProductCost"]}
+                                          rules={[{ required: true, message: "Product cost is required!" }]}
+                                          className="mb-0!"
+                                        >
+                                          <InputNumber className="w-full!" min={0} precision={2} placeholder="Product Cost" />
+                                        </Form.Item>
+                                        <Form.Item
+                                          {...combinationField}
+                                          name={[combinationField.name, "otherCost"]}
+                                          className="mb-0!"
+                                        >
+                                          <InputNumber className="w-full!" min={0} precision={2} placeholder="Other Cost" />
+                                        </Form.Item>
+                                        <Button
+                                          type="text"
+                                          danger
+                                          icon={<MdOutlineDeleteOutline />}
+                                          onClick={() => remove(combinationField.name)}
+                                        />
+                                      </div>
+                                    ))}
+                                    <Button block type="dashed" onClick={() => add({ otherCost: 0 })}>
+                                      Add combination
+                                    </Button>
+                                  </div>
+                                )}
+                              </Form.List>
+                            </>
+                          )}
+                          </>
                         ) : (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                             <Form.Item
@@ -597,7 +724,7 @@ const PurchasesForm: React.FC<IProps> = ({
                             </Form.Item>
                           </div>
                         )}
-                        {isExisting && (
+                        {isExisting && !useExistingCombinationLines && (
                           <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
                             <Form.Item
                               {...field}
