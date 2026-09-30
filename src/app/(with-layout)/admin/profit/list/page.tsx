@@ -11,24 +11,27 @@ import ProfitList from '@modules/profit/components/ProfitList';
 import { Card, Col, Row, Statistic, Tag } from 'antd';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React from 'react';
+import dayjs from 'dayjs';
 
 const ProfitPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { page = 1, limit = 10, ...rest } = Toolbox.parseQueryParams<IProfitFilter>(`?${searchParams.toString()}`);
+  const { page = 1, limit = 20, ...rest } = Toolbox.parseQueryParams<IProfitFilter>(`?${searchParams.toString()}`);
+  const defaultDateRange = !rest.startDate && !rest.endDate
+    ? { startDate: dayjs().startOf('month').format('YYYY-MM-DD'), endDate: dayjs().format('YYYY-MM-DD') }
+    : {};
+  const profitFilters = { ...rest, ...defaultDateRange };
 
   const profitListQuery = ProfitHooks.useGetProfitList({
     options: {
-      ...rest,
+      ...profitFilters,
       page: String(page),
       limit: String(limit),
     },
   });
 
   const profitStatsQuery = ProfitHooks.useGetProfitStats({
-    options: {
-      ...rest,
-    },
+      options: profitFilters,
   });
 
   const profitStats = profitStatsQuery.data?.data;
@@ -84,7 +87,7 @@ const ProfitPage = () => {
       />
       <BaseFilter
         showIsActive={false}
-        initialValues={Toolbox.toCleanObject(Object.fromEntries(searchParams.entries()))}
+        initialValues={Toolbox.toCleanObject({ ...Object.fromEntries(searchParams.entries()), ...defaultDateRange })}
         onChange={(values) => {
           const params = Toolbox.toCleanObject({ ...Object.fromEntries(searchParams.entries()), ...values });
           const queryString = new URLSearchParams(params).toString();

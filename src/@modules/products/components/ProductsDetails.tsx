@@ -54,12 +54,12 @@ const skuColumns: TableColumnsType<IProductVariantSku> = [
         .join(" / ") || "N/A",
   },
   { key: "productCode", dataIndex: "productCode", title: "SKU" },
-  {
-    key: "sourcingPrice",
-    dataIndex: "sourcingPrice",
-    title: "Cost",
-    render: (value) => Number(value ?? 0).toFixed(2),
-  },
+  // {
+  //   key: "sourcingPrice",
+  //   dataIndex: "sourcingPrice",
+  //   title: "Cost",
+  //   render: (value) => Number(value ?? 0).toFixed(2),
+  // },
   {
     key: "sellingPrice",
     dataIndex: "sellingPrice",

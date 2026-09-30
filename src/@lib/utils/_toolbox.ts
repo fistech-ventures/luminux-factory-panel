@@ -226,7 +226,7 @@ export const Toolbox = {
     return queries.join('&');
   },
 
-  appendPagination: function (path: string, page = 1, limit = 10): string {
+  appendPagination: function (path: string, page = 1, limit = 20): string {
     return `${path}?page=${page}&limit=${limit}`;
   },
 

@@ -75,6 +75,7 @@ export interface IPurchasesResponse extends IBaseResponse {
 }
 
 export interface IPurchaseCreate {
+  isActive?: boolean;
   purchaseDate: string;
   purchaseType: string;
   supplierId: TId;

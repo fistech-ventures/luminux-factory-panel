@@ -16,7 +16,7 @@ const LedgerPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [, messageHolder] = message.useMessage();
-  const { page = 1, limit = 10, ...rest } = Toolbox.parseQueryParams<ILedgerFilter>(`?${searchParams.toString()}`);
+  const { page = 1, limit = 20, ...rest } = Toolbox.parseQueryParams<ILedgerFilter>(`?${searchParams.toString()}`);
 
   const hasEntityFilter = !!rest?.entityType && !!rest?.entityId;
   const isEmployee = rest?.entityType === 'employee';

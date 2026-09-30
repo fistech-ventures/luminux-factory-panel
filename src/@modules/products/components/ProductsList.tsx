@@ -63,6 +63,7 @@ const ProductsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
     productCode: elem?.productCode,
     thumbnail: elem?.thumbnail,
     sourcingPrice: elem?.sourcingPrice,
+    totalCombinations: elem?.skus?.length,
     sellingPrice: elem?.sellingPrice,
     unit: elem?.unit,
     warranty: elem.warranty,
@@ -78,14 +79,14 @@ const ProductsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       key: "thumbnail",
       dataIndex: "thumbnail",
       title: "Image",
-      width: 64,
+      width: 100,
       render: (thumbnail) =>
         thumbnail ? (
           <Image
             src={thumbnail}
             preview={true}
             alt="product"
-            className="w-10 h-10 object-cover rounded-md border border-gray-200"
+            className="w-20 h-20 object-cover rounded-md border border-gray-200"
             onError={(e) => {
               (e.target as HTMLImageElement).src = ImagePaths.notFound;
             }}
@@ -115,19 +116,26 @@ const ProductsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       dataIndex: "warranty",
       title: "Warranty",
     },
-    {
-      key: "sourcingPrice",
-      dataIndex: "sourcingPrice",
-      title: "Sourcing",
-      render: (sourcingPrice) =>
-        sourcingPrice != null ? Number(sourcingPrice).toFixed(2) : "N/A",
-    },
+    // {
+    //   key: "sourcingPrice",
+    //   dataIndex: "sourcingPrice",
+    //   title: "Sourcing",
+    //   render: (sourcingPrice) =>
+    //     sourcingPrice != null ? Number(sourcingPrice).toFixed(2) : "N/A",
+    // },
     {
       key: "sellingPrice",
       dataIndex: "sellingPrice",
-      title: "Selling",
+      title: "Selling Price",
       render: (sellingPrice) =>
         sellingPrice != null ? Number(sellingPrice).toFixed(2) : "N/A",
+    },
+    {
+      key: "totalCombinations",
+      dataIndex: "totalCombinations",
+      title: "Combinations",
+      render: (totalCombinations) =>
+        totalCombinations != null ? Number(totalCombinations) : "N/A",
     },
     {
       key: "stock",

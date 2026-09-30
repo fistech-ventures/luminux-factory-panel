@@ -36,6 +36,16 @@ export const ProductsHooks = {
     });
   },
 
+  useInventory: ({ options, config }: { options: IProductsFilter; config?: QueryConfig<typeof ProductsServices.findInventory> }) => {
+    const { queryKey, ...rest } = config ?? {};
+
+    return useQuery({
+      queryKey: [...(queryKey || []), ProductsServices.NAME, 'inventory', options],
+      queryFn: () => ProductsServices.findInventory(options),
+      ...rest,
+    });
+  },
+
   useFindInfinite: ({
     options,
     config,

@@ -1,5 +1,6 @@
 import ConfirmationDialog from '@base/components/ConfirmationDialog';
 import ActionMenu from '@base/components/ActionMenu';
+import CustomSwitch from '@base/components/CustomSwitch';
 import RecordDetailsModal from '@base/components/RecordDetailsModal';
 import { getAccess } from '@modules/auth/lib/utils/client';
 import type { PaginationProps, TableColumnsType } from 'antd';
@@ -64,6 +65,7 @@ const PurchasesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
     totalPurchaseAmount: elem?.totalPurchaseAmount,
     paidAmount: elem?.paidAmount,
     dueAmount: elem?.dueAmount,
+    isActive: elem?.isActive,
     createdAt: elem?.createdAt,
   }));
 
@@ -113,6 +115,31 @@ const PurchasesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       dataIndex: 'dueAmount',
       title: 'Due',
       render: (dueAmount) => (dueAmount != null ? Number(dueAmount).toFixed(2) : 'N/A'),
+    },
+    {
+      key: 'isActive',
+      dataIndex: 'isActive',
+      title: 'Active',
+      render: (isActive, record) => (
+        <CustomSwitch
+          checked={Boolean(isActive)}
+          loading={purchaseUpdateFn.isPending}
+          onChange={(checked) => {
+            getAccess(['purchases:update'], () => {
+              const action = checked ? 'activate' : 'deactivate';
+              setConfirmationDialog({
+                open: true,
+                title: `${action.charAt(0).toUpperCase() + action.slice(1)} Purchase`,
+                content: `Are you sure you want to ${action} this purchase? Inventory and linked financial records will be synchronized.`,
+                onConfirm: () => {
+                  purchaseUpdateFn.mutate({ id: record.id, data: { isActive: checked } });
+                  setConfirmationDialog({ open: false, title: '', content: '', onConfirm: () => {} });
+                },
+              });
+            });
+          }}
+        />
+      ),
     },
     {
       key: 'id',

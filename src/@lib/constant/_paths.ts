@@ -33,6 +33,7 @@ export const Paths = {
     products: {
       root: '/admin/products',
       list: '/admin/products/list',
+      inventory: '/admin/products/inventory',
     },
     variants: {
       root: '/admin/variants',

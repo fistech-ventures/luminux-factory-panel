@@ -21,7 +21,7 @@ const PaymentsPage = () => {
   const [messageApi, messageHolder] = message.useMessage();
   const [formInstance] = Form.useForm();
   const [isDrawerOpen, setDrawerOpen] = useState(false);
-  const { page = 1, limit = 10, ...rest } = Toolbox.parseQueryParams<IPaymentFilter>(`?${searchParams.toString()}`);
+  const { page = 1, limit = 20, ...rest } = Toolbox.parseQueryParams<IPaymentFilter>(`?${searchParams.toString()}`);
 
   const paymentsQuery = PaymentsHooks.useFind({
     options: {

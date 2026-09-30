@@ -19,6 +19,10 @@ export interface IInvestmentsFilter extends IBaseFilter {
 export interface IInvestmentsResponse extends IBaseResponse {
   data: IInvestment[];
   meta: IMetaResponse;
+  total: {
+    allInvestors: number;
+    selectedInvestor: number;
+  };
 }
 
 export interface IInvestmentCreate {

@@ -74,42 +74,6 @@ const DashboardPage = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <Card size="small">
-        <Space wrap size="middle">
-          <Space size="small">
-            <span className="text-sm text-gray-500">Range:</span>
-            <Select
-              value={dateRange ? undefined : days}
-              placeholder="Select range"
-              options={DAYS_OPTIONS}
-              style={{ width: 160 }}
-              disabled={!!dateRange}
-              onChange={(value) => setDays(value)}
-            />
-          </Space>
-          <Space size="small">
-            <span className="text-sm text-gray-500">Custom dates:</span>
-            <RangePicker
-              value={dateRange}
-              onChange={(values) =>
-                setDateRange(values as [Dayjs, Dayjs] | null)
-              }
-              allowClear
-            />
-          </Space>
-          <Space size="small">
-            <span className="text-sm text-gray-500">Recent sales:</span>
-            <InputNumber
-              min={1}
-              max={50}
-              value={recentLimit}
-              onChange={(value) => setRecentLimit(value ?? 5)}
-              style={{ width: 80 }}
-            />
-          </Space>
-        </Space>
-      </Card>
-
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>
           <Card loading={dashboardStatsQuery.isLoading}>
@@ -167,6 +131,42 @@ const DashboardPage = () => {
           </Card>
         </Col>
       </Row>
+
+      <Card size="small">
+        <Space wrap size="middle">
+          <Space size="small">
+            <span className="text-sm text-gray-500">Range:</span>
+            <Select
+              value={dateRange ? undefined : days}
+              placeholder="Select range"
+              options={DAYS_OPTIONS}
+              style={{ width: 160 }}
+              disabled={!!dateRange}
+              onChange={(value) => setDays(value)}
+            />
+          </Space>
+          <Space size="small">
+            <span className="text-sm text-gray-500">Custom dates:</span>
+            <RangePicker
+              value={dateRange}
+              onChange={(values) =>
+                setDateRange(values as [Dayjs, Dayjs] | null)
+              }
+              allowClear
+            />
+          </Space>
+          <Space size="small">
+            <span className="text-sm text-gray-500">Recent sales:</span>
+            <InputNumber
+              min={1}
+              max={50}
+              value={recentLimit}
+              onChange={(value) => setRecentLimit(value ?? 5)}
+              style={{ width: 80 }}
+            />
+          </Space>
+        </Space>
+      </Card>
 
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={12}>

@@ -22,6 +22,7 @@ import {
   Radio,
   Row,
   Select,
+  Switch,
   message,
 } from "antd";
 import dayjs from "dayjs";
@@ -153,6 +154,7 @@ const PurchasesForm: React.FC<IProps> = ({
     ) {
       form.setFieldsValue({
         ...initialValues,
+        isActive: initialValues?.isActive ?? true,
         purchaseDate: initialValues?.purchaseDate
           ? dayjs(initialValues.purchaseDate)
           : dayjs(),
@@ -286,6 +288,7 @@ const PurchasesForm: React.FC<IProps> = ({
         form={form}
         initialValues={{
           ...initialValues,
+          isActive: initialValues?.isActive ?? true,
           purchaseDate: initialValues?.purchaseDate
             ? dayjs(initialValues.purchaseDate)
             : dayjs(),
@@ -305,6 +308,11 @@ const PurchasesForm: React.FC<IProps> = ({
         }}
       >
         <Row gutter={[16, 16]}>
+          <Col xs={24} md={12}>
+            <Form.Item name="isActive" label="Purchase status" valuePropName="checked" className="mb-0!">
+              <Switch checkedChildren="Active" unCheckedChildren="Inactive" />
+            </Form.Item>
+          </Col>
           <Col xs={24} md={12}>
             <Form.Item
               name="purchaseDate"

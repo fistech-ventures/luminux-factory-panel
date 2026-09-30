@@ -20,7 +20,7 @@ const ProductVariantOptionsPage = () => {
   const [messageApi, messageHolder] = message.useMessage();
   const [formInstance] = Form.useForm();
   const [isDrawerOpen, setDrawerOpen] = useState(false);
-  const { page = 1, limit = 10, ...rest } = Toolbox.parseQueryParams<IProductVariantOptionsFilter>(
+  const { page = 1, limit = 20, ...rest } = Toolbox.parseQueryParams<IProductVariantOptionsFilter>(
     `?${searchParams.toString()}`,
   );
 

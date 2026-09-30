@@ -23,7 +23,7 @@ const GalleryPage = () => {
   const [messageApi, messageHolder] = message.useMessage();
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const { page = 1, limit = 10, ...rest } = Toolbox.parseQueryParams<IGalleryFilter>(`?${searchParams.toString()}`);
+  const { page = 1, limit = 20, ...rest } = Toolbox.parseQueryParams<IGalleryFilter>(`?${searchParams.toString()}`);
 
   const galleryQuery = GalleryHooks.useFind({
     options: {

@@ -21,7 +21,7 @@ const PurchasesPage = () => {
   const [messageApi, messageHolder] = message.useMessage();
   const [formInstance] = Form.useForm();
   const [isDrawerOpen, setDrawerOpen] = useState(false);
-  const { page = 1, limit = 10, ...rest } = Toolbox.parseQueryParams<IPurchasesFilter>(`?${searchParams.toString()}`);
+  const { page = 1, limit = 20, ...rest } = Toolbox.parseQueryParams<IPurchasesFilter>(`?${searchParams.toString()}`);
 
   const purchasesQuery = PurchasesHooks.useFind({
     options: {

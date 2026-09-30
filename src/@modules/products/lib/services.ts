@@ -35,6 +35,15 @@ export const ProductsServices = {
     }
   },
 
+  findInventory: async (options: IProductsFilter): Promise<IProductsResponse> => {
+    try {
+      const res = await AxiosSecureInstance.get(`${END_POINT}/inventory?${Toolbox.queryNormalizer(options)}`);
+      return Promise.resolve(res?.data);
+    } catch (error) {
+      throw responseHandlerFn(error);
+    }
+  },
+
   create: async (payload: IProductCreate): Promise<IBaseResponse<IProduct>> => {
     try {
       const res = await AxiosSecureInstance.post(END_POINT, Toolbox.toNullifyTraverse(payload));

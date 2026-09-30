@@ -20,7 +20,7 @@ const SuppliersPage = () => {
   const [messageApi, messageHolder] = message.useMessage();
   const [formInstance] = Form.useForm();
   const [isDrawerOpen, setDrawerOpen] = useState(false);
-  const { page = 1, limit = 10, ...rest } = Toolbox.parseQueryParams<ISuppliersFilter>(`?${searchParams.toString()}`);
+  const { page = 1, limit = 20, ...rest } = Toolbox.parseQueryParams<ISuppliersFilter>(`?${searchParams.toString()}`);
 
   const suppliersQuery = SuppliersHooks.useFind({
     options: {

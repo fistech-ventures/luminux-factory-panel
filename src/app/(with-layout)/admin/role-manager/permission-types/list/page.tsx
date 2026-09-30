@@ -19,7 +19,7 @@ const PermissionTypesPage = () => {
   const [messageApi, messageHolder] = message.useMessage();
   const [formInstance] = Form.useForm();
   const [isDrawerOpen, setDrawerOpen] = useState(false);
-  const { page = 1, limit = 10, ...rest } = Toolbox.parseQueryParams<IBaseFilter>(`?${searchParams.toString()}`);
+  const { page = 1, limit = 20, ...rest } = Toolbox.parseQueryParams<IBaseFilter>(`?${searchParams.toString()}`);
 
   const permissionTypesQuery = PermissionTypesHooks.useFind({
     options: {
