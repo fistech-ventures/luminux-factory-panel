@@ -20,6 +20,10 @@ const escapeHtml = (value: unknown) =>
     .replace(/'/g, "&#039;");
 
 const getSaleItemDetails = (item: ISale['items'][number]) => {
+  if (item.rawMaterialCombination) {
+    return item.rawMaterialCombination.title;
+  }
+
   if (item.sku) {
     const values = (item.sku.values ?? [])
       .map((value) => [value.variant?.title, value.variantOption?.title].filter(Boolean).join(": "))
@@ -40,7 +44,7 @@ const printSale = (sale: ISale) => {
   const items = (sale.items ?? [])
     .map(
       (item, index) => `
-        <tr><td>${index + 1}</td><td><strong>${escapeHtml(item.product?.title)}</strong>${getSaleItemDetails(item) ? `<small>${escapeHtml(getSaleItemDetails(item))}</small>` : ""}</td><td>${escapeHtml(item.product?.warranty)}</td><td class="num">${item.quantity}${item.sku?.unit || item.product?.unit ? ` ${escapeHtml(item.sku?.unit || item.product?.unit)}` : ""}</td><td class="num">${Number(item.sellingPrice ?? 0).toFixed(2)}</td><td class="num">${Number(item.totalAmount ?? item.totalPrice ?? item.quantity * item.sellingPrice).toFixed(2)}</td></tr>`,
+        <tr><td>${index + 1}</td><td><strong>${escapeHtml(item.product?.title || item.rawMaterial?.title)}</strong>${getSaleItemDetails(item) ? `<small>${escapeHtml(getSaleItemDetails(item))}</small>` : ""}</td><td>${escapeHtml(item.product?.warranty)}</td><td class="num">${item.quantity}${item.sku?.unit || item.product?.unit || item.rawMaterialCombination?.unit || item.rawMaterial?.unit ? ` ${escapeHtml(item.sku?.unit || item.product?.unit || item.rawMaterialCombination?.unit || item.rawMaterial?.unit)}` : ""}</td><td class="num">${Number(item.sellingPrice ?? 0).toFixed(2)}</td><td class="num">${Number(item.totalAmount ?? item.totalPrice ?? item.quantity * item.sellingPrice).toFixed(2)}</td></tr>`,
     )
     .join("");
 

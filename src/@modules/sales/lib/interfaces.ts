@@ -15,7 +15,10 @@ export interface ISalesFilter extends IBaseFilter {
 
 export interface ISaleItem {
   id?: TId;
-  productId: TId;
+  itemType?: "product" | "rawMaterial";
+  productId?: TId;
+  rawMaterialId?: TId;
+  rawMaterialCombinationId?: TId;
   variantId?: TId;
   skuId?: TId;
   quantity: number;
@@ -28,9 +31,25 @@ export interface ISaleItem {
     title: string;
     productCode: string;
     sellingPrice: number;
+    combinations?: Array<{
+      id: TId;
+      title: string;
+      code?: string;
+      unit?: string;
+      stock: number;
+      sourcingPrice: number;
+      sellingPrice: number;
+    }>;
     stock: number;
     unit?: string;
     warranty?: string;
+  };
+  rawMaterial?: {
+    id: TId;
+    title: string;
+    unit?: string;
+    stock: number;
+    sellingPrice: number;
   };
   variant?: {
     id: TId;
@@ -47,6 +66,15 @@ export interface ISaleItem {
       variant?: { title: string };
       variantOption?: { title: string };
     }>;
+  };
+  rawMaterialCombination?: {
+    id: TId;
+    title: string;
+    code?: string;
+    unit?: string;
+    stock: number;
+    sourcingPrice: number;
+    sellingPrice: number;
   };
 }
 

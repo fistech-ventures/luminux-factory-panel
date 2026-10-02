@@ -14,7 +14,7 @@ const itemColumns: TableColumnsType<IPurchaseItem> = [
   {
     key: 'product',
     title: 'Product',
-    render: (_, item) => item?.product?.title || item?.productName || 'N/A',
+    render: (_, item) => item?.product?.title || item?.rawMaterial?.title || item?.productName || item?.rawMaterialName || 'N/A',
   },
   {
     key: 'productCode',
@@ -23,6 +23,9 @@ const itemColumns: TableColumnsType<IPurchaseItem> = [
       item?.sku?.productCode ||
       item?.variant?.sku ||
       item?.product?.productCode ||
+      item?.rawMaterialCombination?.code ||
+      item?.rawMaterialCombination?.title ||
+      item?.rawMaterialId ||
       item?.productCode ||
       'N/A',
   },
@@ -30,6 +33,7 @@ const itemColumns: TableColumnsType<IPurchaseItem> = [
     key: 'combination',
     title: 'Combination',
     render: (_, item) => {
+      if (item?.rawMaterialCombination) return item.rawMaterialCombination.title;
       if (item?.sku?.values?.length) {
         return item.sku.values
           .map((value) => `${value.variant?.title ?? ''}: ${value.variantOption?.title ?? ''}`)

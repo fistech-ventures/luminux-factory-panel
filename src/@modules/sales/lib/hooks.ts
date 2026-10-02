@@ -55,6 +55,8 @@ export const SalesHooks = {
         if (!data?.success) return;
 
         queryClient.invalidateQueries({ queryKey: [SalesServices.NAME] });
+        queryClient.invalidateQueries({ queryKey: ['/products'] });
+        queryClient.invalidateQueries({ queryKey: ['/raw-materials'] });
       },
       ...config,
     });
@@ -67,6 +69,8 @@ export const SalesHooks = {
         if (!data?.success) return;
 
         queryClient.invalidateQueries({ queryKey: [SalesServices.NAME] });
+        queryClient.invalidateQueries({ queryKey: ['/products'] });
+        queryClient.invalidateQueries({ queryKey: ['/raw-materials'] });
       },
       ...config,
     });
@@ -79,6 +83,8 @@ export const SalesHooks = {
         if (!data?.success) return;
 
         queryClient.invalidateQueries({ queryKey: [SalesServices.NAME] });
+        queryClient.invalidateQueries({ queryKey: ['/products'] });
+        queryClient.invalidateQueries({ queryKey: ['/raw-materials'] });
       },
       ...config,
     });

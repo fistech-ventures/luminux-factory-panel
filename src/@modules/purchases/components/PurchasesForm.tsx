@@ -3,6 +3,8 @@ import { Toolbox } from "@lib/utils";
 import { ENUM_PAYMENT_METHODS } from "@lib/constant";
 import { ProductsHooks } from "@modules/products/lib/hooks";
 import { IProduct } from "@modules/products/lib/interfaces";
+import { RawMaterialsHooks } from "@modules/raw-materials/lib/hooks";
+import { IRawMaterial } from "@modules/raw-materials/lib/interfaces";
 import { SuppliersHooks } from "@modules/suppliers/lib/hooks";
 import { ISupplier } from "@modules/suppliers/lib/interfaces";
 import { UsersHooks } from "@modules/users/lib/hooks";
@@ -53,6 +55,7 @@ const PurchasesForm: React.FC<IProps> = ({
   const [messageApi, messageHolder] = message.useMessage();
   const [supplierSearchTerm, setSupplierSearchTerm] = useState(null);
   const [productSearchTerm, setProductSearchTerm] = useState(null);
+  const [rawMaterialSearchTerm, setRawMaterialSearchTerm] = useState(null);
   const [userSearchTerm, setUserSearchTerm] = useState(null);
   const hasInitializedValues = useRef(false);
   const initializedRecordId = useRef(initialValues?.id);
@@ -110,6 +113,10 @@ const PurchasesForm: React.FC<IProps> = ({
 
         return Toolbox.pickProps(normalizedItem, [
           "productId",
+          "itemType",
+          "rawMaterialId",
+          "rawMaterialCombinationId",
+          "rawMaterialName",
           "variantId",
           "skuId",
           "productName",
@@ -161,8 +168,9 @@ const PurchasesForm: React.FC<IProps> = ({
         items: Toolbox.isNotEmpty(initialValues?.items)
           ? initialValues.items.map((item) => ({
               ...item,
-              unit: item?.unit ?? item?.product?.unit,
-              mode: item?.productId ? "existing" : "new",
+              itemType: item?.itemType ?? (item?.rawMaterialId ? "rawMaterial" : "product"),
+              unit: item?.unit ?? item?.product?.unit ?? item?.rawMaterial?.unit,
+              mode: item?.productId || item?.rawMaterialId ? "existing" : "new",
             }))
           : [],
       });
@@ -185,6 +193,10 @@ const PurchasesForm: React.FC<IProps> = ({
     },
   });
 
+  const rawMaterialsQuery = RawMaterialsHooks.useFindInfinite({
+    options: { limit: 20, searchTerm: rawMaterialSearchTerm },
+  });
+
   const usersQuery = UsersHooks.useFindInfinite({
     options: {
       limit: 20,
@@ -202,6 +214,8 @@ const PurchasesForm: React.FC<IProps> = ({
 
   const loadedProducts =
     productsQuery.data?.pages?.flatMap((page) => page?.data ?? []) ?? [];
+  const loadedRawMaterials =
+    rawMaterialsQuery.data?.pages?.flatMap((page) => page?.data ?? []) ?? [];
 
   const variantsQuery = VariantsHooks.useFind({
     options: { page: 1, limit: 300 },
@@ -237,8 +251,11 @@ const PurchasesForm: React.FC<IProps> = ({
       mode === "existing"
         ? {
             ...updated[idx],
+          productId: null,
+          rawMaterialId: null,
             productName: null,
             productCode: null,
+          rawMaterialName: null,
             unit: null,
             variants: [],
             skus: [],
@@ -247,6 +264,10 @@ const PurchasesForm: React.FC<IProps> = ({
         : {
             ...updated[idx],
             productId: null,
+          rawMaterialId: null,
+          productName: null,
+          productCode: null,
+          rawMaterialName: null,
             variantId: null,
             skuId: null,
             unit: null,
@@ -405,10 +426,18 @@ const PurchasesForm: React.FC<IProps> = ({
                     const currentItems = watchedItems ?? [];
                     const currentRow = currentItems[idx] ?? {};
                     const isExisting = currentRow?.mode !== "new";
+                    const isRawMaterial = currentRow?.itemType === "rawMaterial";
                     const selectedProduct = loadedProducts.find(
                       (product: IProduct) =>
                         product.id === currentRow?.productId,
                     );
+                    const selectedRawMaterial = loadedRawMaterials.find(
+                      (rawMaterial) => rawMaterial.id === currentRow?.rawMaterialId,
+                    );
+                    const rawMaterialCombinations =
+                      selectedRawMaterial?.combinations ??
+                      initialValues?.items?.[idx]?.rawMaterial?.combinations ??
+                      [];
                     const variantOptions = isExisting
                       ? findProductVariantOptions(currentRow?.productId)
                       : [];
@@ -430,6 +459,7 @@ const PurchasesForm: React.FC<IProps> = ({
                     const useExistingCombinationLines =
                       isExisting &&
                       formType === "create" &&
+                      !isRawMaterial &&
                       existingCombinationOptions.length > 0;
                     const filterSkuOption = (
                       input: string,
@@ -453,6 +483,37 @@ const PurchasesForm: React.FC<IProps> = ({
                         key={field.key}
                         className="border border-gray-200 rounded-lg p-3 flex flex-col gap-2"
                       >
+                        <Form.Item
+                          {...field}
+                          name={[field.name, "itemType"]}
+                          initialValue="product"
+                          className="mb-0!"
+                        >
+                          <Select
+                            options={[
+                              { label: "Finished product", value: "product" },
+                              { label: "Raw material", value: "rawMaterial" },
+                            ]}
+                            onChange={(itemType) => {
+                              const items = [...(form.getFieldValue("items") || [])];
+                              items[idx] = {
+                                ...items[idx],
+                                itemType,
+                                productId: null,
+                                rawMaterialId: null,
+                                productName: null,
+                                rawMaterialName: null,
+                                productCode: null,
+                                variantId: null,
+                                skuId: null,
+                                variants: [],
+                                skus: [],
+                                combinations: [],
+                              };
+                              form.setFieldsValue({ items });
+                            }}
+                          />
+                        </Form.Item>
                         <div className="flex items-center justify-between gap-2">
                           <Form.Item
                             {...field}
@@ -485,6 +546,42 @@ const PurchasesForm: React.FC<IProps> = ({
                         {isExisting ? (
                           <>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {isRawMaterial && (
+                              <Form.Item
+                                {...field}
+                                name={[field.name, "rawMaterialId"]}
+                                rules={[{ required: true, message: "Raw material is required!" }]}
+                                className="mb-0!"
+                              >
+                                <InfiniteScrollSelect<IRawMaterial>
+                                  showSearch
+                                  allowClear
+                                  virtual={false}
+                                  placeholder="Raw material"
+                                  initialOptions={initialValues?.items?.[idx]?.rawMaterial ? [initialValues.items[idx].rawMaterial] : []}
+                                  option={({ item }) => ({
+                                    key: item.id,
+                                    label: `${item.title} (${item.stock} ${item.unit ?? ''} available)`,
+                                    value: item.id,
+                                  })}
+                                  onChange={(rawMaterialId) => {
+                                    const items = [...(form.getFieldValue("items") || [])];
+                                    const rawMaterial = loadedRawMaterials.find((entry) => entry.id === rawMaterialId);
+                                    items[idx] = {
+                                      ...items[idx],
+                                      rawMaterialId,
+                                      rawMaterialCombinationId: null,
+                                      unit: rawMaterial?.unit ?? null,
+                                      combinations: [],
+                                    };
+                                    form.setFieldsValue({ items });
+                                  }}
+                                  onChangeSearchTerm={setRawMaterialSearchTerm}
+                                  query={rawMaterialsQuery}
+                                />
+                              </Form.Item>
+                            )}
+                            {!isRawMaterial && (
                             <Form.Item
                               {...field}
                               name={[field.name, "productId"]}
@@ -529,7 +626,30 @@ const PurchasesForm: React.FC<IProps> = ({
                                 query={productsQuery}
                               />
                             </Form.Item>
-                            {!useExistingCombinationLines && skus.length === 0 && (
+                            )}
+                            {isRawMaterial && (
+                              <Form.Item
+                                {...field}
+                                name={[field.name, "rawMaterialCombinationId"]}
+                                rules={rawMaterialCombinations.length > 0 ? [{ required: true, message: "Combination is required!" }] : []}
+                                className="mb-0!"
+                              >
+                                <Select
+                                  showSearch
+                                  disabled={rawMaterialCombinations.length === 0}
+                                  placeholder={rawMaterialCombinations.length ? "Raw-material combination" : "No combinations configured"}
+                                  options={rawMaterialCombinations.map((combination) => ({
+                                    value: combination.id,
+                                    label: `${combination.title}${combination.code ? ` (${combination.code})` : ''} - ${combination.stock} ${combination.unit ?? selectedRawMaterial?.unit ?? ''}`,
+                                  }))}
+                                  onChange={(combinationId) => {
+                                    const combination = rawMaterialCombinations.find((candidate) => candidate.id === combinationId);
+                                    form.setFieldValue(["items", idx, "unit"], combination?.unit ?? selectedRawMaterial?.unit);
+                                  }}
+                                />
+                              </Form.Item>
+                            )}
+                            {!isRawMaterial && !useExistingCombinationLines && skus.length === 0 && (
                               <Form.Item
                                 {...field}
                                 name={[field.name, "variantId"]}
@@ -554,7 +674,7 @@ const PurchasesForm: React.FC<IProps> = ({
                                 />
                               </Form.Item>
                             )}
-                            {!useExistingCombinationLines && skus.length > 0 && (
+                            {!isRawMaterial && !useExistingCombinationLines && skus.length > 0 && (
                               <Form.Item
                                 {...field}
                                 name={[field.name, "skuId"]}
@@ -689,6 +809,53 @@ const PurchasesForm: React.FC<IProps> = ({
                             </>
                           )}
                           </>
+                        ) : isRawMaterial ? (
+                          <>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              <Form.Item
+                                {...field}
+                                name={[field.name, "rawMaterialName"]}
+                                rules={[{ required: true, message: "Raw material name is required!" }]}
+                                className="mb-0!"
+                              >
+                                <Input placeholder="New Raw Material Name" />
+                              </Form.Item>
+                              <Form.Item {...field} name={[field.name, "unit"]} className="mb-0!">
+                                <Input placeholder="Unit (kg, meter, pcs)" />
+                              </Form.Item>
+                            </div>
+                            <Divider plain>New raw-material combinations (optional)</Divider>
+                            <Form.List name={[field.name, "combinations"]}>
+                              {(combinationFields, { add, remove }) => (
+                                <div className="flex flex-col gap-2">
+                                  {combinationFields.map((combinationField) => (
+                                    <div key={combinationField.key} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-start">
+                                      <Form.Item {...combinationField} name={[combinationField.name, "name"]} rules={[{ required: true, message: "Combination name is required!" }]} className="mb-0!">
+                                        <Input placeholder="Combination name" />
+                                      </Form.Item>
+                                      <Form.Item {...combinationField} name={[combinationField.name, "productCode"]} className="mb-0!">
+                                        <Input placeholder="Code (optional)" />
+                                      </Form.Item>
+                                      <Form.Item {...combinationField} name={[combinationField.name, "unit"]} className="mb-0!">
+                                        <Input placeholder="Unit (optional)" />
+                                      </Form.Item>
+                                      <Form.Item {...combinationField} name={[combinationField.name, "quantity"]} rules={[{ required: true }]} className="mb-0!">
+                                        <InputNumber min={0.001} precision={3} placeholder="Quantity" className="w-full!" />
+                                      </Form.Item>
+                                      <Form.Item {...combinationField} name={[combinationField.name, "totalProductCost"]} rules={[{ required: true }]} className="mb-0!">
+                                        <InputNumber min={0} precision={2} placeholder="Total cost" className="w-full!" />
+                                      </Form.Item>
+                                      <Form.Item {...combinationField} name={[combinationField.name, "otherCost"]} className="mb-0!">
+                                        <InputNumber min={0} precision={2} placeholder="Other cost" className="w-full!" />
+                                      </Form.Item>
+                                      <Button type="text" danger icon={<MdOutlineDeleteOutline />} onClick={() => remove(combinationField.name)}>Remove</Button>
+                                    </div>
+                                  ))}
+                                  <Button block type="dashed" onClick={() => add({ otherCost: 0 })}>Add raw-material combination</Button>
+                                </div>
+                              )}
+                            </Form.List>
+                          </>
                         ) : (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                             <Form.Item
@@ -732,7 +899,7 @@ const PurchasesForm: React.FC<IProps> = ({
                             </Form.Item>
                           </div>
                         )}
-                        {isExisting && !useExistingCombinationLines && (
+                        {((isRawMaterial && !(currentRow?.combinations?.length)) || (isExisting && !useExistingCombinationLines)) && (
                           <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
                             <Form.Item
                               {...field}
@@ -748,8 +915,8 @@ const PurchasesForm: React.FC<IProps> = ({
                               <InputNumber
                                 className="w-full!"
                                 placeholder="Quantity"
-                                min={1}
-                                precision={0}
+                                min={isRawMaterial ? 0.001 : 1}
+                                precision={isRawMaterial ? 3 : 0}
                               />
                             </Form.Item>
                             <Form.Item
@@ -760,7 +927,7 @@ const PurchasesForm: React.FC<IProps> = ({
                               <Input
                                 placeholder="Unit"
                                 value={
-                                  currentRow?.unit ?? selectedProduct?.unit
+                                  currentRow?.unit ?? selectedProduct?.unit ?? selectedRawMaterial?.unit
                                 }
                                 readOnly
                               />
@@ -797,7 +964,7 @@ const PurchasesForm: React.FC<IProps> = ({
                             </Form.Item>
                           </div>
                         )}
-                        {!isExisting && (
+                        {!isExisting && !isRawMaterial && (
                           <>
                             <Divider plain>Sellable combinations</Divider>
                             <Form.List name={[field.name, "combinations"]}>

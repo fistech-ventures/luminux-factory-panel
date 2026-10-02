@@ -9,7 +9,11 @@ export interface IPurchasesFilter extends IBaseFilter {
 
 export interface IPurchaseItem {
   id?: TId;
+  itemType?: "product" | "rawMaterial";
   productId?: TId;
+  rawMaterialId?: TId;
+  rawMaterialCombinationId?: TId;
+  rawMaterialName?: string;
   variantId?: TId;
   skuId?: TId;
   productName?: string;
@@ -26,6 +30,26 @@ export interface IPurchaseItem {
     id: TId;
     title: string;
     productCode: string;
+    unit?: string;
+  };
+  rawMaterial?: {
+    id: TId;
+    title: string;
+    unit?: string;
+    combinations?: Array<{
+      id: TId;
+      title: string;
+      code?: string;
+      unit?: string;
+      stock: number;
+      sourcingPrice: number;
+      sellingPrice: number;
+    }>;
+  };
+  rawMaterialCombination?: {
+    id: TId;
+    title: string;
+    code?: string;
     unit?: string;
   };
   sku?: {
@@ -90,6 +114,7 @@ export interface IPurchaseCombination {
   id?: TId;
   skuId?: TId;
   variantId?: TId;
+  rawMaterialCombinationId?: TId;
   selectionKey?: string;
   name: string;
   productCode: string;

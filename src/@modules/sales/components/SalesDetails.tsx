@@ -14,17 +14,17 @@ const itemColumns: TableColumnsType<ISaleItem> = [
   {
     key: 'product',
     title: 'Product',
-    render: (_, item) => item?.product?.title || 'N/A',
+    render: (_, item) => item?.product?.title || item?.rawMaterial?.title || 'N/A',
   },
   {
     key: 'productCode',
     title: 'Code',
-    render: (_, item) => item?.product?.productCode || 'N/A',
+    render: (_, item) => item?.product?.productCode || item?.rawMaterialId || 'N/A',
   },
   {
     key: 'variant',
     title: 'Variant',
-    render: (_, item) => item?.variant?.title || 'N/A',
+    render: (_, item) => item?.rawMaterialCombination?.title || item?.variant?.title || 'N/A',
   },
   {
     key: 'quantity',

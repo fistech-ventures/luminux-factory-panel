@@ -200,6 +200,22 @@ const AdminMenu: React.FC<IProps> = ({
               }),
               getContentAccess({
                 content: {
+                  key: Paths.admin.rawMaterials.list,
+                  icon: <MdOutlineInventory2 />,
+                  label: link(Paths.admin.rawMaterials.list, "Raw Materials"),
+                },
+                allowedAccess: [Permissions.PRODUCTS_READ],
+              }),
+              getContentAccess({
+                content: {
+                  key: Paths.admin.production.list,
+                  icon: <MdOutlineInventory2 />,
+                  label: link(Paths.admin.production.list, "Production"),
+                },
+                allowedAccess: [Permissions.PRODUCTS_READ],
+              }),
+              getContentAccess({
+                content: {
                   key: Paths.admin.variants.list,
                   icon: <MdOutlineCategory />,
                   label: link(Paths.admin.variants.list, "Variants"),

@@ -35,6 +35,14 @@ export const Paths = {
       list: '/admin/products/list',
       inventory: '/admin/products/inventory',
     },
+    rawMaterials: {
+      root: '/admin/raw-materials',
+      list: '/admin/raw-materials/list',
+    },
+    production: {
+      root: '/admin/production',
+      list: '/admin/production/list',
+    },
     variants: {
       root: '/admin/variants',
       list: '/admin/variants/list',

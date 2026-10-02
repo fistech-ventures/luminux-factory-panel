@@ -5,6 +5,8 @@ import { CustomersHooks } from "@modules/customers/lib/hooks";
 import { ICustomer } from "@modules/customers/lib/interfaces";
 import { ProductsHooks } from "@modules/products/lib/hooks";
 import { IProduct } from "@modules/products/lib/interfaces";
+import { RawMaterialsHooks } from "@modules/raw-materials/lib/hooks";
+import { IRawMaterial } from "@modules/raw-materials/lib/interfaces";
 import { UsersHooks } from "@modules/users/lib/hooks";
 import { IUser } from "@modules/users/lib/interfaces";
 import {
@@ -47,6 +49,7 @@ const SalesForm: React.FC<IProps> = ({
   const [messageApi, messageHolder] = message.useMessage();
   const [customerSearchTerm, setCustomerSearchTerm] = useState(null);
   const [productSearchTerm, setProductSearchTerm] = useState(null);
+    const [rawMaterialSearchTerm, setRawMaterialSearchTerm] = useState(null);
   const [userSearchTerm, setUserSearchTerm] = useState(null);
   const hasInitializedValues = useRef(false);
   const initializedRecordId = useRef(initialValues?.id);
@@ -93,7 +96,10 @@ const SalesForm: React.FC<IProps> = ({
         date: initialValues?.date ? dayjs(initialValues.date) : dayjs(),
         paymentMethod: initialValues?.paymentMethod || "cash",
         items: Toolbox.isNotEmpty(initialValues?.items)
-          ? initialValues.items.map((item) => ({ ...item }))
+          ? initialValues.items.map((item) => ({
+              ...item,
+              itemType: item.itemType ?? (item.rawMaterialId ? "rawMaterial" : "product"),
+            }))
           : [],
       });
       hasInitializedValues.current = true;
@@ -115,6 +121,10 @@ const SalesForm: React.FC<IProps> = ({
     },
   });
 
+  const rawMaterialsQuery = RawMaterialsHooks.useFindInfinite({
+    options: { limit: 20, searchTerm: rawMaterialSearchTerm },
+  });
+
   const usersQuery = UsersHooks.useFindInfinite({
     options: {
       limit: 20,
@@ -124,6 +134,8 @@ const SalesForm: React.FC<IProps> = ({
 
   const loadedProducts =
     productsQuery.data?.pages?.flatMap((page) => page?.data ?? []) ?? [];
+  const loadedRawMaterials =
+    rawMaterialsQuery.data?.pages?.flatMap((page) => page?.data ?? []) ?? [];
 
   const findProductVariantOptions = (productId: string) => {
     const product = loadedProducts.find(
@@ -166,9 +178,17 @@ const SalesForm: React.FC<IProps> = ({
             date: dayjs(values.date).format("YYYY-MM-DD"),
             discount: Number(values.discount) || 0,
             paidAmount: Number(values.paidAmount) || 0,
-            items: (values.items ?? []).map((item) =>
-              Toolbox.pickProps(item, ["productId", "variantId", "skuId", "quantity", "sellingPrice"]),
-            ),
+            items: (values.items ?? []).map((item) => ({
+              itemType: item.itemType ?? "product",
+              ...(item.itemType === "rawMaterial"
+                ? {
+                    rawMaterialId: item.rawMaterialId,
+                    rawMaterialCombinationId: item.rawMaterialCombinationId,
+                  }
+                : { productId: item.productId, variantId: item.variantId, skuId: item.skuId }),
+              quantity: item.quantity,
+              sellingPrice: item.sellingPrice,
+            })),
           };
           onFinish(
             formType === "update"
@@ -337,6 +357,11 @@ const SalesForm: React.FC<IProps> = ({
                   {fields.map((field, idx) => {
                     const currentItems = watchedItems ?? [];
                     const currentRow = currentItems[idx] ?? {};
+                    const isRawMaterial = currentRow?.itemType === "rawMaterial";
+                    const selectedRawMaterial = loadedRawMaterials.find(
+                      (rawMaterial) => rawMaterial.id === currentRow?.rawMaterialId,
+                    ) ?? initialValues?.items?.[idx]?.rawMaterial;
+                    const rawMaterialCombinations = selectedRawMaterial?.combinations ?? [];
                     const variantOptions = findProductVariantOptions(
                       currentRow?.productId,
                     );
@@ -363,39 +388,96 @@ const SalesForm: React.FC<IProps> = ({
                         key={field.key}
                         className="border border-gray-200 rounded-lg p-3 flex flex-col gap-2"
                       >
-                        <div className="flex items-center justify-between gap-2">
-                          <Form.Item
-                            {...field}
-                            name={[field.name, "productId"]}
-                            rules={[
-                              {
-                                required: true,
-                                message: "Product is required!",
-                              },
+                        <Form.Item
+                          {...field}
+                          name={[field.name, "itemType"]}
+                          initialValue="product"
+                          className="mb-0!"
+                        >
+                          <Select
+                            options={[
+                              { label: "Finished product", value: "product" },
+                              { label: "Raw material", value: "rawMaterial" },
                             ]}
-                            className="mb-0! flex-1"
-                          >
-                            <InfiniteScrollSelect<IProduct>
-                              showSearch
-                              allowClear
-                              virtual={false}
-                              placeholder="Product"
-                              option={({ item: product }) => ({
-                                key: product?.id,
-                                label: `${product?.title} (${product?.productCode})`,
-                                value: product?.id,
-                              })}
-                              onChange={(productId) => {
-                                const items = [...(form.getFieldValue("items") || [])];
-                                items[idx] = { ...items[idx], productId, variantId: null, skuId: null };
-                                form.setFieldsValue({ items });
-                              }}
-                              onChangeSearchTerm={(searchTerm) =>
-                                setProductSearchTerm(searchTerm)
-                              }
-                              query={productsQuery}
-                            />
-                          </Form.Item>
+                            onChange={(itemType) => {
+                              const items = [...(form.getFieldValue("items") || [])];
+                              items[idx] = {
+                                ...items[idx],
+                                itemType,
+                                productId: null,
+                                rawMaterialId: null,
+                                rawMaterialCombinationId: null,
+                                variantId: null,
+                                skuId: null,
+                              };
+                              form.setFieldsValue({ items });
+                            }}
+                          />
+                        </Form.Item>
+                        <div className="flex items-center justify-between gap-2">
+                          {isRawMaterial ? (
+                            <Form.Item
+                              {...field}
+                              name={[field.name, "rawMaterialId"]}
+                              rules={[{ required: true, message: "Raw material is required!" }]}
+                              className="mb-0! flex-1"
+                            >
+                              <InfiniteScrollSelect<IRawMaterial>
+                                showSearch
+                                allowClear
+                                virtual={false}
+                                placeholder="Raw material"
+                                initialOptions={initialValues?.items?.[idx]?.rawMaterial ? [initialValues.items[idx].rawMaterial] : []}
+                                option={({ item }) => ({
+                                  key: item.id,
+                                  label: `${item.title} (${item.stock} ${item.unit ?? ''} available)`,
+                                  value: item.id,
+                                })}
+                                onChange={(rawMaterialId) => {
+                                  const items = [...(form.getFieldValue("items") || [])];
+                                  const rawMaterial = loadedRawMaterials.find((entry) => entry.id === rawMaterialId);
+                                  items[idx] = {
+                                    ...items[idx],
+                                    rawMaterialId,
+                                    rawMaterialCombinationId: null,
+                                    productId: null,
+                                  };
+                                  form.setFieldsValue({ items });
+                                  if (rawMaterial && !rawMaterial.combinations?.length) {
+                                    form.setFieldValue(["items", idx, "sellingPrice"], rawMaterial.sellingPrice);
+                                  }
+                                }}
+                                onChangeSearchTerm={setRawMaterialSearchTerm}
+                                query={rawMaterialsQuery}
+                              />
+                            </Form.Item>
+                          ) : (
+                            <Form.Item
+                              {...field}
+                              name={[field.name, "productId"]}
+                              rules={[{ required: true, message: "Product is required!" }]}
+                              className="mb-0! flex-1"
+                            >
+                              <InfiniteScrollSelect<IProduct>
+                                showSearch
+                                allowClear
+                                virtual={false}
+                                placeholder="Product"
+                                option={({ item: product }) => ({
+                                  key: product?.id,
+                                  label: `${product?.title} (${product?.productCode})`,
+                                  value: product?.id,
+                                })}
+                                onChange={(productId) => {
+                                  const items = [...(form.getFieldValue("items") || [])];
+                                  items[idx] = { ...items[idx], productId, rawMaterialId: null, variantId: null, skuId: null };
+                                  form.setFieldsValue({ items });
+                                }}
+                                onChangeSearchTerm={setProductSearchTerm}
+                                query={productsQuery}
+                              />
+                            </Form.Item>
+                          )}
                           <Button
                             type="text"
                             danger
@@ -403,7 +485,31 @@ const SalesForm: React.FC<IProps> = ({
                             onClick={() => remove(field.name)}
                           />
                         </div>
-                        {skus.length === 0 && (
+                        {isRawMaterial && (
+                          <Form.Item
+                            {...field}
+                            name={[field.name, "rawMaterialCombinationId"]}
+                            rules={rawMaterialCombinations.length > 0 ? [{ required: true, message: "Raw-material combination is required!" }] : []}
+                            className="mb-0!"
+                          >
+                            <Select
+                              showSearch
+                              disabled={rawMaterialCombinations.length === 0}
+                              placeholder={rawMaterialCombinations.length ? "Raw-material combination" : "No combinations configured"}
+                              options={rawMaterialCombinations.map((combination) => ({
+                                value: combination.id,
+                                label: `${combination.title}${combination.code ? ` (${combination.code})` : ''} - ${combination.stock} ${combination.unit ?? selectedRawMaterial?.unit ?? ''}`,
+                              }))}
+                              onChange={(combinationId) => {
+                                const combination = rawMaterialCombinations.find((candidate) => candidate.id === combinationId);
+                                if (combination) {
+                                  form.setFieldValue(["items", idx, "sellingPrice"], combination.sellingPrice);
+                                }
+                              }}
+                            />
+                          </Form.Item>
+                        )}
+                        {!isRawMaterial && skus.length === 0 && (
                           <Form.Item
                             {...field}
                             name={[field.name, "variantId"]}
@@ -428,7 +534,7 @@ const SalesForm: React.FC<IProps> = ({
                             />
                           </Form.Item>
                         )}
-                        {skus.length > 0 && (
+                        {!isRawMaterial && skus.length > 0 && (
                           <Form.Item {...field} name={[field.name, "skuId"]} rules={[{ required: true, message: "Combination is required!" }]} className="mb-0!">
                             <Select
                               showSearch
@@ -458,8 +564,8 @@ const SalesForm: React.FC<IProps> = ({
                             <InputNumber
                               className="w-full!"
                               placeholder="Quantity"
-                              min={1}
-                              precision={0}
+                              min={isRawMaterial ? 0.001 : 1}
+                              precision={isRawMaterial ? 3 : 0}
                             />
                           </Form.Item>
                           <Form.Item
@@ -488,7 +594,7 @@ const SalesForm: React.FC<IProps> = ({
                     block
                     type="dashed"
                     icon={<AiOutlinePlus />}
-                    onClick={() => add({})}
+                    onClick={() => add({ itemType: "product" })}
                   >
                     Add Item
                   </Button>
