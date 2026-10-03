@@ -2,6 +2,7 @@
 
 import InfiniteScrollSelect from '@base/components/InfiniteScrollSelect';
 import BaseSearch from '@base/components/BaseSearch';
+import CustomUploader from '@base/components/CustomUploader';
 import PageHeader from '@base/components/PageHeader';
 import { Toolbox } from '@lib/utils';
 import Authorization from '@modules/auth/components/Authorization';
@@ -114,7 +115,7 @@ const ProductionPage = () => {
         }}
       />
       <Drawer width={720} title="Record production" open={open} onClose={() => setOpen(false)}>
-        <Form form={form} layout="vertical" initialValues={{ productMode: 'existing', usedRawMaterials: [{}] }} onFinish={submit}>
+        <Form form={form} size="large" layout="vertical" initialValues={{ productMode: 'existing', usedRawMaterials: [{}] }} onFinish={submit}>
           <Form.Item name="productMode" label="Finished product">
             <Radio.Group buttonStyle="solid" onChange={() => form.setFieldValue('productId', undefined)}>
               <Radio.Button value="existing">Existing product</Radio.Button>
@@ -133,14 +134,21 @@ const ProductionPage = () => {
               />
             </Form.Item>
           ) : (
-            <Row gutter={12}>
-              <Col span={12}><Form.Item name="title" label="Title" rules={[{ required: true }]}><Input /></Form.Item></Col>
-              <Col span={12}><Form.Item name="productCode" label="Product code" rules={[{ required: true }]}><Input /></Form.Item></Col>
-              <Col span={12}><Form.Item name="unit" label="Unit"><Input /></Form.Item></Col>
-              <Col span={12}><Form.Item name="warranty" label="Warranty"><Input /></Form.Item></Col>
-              <Col span={24}><Form.Item name="thumbnail" label="Image URL"><Input /></Form.Item></Col>
-              <Col span={12}><Form.Item name="sellingPrice" label="Selling price"><InputNumber min={0} precision={2} className="w-full" /></Form.Item></Col>
-              <Col span={24}><Form.Item name="description" label="Description"><Input.TextArea rows={2} /></Form.Item></Col>
+            <Row gutter={[16, 0]}>
+              <Col xs={24} md={12}><Form.Item name="title" label="Title" rules={[{ required: true }]}><Input /></Form.Item></Col>
+              <Col xs={24} md={12}><Form.Item name="productCode" label="Product code" rules={[{ required: true }]}><Input /></Form.Item></Col>
+              <Col xs={24} md={12}><Form.Item name="unit" label="Unit"><Input /></Form.Item></Col>
+              <Col xs={24} md={12}><Form.Item name="warranty" label="Warranty"><Input /></Form.Item></Col>
+              <Col xs={24}><Form.Item name="thumbnail" label="Image">
+                <CustomUploader
+                  maxCount={1}
+                  listType="picture-card"
+                  acceptedTypes={['jpg', 'jpeg', 'png', 'webp', 'avif']}
+                  onChange={(urls) => form.setFieldValue('thumbnail', urls?.[0])}
+                />
+              </Form.Item></Col>
+              <Col xs={24} md={12}><Form.Item name="sellingPrice" label="Selling price"><InputNumber min={0} precision={2} className="w-full" /></Form.Item></Col>
+              <Col xs={24}><Form.Item name="description" label="Description"><Input.TextArea rows={2} /></Form.Item></Col>
             </Row>
           )}
           <Row gutter={12}>
