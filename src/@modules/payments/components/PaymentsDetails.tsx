@@ -30,7 +30,7 @@ const PaymentsDetails: React.FC<IProps> = ({ id, onViewReference }) => {
           {
             key: 'paymentDate',
             label: 'Payment Date',
-            children: payment?.paymentDate ? dayjs(payment.paymentDate).format('YYYY-MM-DD') : 'N/A',
+            children: payment?.paymentDate ? dayjs(payment.paymentDate).format('DD/MM/YYYY') : 'N/A',
           },
           { key: 'amount', label: 'Amount', children: Number(payment?.amount || 0).toFixed(2) },
           { key: 'paymentMethod', label: 'Payment Method', children: payment?.paymentMethod || 'N/A' },
@@ -60,7 +60,7 @@ const PaymentsDetails: React.FC<IProps> = ({ id, onViewReference }) => {
           {
             key: 'createdAt',
             label: 'Created At',
-            children: payment?.createdAt ? dayjs(payment.createdAt).format('YYYY-MM-DD HH:mm') : 'N/A',
+            children: payment?.createdAt ? dayjs(payment.createdAt).format('DD/MM/YYYY HH:mm') : 'N/A',
           },
         ]}
       />

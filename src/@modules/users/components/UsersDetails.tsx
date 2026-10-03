@@ -62,7 +62,7 @@ const UsersDetails: React.FC<IProps> = ({ id }) => {
           {
             key: 'createdAt',
             label: 'Created At',
-            children: user?.createdAt ? dayjs(user.createdAt).format('YYYY-MM-DD HH:mm') : 'N/A',
+            children: user?.createdAt ? dayjs(user.createdAt).format('DD/MM/YYYY HH:mm') : 'N/A',
           },
         ]}
       />

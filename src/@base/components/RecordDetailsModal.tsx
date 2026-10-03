@@ -7,6 +7,8 @@ import InvestmentsDetails from '@modules/investments/components/InvestmentsDetai
 import LedgerDetails from '@modules/ledger/components/LedgerDetails';
 import PaymentsDetails from '@modules/payments/components/PaymentsDetails';
 import ProductsDetails from '@modules/products/components/ProductsDetails';
+import ProductionDetails from '@modules/production/components/ProductionDetails';
+import RawMaterialsDetails from '@modules/raw-materials/components/RawMaterialsDetails';
 import PurchasesDetails from '@modules/purchases/components/PurchasesDetails';
 import SalesDetails from '@modules/sales/components/SalesDetails';
 import SuppliersDetails from '@modules/suppliers/components/SuppliersDetails';
@@ -20,6 +22,8 @@ export type TRecordResource =
   | 'expense'
   | 'payment'
   | 'product'
+  | 'production'
+  | 'rawMaterial'
   | 'customer'
   | 'supplier'
   | 'employee'
@@ -41,6 +45,10 @@ const RECORD_RESOURCE_ALIASES: Record<string, TRecordResource> = {
   payments: 'payment',
   product: 'product',
   products: 'product',
+  production: 'production',
+  productions: 'production',
+  rawmaterial: 'rawMaterial',
+  rawmaterials: 'rawMaterial',
   customer: 'customer',
   customers: 'customer',
   supplier: 'supplier',
@@ -61,6 +69,8 @@ const RECORD_TITLES: Record<TRecordResource, string> = {
   expense: 'Expense Details',
   payment: 'Payment Details',
   product: 'Product Details',
+  production: 'Production Details',
+  rawMaterial: 'Raw Material Details',
   customer: 'Customer Details',
   supplier: 'Supplier Details',
   employee: 'Employee Details',
@@ -122,6 +132,8 @@ const RecordDetailsModal: React.FC<IProps> = ({ open, onClose, resource, id, tit
           <PaymentsDetails id={id} onViewReference={handleViewReferenceFn} />
         )}
         {open && resolvedResource === 'product' && <ProductsDetails id={id} />}
+        {open && resolvedResource === 'production' && <ProductionDetails id={id} />}
+        {open && resolvedResource === 'rawMaterial' && <RawMaterialsDetails id={id} />}
         {open && resolvedResource === 'customer' && <CustomersDetails id={id} />}
         {open && resolvedResource === 'supplier' && <SuppliersDetails id={id} />}
         {open && resolvedResource === 'employee' && <EmployeesDetails id={id} />}

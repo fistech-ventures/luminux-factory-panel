@@ -89,7 +89,7 @@ const LedgerStatementSelector: React.FC<IProps> = ({ open, onClose, onSubmit, in
           />
         </Form.Item>
         <Form.Item name="dateRange" label="Date range">
-          <DatePicker.RangePicker className="w-full" />
+          <DatePicker.RangePicker className="w-full" format="DD/MM/YYYY" />
         </Form.Item>
         <div className="flex justify-end">
           <Button type="primary" htmlType="submit">

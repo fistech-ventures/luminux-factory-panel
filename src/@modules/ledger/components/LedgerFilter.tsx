@@ -151,7 +151,7 @@ const LedgerFilter: React.FC<IProps> = ({ initialValues, onChange }) => {
             />
           </Form.Item>
           <Form.Item name="dateRange" className="!mb-0">
-            <DatePicker.RangePicker className="w-full" />
+            <DatePicker.RangePicker className="w-full" format="DD/MM/YYYY" />
           </Form.Item>
           <Form.Item name="sortOrder" className="!mb-0">
             <Radio.Group buttonStyle="solid" className="w-full text-center">

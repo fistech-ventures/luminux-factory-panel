@@ -7,6 +7,7 @@ import type { PaginationProps, TableColumnsType } from "antd";
 import { Button, Drawer, Form, Table, message } from "antd";
 import React, { useState } from "react";
 import { AiFillEdit, AiFillDelete, AiOutlineEye } from "react-icons/ai";
+import dayjs from "dayjs";
 import { ExpensesHooks } from "../lib/hooks";
 import { IExpense } from "../lib/interfaces";
 import ExpensesForm from "./ExpensesForm";
@@ -78,6 +79,7 @@ const ExpensesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       key: "date",
       dataIndex: "date",
       title: "Date",
+      render: (date) => (date ? dayjs(date).format("DD/MM/YYYY") : "N/A"),
     },
     {
       key: "purpose",
@@ -120,7 +122,7 @@ const ExpensesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       key: "updatedAt",
       dataIndex: "updatedAt",
       title: "Updated At",
-      render: (date) => (date ? new Date(date).toLocaleString() : "N/A"),
+      render: (date) => (date ? dayjs(date).format("DD/MM/YYYY HH:mm") : "N/A"),
     },
     {
       key: "updatedBy",

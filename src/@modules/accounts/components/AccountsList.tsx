@@ -36,7 +36,7 @@ const AccountsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       key: "transactionDate",
       dataIndex: "transactionDate",
       title: "Date",
-      render: (date) => (date ? dayjs(date).format("YYYY-MM-DD HH:mm") : "N/A"),
+      render: (date) => (date ? dayjs(date).format("DD/MM/YYYY HH:mm") : "N/A"),
     },
     {
       key: "transactionType",

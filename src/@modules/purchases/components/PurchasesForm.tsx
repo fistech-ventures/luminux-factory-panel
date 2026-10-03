@@ -21,7 +21,6 @@ import {
   Input,
   InputNumber,
   Modal,
-  Radio,
   Row,
   Select,
   Switch,
@@ -42,6 +41,22 @@ interface IProps {
   backendError?: string | null;
   _onSuccess?: () => void;
 }
+
+const getItemEntryType = (item: any) => {
+  if (
+    [
+      "product:existing",
+      "product:new",
+      "rawMaterial:existing",
+      "rawMaterial:new",
+    ].includes(item?.entryType)
+  ) {
+    return item.entryType;
+  }
+  const itemType = item?.itemType ?? (item?.rawMaterialId ? "rawMaterial" : "product");
+  const mode = item?.mode ?? (item?.productId || item?.rawMaterialId ? "existing" : "new");
+  return `${itemType}:${mode}`;
+};
 
 const PurchasesForm: React.FC<IProps> = ({
   isLoading,
@@ -171,6 +186,7 @@ const PurchasesForm: React.FC<IProps> = ({
               itemType: item?.itemType ?? (item?.rawMaterialId ? "rawMaterial" : "product"),
               unit: item?.unit ?? item?.product?.unit ?? item?.rawMaterial?.unit,
               mode: item?.productId || item?.rawMaterialId ? "existing" : "new",
+              entryType: getItemEntryType(item),
             }))
           : [],
       });
@@ -243,36 +259,30 @@ const PurchasesForm: React.FC<IProps> = ({
   const findProductSkus = (productId: string) =>
     loadedProducts.find((item: IProduct) => item.id === productId)?.skus ?? [];
 
-  const handleItemModeChangeFn = (idx: number, mode: "existing" | "new") => {
+  const handleItemEntryChangeFn = (idx: number, entryType: string) => {
+    const itemType = entryType.startsWith("rawMaterial:") ? "rawMaterial" : "product";
+    const mode = entryType.endsWith(":new") ? "new" : "existing";
     const currentItems = form.getFieldValue("items") || [];
     const updated = [...currentItems];
 
-    updated[idx] =
-      mode === "existing"
-        ? {
-            ...updated[idx],
-          productId: null,
-          rawMaterialId: null,
-            productName: null,
-            productCode: null,
-          rawMaterialName: null,
-            unit: null,
-            variants: [],
-            skus: [],
-            combinations: [],
-          }
-        : {
-            ...updated[idx],
-            productId: null,
-          rawMaterialId: null,
-          productName: null,
-          productCode: null,
-          rawMaterialName: null,
-            variantId: null,
-            skuId: null,
-            unit: null,
-            combinations: [],
-          };
+    updated[idx] = {
+      ...updated[idx],
+      itemType,
+      mode,
+      entryType,
+      productId: null,
+      rawMaterialId: null,
+      rawMaterialCombinationId: null,
+      productName: null,
+      productCode: null,
+      rawMaterialName: null,
+      variantId: null,
+      skuId: null,
+      unit: null,
+      variants: [],
+      skus: [],
+      combinations: [],
+    };
 
     form.setFieldsValue({ items: updated });
   };
@@ -317,8 +327,10 @@ const PurchasesForm: React.FC<IProps> = ({
           items: Toolbox.isNotEmpty(initialValues?.items)
             ? initialValues.items.map((item) => ({
                 ...item,
+                itemType: item?.itemType ?? (item?.rawMaterialId ? "rawMaterial" : "product"),
                 unit: item?.unit ?? item?.product?.unit,
-                mode: item?.productId ? "existing" : "new",
+                mode: item?.productId || item?.rawMaterialId ? "existing" : "new",
+                entryType: getItemEntryType(item),
               }))
             : [],
         }}
@@ -342,7 +354,7 @@ const PurchasesForm: React.FC<IProps> = ({
               ]}
               className="mb-0!"
             >
-              <DatePicker className="w-full" placeholder="Purchase Date" />
+              <DatePicker className="w-full" placeholder="Purchase Date" format="DD/MM/YYYY" />
             </Form.Item>
           </Col>
           <Col xs={24} md={12}>
@@ -425,15 +437,16 @@ const PurchasesForm: React.FC<IProps> = ({
                   {fields.map((field, idx) => {
                     const currentItems = watchedItems ?? [];
                     const currentRow = currentItems[idx] ?? {};
-                    const isExisting = currentRow?.mode !== "new";
-                    const isRawMaterial = currentRow?.itemType === "rawMaterial";
+                    const [itemType, mode] = getItemEntryType(currentRow).split(":");
+                    const isExisting = mode === "existing";
+                    const isRawMaterial = itemType === "rawMaterial";
                     const selectedProduct = loadedProducts.find(
                       (product: IProduct) =>
                         product.id === currentRow?.productId,
-                    );
+                    ) ?? currentRow?.product ?? initialValues?.items?.[idx]?.product;
                     const selectedRawMaterial = loadedRawMaterials.find(
                       (rawMaterial) => rawMaterial.id === currentRow?.rawMaterialId,
-                    );
+                    ) ?? currentRow?.rawMaterial ?? initialValues?.items?.[idx]?.rawMaterial;
                     const rawMaterialCombinations =
                       selectedRawMaterial?.combinations ??
                       initialValues?.items?.[idx]?.rawMaterial?.combinations ??
@@ -444,23 +457,6 @@ const PurchasesForm: React.FC<IProps> = ({
                     const skus = isExisting
                       ? findProductSkus(currentRow?.productId)
                       : [];
-                    const existingCombinationOptions = [
-                      ...skus.map((sku) => ({
-                        value: `sku:${sku.id}`,
-                        label: `${sku.productCode} - ${(sku.values ?? [])
-                          .map((value) => `${value.variant?.title ?? ""}: ${value.variantOption?.title ?? ""}`)
-                          .join(" / ")}`,
-                      })),
-                      ...variantOptions.map((variant) => ({
-                        value: `variant:${variant.id}`,
-                        label: `${variant.variant?.title ?? "Variant"}: ${variant.variantOption?.title ?? "Option"}${variant.sku ? ` (${variant.sku})` : ""}`,
-                      })),
-                    ];
-                    const useExistingCombinationLines =
-                      isExisting &&
-                      formType === "create" &&
-                      !isRawMaterial &&
-                      existingCombinationOptions.length > 0;
                     const filterSkuOption = (
                       input: string,
                       option: { value?: string | number },
@@ -483,58 +479,22 @@ const PurchasesForm: React.FC<IProps> = ({
                         key={field.key}
                         className="border border-gray-200 rounded-lg p-3 flex flex-col gap-2"
                       >
-                        <Form.Item
-                          {...field}
-                          name={[field.name, "itemType"]}
-                          initialValue="product"
-                          className="mb-0!"
-                        >
-                          <Select
-                            options={[
-                              { label: "Finished product", value: "product" },
-                              { label: "Raw material", value: "rawMaterial" },
-                            ]}
-                            onChange={(itemType) => {
-                              const items = [...(form.getFieldValue("items") || [])];
-                              items[idx] = {
-                                ...items[idx],
-                                itemType,
-                                productId: null,
-                                rawMaterialId: null,
-                                productName: null,
-                                rawMaterialName: null,
-                                productCode: null,
-                                variantId: null,
-                                skuId: null,
-                                variants: [],
-                                skus: [],
-                                combinations: [],
-                              };
-                              form.setFieldsValue({ items });
-                            }}
-                          />
-                        </Form.Item>
                         <div className="flex items-center justify-between gap-2">
                           <Form.Item
                             {...field}
-                            name={[field.name, "mode"]}
-                            className="mb-0!"
-                            initialValue="existing"
+                            name={[field.name, "entryType"]}
+                            className="mb-0! flex-1"
+                            initialValue={getItemEntryType(currentRow)}
                           >
-                            <Radio.Group
-                              size="small"
-                              buttonStyle="solid"
-                              onChange={(e) =>
-                                handleItemModeChangeFn(idx, e.target.value)
-                              }
-                            >
-                              <Radio.Button value="existing">
-                                Existing Product
-                              </Radio.Button>
-                              <Radio.Button value="new">
-                                New Product
-                              </Radio.Button>
-                            </Radio.Group>
+                            <Select
+                              options={[
+                                { label: "Existing Product", value: "product:existing" },
+                                { label: "New Product", value: "product:new" },
+                                { label: "Existing Raw Material", value: "rawMaterial:existing" },
+                                { label: "New Raw Material", value: "rawMaterial:new" },
+                              ]}
+                              onChange={(entryType) => handleItemEntryChangeFn(idx, entryType)}
+                            />
                           </Form.Item>
                           <Button
                             type="text"
@@ -545,7 +505,6 @@ const PurchasesForm: React.FC<IProps> = ({
                         </div>
                         {isExisting ? (
                           <>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                             {isRawMaterial && (
                               <Form.Item
                                 {...field}
@@ -569,8 +528,12 @@ const PurchasesForm: React.FC<IProps> = ({
                                     const rawMaterial = loadedRawMaterials.find((entry) => entry.id === rawMaterialId);
                                     items[idx] = {
                                       ...items[idx],
+                                      itemType: "rawMaterial",
                                       rawMaterialId,
                                       rawMaterialCombinationId: null,
+                                      productId: null,
+                                      variantId: null,
+                                      skuId: null,
                                       unit: rawMaterial?.unit ?? null,
                                       combinations: [],
                                     };
@@ -598,6 +561,7 @@ const PurchasesForm: React.FC<IProps> = ({
                                 allowClear
                                 virtual={false}
                                 placeholder="Product"
+                                  initialOptions={selectedProduct ? [selectedProduct] : []}
                                 option={({ item: product }) => ({
                                   key: product?.id,
                                   label: `${product?.title} (${product?.productCode})`,
@@ -612,7 +576,11 @@ const PurchasesForm: React.FC<IProps> = ({
                                   );
                                   items[idx] = {
                                     ...items[idx],
+                                    itemType: "product",
                                     productId,
+                                    product: product ?? null,
+                                    rawMaterialId: null,
+                                    rawMaterialCombinationId: null,
                                     unit: product?.unit ?? null,
                                     variantId: null,
                                     skuId: null,
@@ -649,7 +617,7 @@ const PurchasesForm: React.FC<IProps> = ({
                                 />
                               </Form.Item>
                             )}
-                            {!isRawMaterial && !useExistingCombinationLines && skus.length === 0 && (
+                            {!isRawMaterial && skus.length === 0 && (
                               <Form.Item
                                 {...field}
                                 name={[field.name, "variantId"]}
@@ -674,7 +642,7 @@ const PurchasesForm: React.FC<IProps> = ({
                                 />
                               </Form.Item>
                             )}
-                            {!isRawMaterial && !useExistingCombinationLines && skus.length > 0 && (
+                            {!isRawMaterial && skus.length > 0 && (
                               <Form.Item
                                 {...field}
                                 name={[field.name, "skuId"]}
@@ -709,105 +677,6 @@ const PurchasesForm: React.FC<IProps> = ({
                                 />
                               </Form.Item>
                             )}
-                          </div>
-                          {useExistingCombinationLines && (
-                            <>
-                              <Divider plain>Purchase combinations</Divider>
-                              <Form.List
-                                name={[field.name, "combinations"]}
-                                rules={[
-                                  {
-                                    validator: async (_, value) => {
-                                      if (!value?.length) {
-                                        throw new Error("Add at least one combination!");
-                                      }
-                                    },
-                                  },
-                                ]}
-                              >
-                                {(combinationFields, { add, remove }) => (
-                                  <div className="flex flex-col gap-2">
-                                    {combinationFields.map((combinationField) => (
-                                      <div
-                                        key={combinationField.key}
-                                        className="grid grid-cols-1 md:grid-cols-5 gap-2 items-start"
-                                      >
-                                        <Form.Item
-                                          {...combinationField}
-                                          name={[combinationField.name, "selectionKey"]}
-                                          rules={[{ required: true, message: "Select a combination!" }]}
-                                          className="mb-0!"
-                                        >
-                                          <Select
-                                            showSearch
-                                            allowClear
-                                            placeholder="SKU / Variant"
-                                            options={existingCombinationOptions}
-                                            onChange={(selectionKey) => {
-                                              const [kind, id] = String(selectionKey ?? "").split(":");
-                                              const sku = kind === "sku"
-                                                ? skus.find((candidate) => candidate.id === id)
-                                                : undefined;
-                                              const variant = kind === "variant"
-                                                ? variantOptions.find((candidate) => candidate.id === id)
-                                                : undefined;
-                                              const combinations = [
-                                                ...(form.getFieldValue(["items", idx, "combinations"]) ?? []),
-                                              ];
-                                              combinations[combinationField.name] = {
-                                                ...combinations[combinationField.name],
-                                                selectionKey,
-                                                skuId: sku?.id,
-                                                variantId: variant?.id,
-                                                productCode: sku?.productCode ?? variant?.sku ?? variant?.variantOption?.title,
-                                                name: sku?.name ?? variant?.variantOption?.title,
-                                              };
-                                              form.setFieldValue(
-                                                ["items", idx, "combinations"],
-                                                combinations,
-                                              );
-                                            }}
-                                          />
-                                        </Form.Item>
-                                        <Form.Item
-                                          {...combinationField}
-                                          name={[combinationField.name, "quantity"]}
-                                          rules={[{ required: true, message: "Quantity is required!" }]}
-                                          className="mb-0!"
-                                        >
-                                          <InputNumber className="w-full!" min={1} precision={0} placeholder="Quantity" />
-                                        </Form.Item>
-                                        <Form.Item
-                                          {...combinationField}
-                                          name={[combinationField.name, "totalProductCost"]}
-                                          rules={[{ required: true, message: "Product cost is required!" }]}
-                                          className="mb-0!"
-                                        >
-                                          <InputNumber className="w-full!" min={0} precision={2} placeholder="Product Cost" />
-                                        </Form.Item>
-                                        <Form.Item
-                                          {...combinationField}
-                                          name={[combinationField.name, "otherCost"]}
-                                          className="mb-0!"
-                                        >
-                                          <InputNumber className="w-full!" min={0} precision={2} placeholder="Other Cost" />
-                                        </Form.Item>
-                                        <Button
-                                          type="text"
-                                          danger
-                                          icon={<MdOutlineDeleteOutline />}
-                                          onClick={() => remove(combinationField.name)}
-                                        />
-                                      </div>
-                                    ))}
-                                    <Button block type="dashed" onClick={() => add({ otherCost: 0 })}>
-                                      Add combination
-                                    </Button>
-                                  </div>
-                                )}
-                              </Form.List>
-                            </>
-                          )}
                           </>
                         ) : isRawMaterial ? (
                           <>
@@ -899,7 +768,7 @@ const PurchasesForm: React.FC<IProps> = ({
                             </Form.Item>
                           </div>
                         )}
-                        {((isRawMaterial && !(currentRow?.combinations?.length)) || (isExisting && !useExistingCombinationLines)) && (
+                        {((isRawMaterial && !(currentRow?.combinations?.length)) || isExisting) && (
                           <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
                             <Form.Item
                               {...field}
@@ -1343,7 +1212,7 @@ const PurchasesForm: React.FC<IProps> = ({
                     block
                     type="dashed"
                     icon={<AiOutlinePlus />}
-                    onClick={() => add({ mode: "existing" })}
+                    onClick={() => add({ itemType: "product", mode: "existing", entryType: "product:existing" })}
                   >
                     Add Item
                   </Button>

@@ -1,22 +1,47 @@
-'use client';
+"use client";
 
-import InfiniteScrollSelect from '@base/components/InfiniteScrollSelect';
-import BaseSearch from '@base/components/BaseSearch';
-import CustomUploader from '@base/components/CustomUploader';
-import PageHeader from '@base/components/PageHeader';
-import { Toolbox } from '@lib/utils';
-import Authorization from '@modules/auth/components/Authorization';
-import WithAuthorization from '@modules/auth/components/WithAuthorization';
-import { ProductsHooks } from '@modules/products/lib/hooks';
-import { IProduct } from '@modules/products/lib/interfaces';
-import { ProductionHooks } from '@modules/production/lib/hooks';
-import { IProductionCreate, IProductionFilter } from '@modules/production/lib/interfaces';
-import { RawMaterialsHooks } from '@modules/raw-materials/lib/hooks';
-import { IRawMaterial } from '@modules/raw-materials/lib/interfaces';
-import { Button, Col, Drawer, Form, Input, InputNumber, Radio, Row, Select, Space, Table, Tag, message } from 'antd';
-import type { TableColumnsType } from 'antd';
-import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useState } from 'react';
+import ActionMenu from "@base/components/ActionMenu";
+import BaseFilter from "@base/components/BaseFilter";
+import ConfirmationDialog from "@base/components/ConfirmationDialog";
+import InfiniteScrollSelect from "@base/components/InfiniteScrollSelect";
+import BaseSearch from "@base/components/BaseSearch";
+import CustomUploader from "@base/components/CustomUploader";
+import PageHeader from "@base/components/PageHeader";
+import RecordDetailsModal from "@base/components/RecordDetailsModal";
+import { Toolbox } from "@lib/utils";
+import Authorization from "@modules/auth/components/Authorization";
+import { getAccess } from "@modules/auth/lib/utils/client";
+import WithAuthorization from "@modules/auth/components/WithAuthorization";
+import { ProductsHooks } from "@modules/products/lib/hooks";
+import { IProduct } from "@modules/products/lib/interfaces";
+import { ProductionHooks } from "@modules/production/lib/hooks";
+import {
+  IProductionCreate,
+  IProductionFilter,
+} from "@modules/production/lib/interfaces";
+import { RawMaterialsHooks } from "@modules/raw-materials/lib/hooks";
+import { IRawMaterial } from "@modules/raw-materials/lib/interfaces";
+import dayjs from "dayjs";
+import {
+  Button,
+  Col,
+  Descriptions,
+  Drawer,
+  Form,
+  Input,
+  InputNumber,
+  Radio,
+  Row,
+  Select,
+  Space,
+  Table,
+  Tag,
+  message,
+} from "antd";
+import type { TableColumnsType } from "antd";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useState } from "react";
+import { AiFillDelete, AiFillEdit, AiOutlineEye } from "react-icons/ai";
 
 const ProductionPage = () => {
   const router = useRouter();
@@ -24,10 +49,32 @@ const ProductionPage = () => {
   const [messageApi, messageHolder] = message.useMessage();
   const [form] = Form.useForm();
   const [open, setOpen] = useState(false);
-  const [productSearch, setProductSearch] = useState('');
-  const [materialSearch, setMaterialSearch] = useState('');
-  const { page = 1, limit = 20, ...filters } = Toolbox.parseQueryParams<IProductionFilter>(`?${searchParams.toString()}`);
-  const history = ProductionHooks.useFindInfinite({ options: { ...filters, page, limit } });
+  const [detailsItem, setDetailsItem] = useState<any | null>(null);
+  const [editingItem, setEditingItem] = useState<any | null>(null);
+  const [confirmationDialog, setConfirmationDialog] = useState<{
+    open: boolean;
+    title: string;
+    content: string;
+    onConfirm: () => void;
+  }>({ open: false, title: "", content: "", onConfirm: () => {} });
+  const [productSearch, setProductSearch] = useState("");
+  const [materialSearch, setMaterialSearch] = useState("");
+  const {
+    page = 1,
+    limit = 20,
+    status = "all",
+    ...filters
+  } = Toolbox.parseQueryParams<IProductionFilter>(
+    `?${searchParams.toString()}`,
+  );
+  const history = ProductionHooks.useFind({
+    options: {
+      ...filters,
+      ...(status !== "all" ? { status } : {}),
+      page,
+      limit,
+    },
+  });
   const create = ProductionHooks.useCreate({
     config: {
       onSuccess: (response) => {
@@ -38,40 +85,195 @@ const ProductionPage = () => {
       },
     },
   });
-  const productsQuery = ProductsHooks.useFindInfinite({ options: { limit: 20, searchTerm: productSearch } });
-  const materialsQuery = RawMaterialsHooks.useFindInfinite({ options: { limit: 20, searchTerm: materialSearch } });
-  const loadedRawMaterials = materialsQuery.data?.pages.flatMap((result) => result.data ?? []) ?? [];
-  const watchedMaterials = Form.useWatch('usedRawMaterials', form) ?? [];
+  const update = ProductionHooks.useUpdate({
+    config: {
+      onSuccess: (response) => {
+        if (!response.success) return messageApi.error(response.message);
+        messageApi.success(response.message);
+        setEditingItem(null);
+        form.resetFields();
+        setOpen(false);
+      },
+    },
+  });
+  const deleteFn = ProductionHooks.useDelete({
+    config: {
+      onSuccess: (response) => {
+        if (!response.success) return messageApi.error(response.message);
+        messageApi.success(response.message);
+      },
+    },
+  });
+  const productsQuery = ProductsHooks.useFindInfinite({
+    options: { limit: 20, searchTerm: productSearch },
+  });
+  const materialsQuery = RawMaterialsHooks.useFindInfinite({
+    options: { limit: 20, searchTerm: materialSearch },
+  });
+  const loadedRawMaterials =
+    materialsQuery.data?.pages.flatMap((result) => result.data ?? []) ?? [];
+  const watchedMaterials = Form.useWatch("usedRawMaterials", form) ?? [];
   const getMaterialCombinations = (rawMaterialId?: string) =>
-    loadedRawMaterials.find((material) => material.id === rawMaterialId)?.combinations ?? [];
-  const rows = history.data?.pages.flatMap((result) => result.data ?? []) ?? [];
-  const productMode = Form.useWatch('productMode', form) ?? 'existing';
+    loadedRawMaterials.find((material) => material.id === rawMaterialId)
+      ?.combinations ?? [];
+  const rows = history.data?.data ?? [];
+  const productMode = Form.useWatch("productMode", form) ?? "existing";
+  const statusOptions = [
+    { value: "all", label: "All" },
+    { value: "pending", label: "Pending" },
+    { value: "approved", label: "Approved" },
+  ];
+
+  const openCreateDrawer = () => {
+    form.resetFields();
+    setEditingItem(null);
+    setOpen(true);
+  };
+
+  const openEditDrawer = (record: (typeof rows)[number]) => {
+    setEditingItem(record);
+    form.setFieldsValue({
+      quantity: record.quantity,
+      otherCost: record.otherCost ?? 0,
+    });
+    setOpen(true);
+  };
+
+  const closeDrawer = () => {
+    setOpen(false);
+    setEditingItem(null);
+    form.resetFields();
+  };
 
   const columns: TableColumnsType<(typeof rows)[number]> = [
-    { title: 'Finished product', dataIndex: ['product', 'title'] },
-    { title: 'Type', dataIndex: 'isNewProduct', render: (value) => value ? 'New product' : 'Existing product' },
-    { title: 'Quantity produced', dataIndex: 'quantity' },
-    { title: 'Production cost', dataIndex: 'totalProductionCost', render: (value) => Number(value ?? 0).toFixed(2) },
-    { title: 'Cost per unit', dataIndex: 'productionCostPerUnit', render: (value) => Number(value ?? 0).toFixed(2) },
     {
-      title: 'Raw materials',
-      dataIndex: 'usedRawMaterials',
-      render: (used: Array<{ title: string; combinationTitle?: string; quantity: number; unit?: string }>) =>
-        used?.map((material) => `${material.title}${material.combinationTitle ? ` / ${material.combinationTitle}` : ''}: ${material.quantity} ${material.unit ?? ''}`).join(', '),
+      title: "Date",
+      dataIndex: "createdAt",
+      render: (value) => (value ? dayjs(value).format("DD/MM/YYYY") : "N/A"),
     },
-    { title: 'Date', dataIndex: 'createdAt', render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A' },
+    { title: "Finished product", dataIndex: ["product", "title"] },
+    {
+      title: "Type",
+      dataIndex: "isNewProduct",
+      render: (value) => (value ? "New product" : "Existing product"),
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      render: (value) => (
+        <Tag color={value === "pending" ? "gold" : "green"}>
+          {value === "pending" ? "Pending" : "Approved"}
+        </Tag>
+      ),
+    },
+    { title: "Quantity produced", dataIndex: "quantity" },
+    {
+      title: "Production cost",
+      dataIndex: "totalProductionCost",
+      render: (value) => Number(value ?? 0).toFixed(2),
+    },
+    {
+      title: "Cost per unit",
+      dataIndex: "productionCostPerUnit",
+      render: (value) => Number(value ?? 0).toFixed(2),
+    },
+    {
+      title: "Raw materials",
+      dataIndex: "usedRawMaterials",
+      render: (
+        used: Array<{
+          title: string;
+          combinationTitle?: string;
+          quantity: number;
+          unit?: string;
+        }>,
+      ) =>
+        used
+          ?.map(
+            (material) =>
+              `${material.title}${material.combinationTitle ? ` / ${material.combinationTitle}` : ""}: ${material.quantity} ${material.unit ?? ""}`,
+          )
+          .join(", "),
+    },
+    {
+      key: "action",
+      title: "Action",
+      fixed: "right",
+      align: "center",
+      render: (_, record) => (
+        <ActionMenu
+          content={
+            <div className="flex flex-col gap-1">
+              <Button
+                title="View details"
+                onClick={() => {
+                  getAccess(["products:read"], () => setDetailsItem(record));
+                }}
+              >
+                <AiOutlineEye />
+              </Button>
+              <Button
+                title="Edit production"
+                onClick={() => {
+                  getAccess(["products:update"], () => openEditDrawer(record));
+                }}
+              >
+                <AiFillEdit />
+              </Button>
+              <Button
+                title="Delete production"
+                danger
+                onClick={() => {
+                  getAccess(["products:delete"], () => {
+                    setConfirmationDialog({
+                      open: true,
+                      title: "Delete Production",
+                      content: `Are you sure you want to delete this production record?`,
+                      onConfirm: () => {
+                        deleteFn.mutate(record.id);
+                        setConfirmationDialog({
+                          open: false,
+                          title: "",
+                          content: "",
+                          onConfirm: () => {},
+                        });
+                      },
+                    });
+                  });
+                }}
+              >
+                <AiFillDelete />
+              </Button>
+            </div>
+          }
+        />
+      ),
+    },
   ];
 
   const submit = (values: any) => {
+    if (editingItem) {
+      update.mutate({
+        id: editingItem.id,
+        data: {
+          quantity: Number(values.quantity),
+          otherCost: Number(values.otherCost) || 0,
+          status: Number(values.otherCost) > 0 ? "approved" : "pending",
+        },
+      });
+      return;
+    }
+
     const payload: IProductionCreate = {
       quantity: Number(values.quantity),
-      otherCost: Number(values.otherCost) || 0,
-      usedRawMaterials: (values.usedRawMaterials ?? []).map((material: any) => ({
-        rawMaterialId: material.rawMaterialId,
-        rawMaterialCombinationId: material.rawMaterialCombinationId,
-        quantity: Number(material.quantity),
-      })),
-      ...(values.productMode === 'new'
+      usedRawMaterials: (values.usedRawMaterials ?? []).map(
+        (material: any) => ({
+          rawMaterialId: material.rawMaterialId,
+          rawMaterialCombinationId: material.rawMaterialCombinationId,
+          quantity: Number(material.quantity),
+        }),
+      ),
+      ...(values.productMode === "new"
         ? {
             newProduct: {
               title: values.title,
@@ -80,7 +282,6 @@ const ProductionPage = () => {
               warranty: values.warranty,
               unit: values.unit,
               thumbnail: values.thumbnail,
-              sellingPrice: values.sellingPrice,
             },
           }
         : { productId: values.productId }),
@@ -94,8 +295,35 @@ const ProductionPage = () => {
       <PageHeader
         title="Production"
         subTitle={<BaseSearch />}
-        tags={[<Tag key="total">Runs: {history.data?.pages[0]?.meta?.total ?? 0}</Tag>]}
-        extra={<Authorization allowedAccess={['products:write']}><Button type="primary" onClick={() => { form.resetFields(); setOpen(true); }}>Record production</Button></Authorization>}
+        tags={[<Tag key="total">Runs: {history.data?.meta?.total ?? 0}</Tag>]}
+        extra={
+          <Authorization allowedAccess={["products:write"]}>
+            <Button type="primary" onClick={openCreateDrawer}>
+              Record production
+            </Button>
+          </Authorization>
+        }
+      />
+      <BaseFilter
+        initialValues={Toolbox.toCleanObject({
+          ...Object.fromEntries(searchParams.entries()),
+          status,
+        })}
+        showIsActive={false}
+        onChange={(values) => {
+          const params = Toolbox.toCleanObject({
+            ...Object.fromEntries(searchParams.entries()),
+            ...values,
+            status: values.status === "all" ? undefined : values.status,
+            page: 1,
+          });
+          router.push(`?${new URLSearchParams(params).toString()}`);
+        }}
+        extra={
+          <Form.Item name="status" className="!mb-0">
+            <Select options={statusOptions} />
+          </Form.Item>
+        }
       />
       <Table
         rowKey="id"
@@ -106,54 +334,170 @@ const ProductionPage = () => {
         pagination={{
           current: page,
           pageSize: limit,
-          total: history.data?.pages[0]?.meta?.total,
+          total: history.data?.meta?.total,
           showSizeChanger: true,
           onChange: (nextPage, nextLimit) => {
-            const params = Toolbox.toCleanObject({ ...Object.fromEntries(searchParams.entries()), page: nextPage, limit: nextLimit });
+            const params = Toolbox.toCleanObject({
+              ...Object.fromEntries(searchParams.entries()),
+              page: nextPage,
+              limit: nextLimit,
+            });
             router.push(`?${new URLSearchParams(params).toString()}`);
           },
         }}
       />
-      <Drawer width={720} title="Record production" open={open} onClose={() => setOpen(false)}>
-        <Form form={form} size="large" layout="vertical" initialValues={{ productMode: 'existing', usedRawMaterials: [{}] }} onFinish={submit}>
+      <Drawer
+        width={720}
+        title={editingItem ? "Edit production" : "Record production"}
+        open={open}
+        onClose={closeDrawer}
+      >
+        {editingItem ? (
+          <Form
+            form={form}
+            size="large"
+            layout="vertical"
+            initialValues={{
+              quantity: editingItem.quantity,
+              otherCost: editingItem.otherCost ?? 0,
+            }}
+            onFinish={submit}
+          >
+            <Descriptions
+              bordered
+              column={1}
+              items={[
+                {
+                  key: "product",
+                  label: "Finished product",
+                  children: editingItem.product?.title || "N/A",
+                },
+                {
+                  key: "type",
+                  label: "Type",
+                  children: editingItem.isNewProduct ? "New product" : "Existing product",
+                },
+              ]}
+            />
+            <Row gutter={12} className="mt-4">
+              <Col span={12}>
+                <Form.Item
+                  name="quantity"
+                  label="Quantity produced"
+                  rules={[{ required: true }]}
+                >
+                  <InputNumber min={0.001} precision={3} className="w-full" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item name="otherCost" label="Other cost">
+                  <InputNumber min={0} precision={2} className="w-full" />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Button
+              className="mt-6"
+              type="primary"
+              htmlType="submit"
+              loading={update.isPending}
+            >
+              Save changes
+            </Button>
+          </Form>
+        ) : (
+          <Form
+            form={form}
+            size="large"
+            layout="vertical"
+            initialValues={{ productMode: "existing", usedRawMaterials: [{}] }}
+            onFinish={submit}
+          >
           <Form.Item name="productMode" label="Finished product">
-            <Radio.Group buttonStyle="solid" onChange={() => form.setFieldValue('productId', undefined)}>
+            <Radio.Group
+              buttonStyle="solid"
+              onChange={() => form.setFieldValue("productId", undefined)}
+            >
               <Radio.Button value="existing">Existing product</Radio.Button>
               <Radio.Button value="new">New product</Radio.Button>
             </Radio.Group>
           </Form.Item>
-          {productMode === 'existing' ? (
-            <Form.Item name="productId" rules={[{ required: true, message: 'Select a finished product' }]}>
+          {productMode === "existing" ? (
+            <Form.Item
+              name="productId"
+              rules={[{ required: true, message: "Select a finished product" }]}
+            >
               <InfiniteScrollSelect<IProduct>
                 showSearch
                 virtual={false}
                 placeholder="Finished product"
-                option={({ item }) => ({ key: item.id, value: item.id, label: `${item.title} (${item.productCode})` })}
+                option={({ item }) => ({
+                  key: item.id,
+                  value: item.id,
+                  label: `${item.title} (${item.productCode})`,
+                })}
                 onChangeSearchTerm={setProductSearch}
                 query={productsQuery}
               />
             </Form.Item>
           ) : (
             <Row gutter={[16, 0]}>
-              <Col xs={24} md={12}><Form.Item name="title" label="Title" rules={[{ required: true }]}><Input /></Form.Item></Col>
-              <Col xs={24} md={12}><Form.Item name="productCode" label="Product code" rules={[{ required: true }]}><Input /></Form.Item></Col>
-              <Col xs={24} md={12}><Form.Item name="unit" label="Unit"><Input /></Form.Item></Col>
-              <Col xs={24} md={12}><Form.Item name="warranty" label="Warranty"><Input /></Form.Item></Col>
-              <Col xs={24}><Form.Item name="thumbnail" label="Image">
-                <CustomUploader
-                  maxCount={1}
-                  listType="picture-card"
-                  acceptedTypes={['jpg', 'jpeg', 'png', 'webp', 'avif']}
-                  onChange={(urls) => form.setFieldValue('thumbnail', urls?.[0])}
-                />
-              </Form.Item></Col>
-              <Col xs={24} md={12}><Form.Item name="sellingPrice" label="Selling price"><InputNumber min={0} precision={2} className="w-full" /></Form.Item></Col>
-              <Col xs={24}><Form.Item name="description" label="Description"><Input.TextArea rows={2} /></Form.Item></Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="title"
+                  label="Title"
+                  rules={[{ required: true }]}
+                >
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="productCode"
+                  label="Product code"
+                  rules={[{ required: true }]}
+                >
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item name="unit" label="Unit">
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item name="warranty" label="Warranty">
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col xs={24}>
+                <Form.Item name="thumbnail" label="Image">
+                  <CustomUploader
+                    maxCount={1}
+                    listType="picture-card"
+                    acceptedTypes={["jpg", "jpeg", "png", "webp", "avif"]}
+                    onChange={(urls) =>
+                      form.setFieldValue("thumbnail", urls?.[0])
+                    }
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24}>
+                <Form.Item name="description" label="Description">
+                  <Input.TextArea rows={2} />
+                </Form.Item>
+              </Col>
             </Row>
           )}
           <Row gutter={12}>
-            <Col span={12}><Form.Item name="quantity" label="Quantity produced" rules={[{ required: true }]}><InputNumber min={0.001} precision={3} className="w-full" /></Form.Item></Col>
-            <Col span={12}><Form.Item name="otherCost" label="Other cost"><InputNumber min={0} precision={2} className="w-full" /></Form.Item></Col>
+            <Col span={24}>
+              <Form.Item
+                name="quantity"
+                label="Quantity produced"
+                rules={[{ required: true }]}
+              >
+                <InputNumber min={0.001} precision={3} className="w-full" />
+              </Form.Item>
+            </Col>
           </Row>
           <Form.List name="usedRawMaterials">
             {(fields, { add, remove }) => (
@@ -162,20 +506,32 @@ const ProductionPage = () => {
                 {fields.map((field) => (
                   <Row key={field.key} gutter={8} align="top">
                     <Col flex="auto">
-                      <Form.Item {...field} name={[field.name, 'rawMaterialId']} rules={[{ required: true }]}>
+                      <Form.Item
+                        {...field}
+                        name={[field.name, "rawMaterialId"]}
+                        rules={[{ required: true }]}
+                      >
                         <InfiniteScrollSelect<IRawMaterial>
                           showSearch
                           virtual={false}
                           placeholder="Raw material"
-                          option={({ item }) => ({ key: item.id, value: item.id, label: `${item.title} (${item.stock} ${item.unit ?? ''} available)` })}
+                          option={({ item }) => ({
+                            key: item.id,
+                            value: item.id,
+                            label: `${item.title} (${item.stock} ${item.unit ?? ""} available)`,
+                          })}
                           onChange={(rawMaterialId) => {
-                            const materials = [...(form.getFieldValue('usedRawMaterials') ?? [])];
+                            const materials = [
+                              ...(form.getFieldValue("usedRawMaterials") ?? []),
+                            ];
                             materials[field.name] = {
                               ...materials[field.name],
                               rawMaterialId,
                               rawMaterialCombinationId: undefined,
                             };
-                            form.setFieldsValue({ usedRawMaterials: materials });
+                            form.setFieldsValue({
+                              usedRawMaterials: materials,
+                            });
                           }}
                           onChangeSearchTerm={setMaterialSearch}
                           query={materialsQuery}
@@ -185,40 +541,103 @@ const ProductionPage = () => {
                     <Col span={24}>
                       <Form.Item
                         {...field}
-                        name={[field.name, 'rawMaterialCombinationId']}
-                        rules={getMaterialCombinations(watchedMaterials[field.name]?.rawMaterialId).length
-                          ? [{ required: true, message: 'Select a raw-material combination' }]
-                          : []}
+                        name={[field.name, "rawMaterialCombinationId"]}
+                        rules={
+                          getMaterialCombinations(
+                            watchedMaterials[field.name]?.rawMaterialId,
+                          ).length
+                            ? [
+                                {
+                                  required: true,
+                                  message: "Select a raw-material combination",
+                                },
+                              ]
+                            : []
+                        }
                       >
                         <Select
-                          disabled={!getMaterialCombinations(watchedMaterials[field.name]?.rawMaterialId).length}
-                          placeholder={getMaterialCombinations(watchedMaterials[field.name]?.rawMaterialId).length
-                            ? 'Raw-material combination'
-                            : 'No combinations configured'}
-                          options={getMaterialCombinations(watchedMaterials[field.name]?.rawMaterialId).map((combination) => ({
+                          disabled={
+                            !getMaterialCombinations(
+                              watchedMaterials[field.name]?.rawMaterialId,
+                            ).length
+                          }
+                          placeholder={
+                            getMaterialCombinations(
+                              watchedMaterials[field.name]?.rawMaterialId,
+                            ).length
+                              ? "Raw-material combination"
+                              : "No combinations configured"
+                          }
+                          options={getMaterialCombinations(
+                            watchedMaterials[field.name]?.rawMaterialId,
+                          ).map((combination) => ({
                             value: combination.id,
-                            label: `${combination.title}${combination.code ? ` (${combination.code})` : ''} - ${combination.stock} ${combination.unit ?? ''}`,
+                            label: `${combination.title}${combination.code ? ` (${combination.code})` : ""} - ${combination.stock} ${combination.unit ?? ""}`,
                           }))}
                         />
                       </Form.Item>
                     </Col>
                     <Col flex="180px">
-                      <Form.Item {...field} name={[field.name, 'quantity']} rules={[{ required: true }]}>
-                        <InputNumber min={0.001} precision={3} placeholder="Quantity used" className="w-full" />
+                      <Form.Item
+                        {...field}
+                        name={[field.name, "quantity"]}
+                        rules={[{ required: true }]}
+                      >
+                        <InputNumber
+                          min={0.001}
+                          precision={3}
+                          placeholder="Quantity used"
+                          className="w-full"
+                        />
                       </Form.Item>
                     </Col>
-                    <Col><Button danger onClick={() => remove(field.name)}>Remove</Button></Col>
+                    <Col>
+                      <Button danger onClick={() => remove(field.name)}>
+                        Remove
+                      </Button>
+                    </Col>
                   </Row>
                 ))}
                 <Button onClick={() => add({})}>Add raw material</Button>
               </Space>
             )}
           </Form.List>
-          <Button className="mt-6" type="primary" htmlType="submit" loading={create.isPending}>Save production</Button>
-        </Form>
+            <Button
+              className="mt-6"
+              type="primary"
+              htmlType="submit"
+              loading={create.isPending}
+            >
+              Save production
+            </Button>
+          </Form>
+        )}
       </Drawer>
+      <RecordDetailsModal
+        open={!!detailsItem?.id}
+        onClose={() => setDetailsItem(null)}
+        resource="production"
+        id={detailsItem?.id}
+        title={`Production Details - ${detailsItem?.product?.title ?? ''}`}
+      />
+      <ConfirmationDialog
+        open={confirmationDialog.open}
+        title={confirmationDialog.title}
+        content={confirmationDialog.content}
+        onCancel={() =>
+          setConfirmationDialog({
+            open: false,
+            title: "",
+            content: "",
+            onConfirm: () => {},
+          })
+        }
+        onConfirm={confirmationDialog.onConfirm}
+      />
     </>
   );
 };
 
-export default WithAuthorization(ProductionPage, { allowedAccess: ['products:read'] });
+export default WithAuthorization(ProductionPage, {
+  allowedAccess: ["products:read"],
+});

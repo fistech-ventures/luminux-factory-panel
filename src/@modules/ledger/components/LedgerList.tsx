@@ -2,6 +2,7 @@ import ConfirmationDialog from '@base/components/ConfirmationDialog';
 import ActionMenu from '@base/components/ActionMenu';
 import RecordDetailsModal from '@base/components/RecordDetailsModal';
 import { getAccess } from '@modules/auth/lib/utils/client';
+import dayjs from 'dayjs';
 import type { PaginationProps, TableColumnsType } from 'antd';
 import { Button, Drawer, Form, Table, Tag, message } from 'antd';
 import React, { useState } from 'react';
@@ -72,6 +73,7 @@ const LedgerList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       key: 'transactionDate',
       dataIndex: 'transactionDate',
       title: 'Date',
+      render: (date) => (date ? dayjs(date).format('DD/MM/YYYY HH:mm') : 'N/A'),
     },
     {
       key: 'entityType',

@@ -129,7 +129,7 @@ const ProductsDetails: React.FC<IProps> = ({ id }) => {
             key: "createdAt",
             label: "Created At",
             children: product?.createdAt
-              ? dayjs(product.createdAt).format("YYYY-MM-DD HH:mm")
+              ? dayjs(product.createdAt).format("DD/MM/YYYY HH:mm")
               : "N/A",
           },
           {

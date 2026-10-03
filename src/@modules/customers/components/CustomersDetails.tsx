@@ -38,7 +38,7 @@ const CustomersDetails: React.FC<IProps> = ({ id }) => {
           {
             key: 'createdAt',
             label: 'Created At',
-            children: customer?.createdAt ? dayjs(customer.createdAt).format('YYYY-MM-DD HH:mm') : 'N/A',
+            children: customer?.createdAt ? dayjs(customer.createdAt).format('DD/MM/YYYY HH:mm') : 'N/A',
           },
         ]}
       />

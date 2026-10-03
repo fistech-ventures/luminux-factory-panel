@@ -21,7 +21,7 @@ export const formatStatementQty = (value: number | null | undefined) =>
 
 export const formatStatementDate = (value: string | null | undefined) => {
   const parsed = value ? dayjs(value) : null;
-  return parsed?.isValid() ? parsed.format('MMM D, YYYY') : missingValue;
+  return parsed?.isValid() ? parsed.format('DD/MM/YYYY') : missingValue;
 };
 
 const printUrl = (options: ILedgerStatementOptions) => {

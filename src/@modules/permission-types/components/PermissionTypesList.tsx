@@ -72,7 +72,7 @@ const PermissionTypesList: React.FC<IProps> = ({ isLoading, data, pagination }) 
       key: 'createdAt',
       dataIndex: 'createdAt',
       title: 'Created At',
-      render: (createdAt) => <p className="min-w-24">{dayjs(createdAt).format('DD-MM-YYYY')}</p>,
+      render: (createdAt) => <p className="min-w-24">{dayjs(createdAt).format('DD/MM/YYYY')}</p>,
     },
     {
       key: 'isActive',

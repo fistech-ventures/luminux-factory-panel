@@ -2,6 +2,7 @@ import ConfirmationDialog from '@base/components/ConfirmationDialog';
 import ActionMenu from '@base/components/ActionMenu';
 import { ImagePaths } from '@lib/constant';
 import { getAccess } from '@modules/auth/lib/utils/client';
+import dayjs from 'dayjs';
 import type { PaginationProps, TableColumnsType } from 'antd';
 import { Button, Drawer, Form, Image, Table, Tag, message } from 'antd';
 import React, { useState } from 'react';
@@ -114,6 +115,7 @@ const GalleryList: React.FC<IProps> = ({ isLoading, data, pagination, onSelectio
       key: 'createdAt',
       dataIndex: 'createdAt',
       title: 'Uploaded At',
+      render: (date) => (date ? dayjs(date).format('DD/MM/YYYY HH:mm') : 'N/A'),
     },
     {
       key: 'id',

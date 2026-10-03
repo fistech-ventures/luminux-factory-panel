@@ -3,6 +3,7 @@ import ActionMenu from '@base/components/ActionMenu';
 import CustomSwitch from '@base/components/CustomSwitch';
 import RecordDetailsModal from '@base/components/RecordDetailsModal';
 import { getAccess } from '@modules/auth/lib/utils/client';
+import dayjs from 'dayjs';
 import type { PaginationProps, TableColumnsType } from 'antd';
 import { Button, Drawer, Form, Table, message } from 'antd';
 import React, { useState } from 'react';
@@ -74,6 +75,7 @@ const PurchasesList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       key: 'purchaseDate',
       dataIndex: 'purchaseDate',
       title: 'Date',
+      render: (date) => (date ? dayjs(date).format('DD/MM/YYYY') : 'N/A'),
     },
     {
       key: 'purchaseType',

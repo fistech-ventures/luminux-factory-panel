@@ -26,6 +26,7 @@ export interface IProductionCreate {
   newProduct?: INewProductionProduct;
   quantity: number;
   otherCost?: number;
+  status?: 'pending' | 'approved';
   usedRawMaterials: Array<{
     rawMaterialId: TId;
     rawMaterialCombinationId?: TId;
@@ -37,6 +38,7 @@ export interface IProduction extends IBaseEntity {
   productId: TId;
   product?: { id: TId; title: string; productCode: string; unit?: string };
   quantity: number;
+  status?: 'pending' | 'approved';
   otherCost: number;
   totalProductionCost: number;
   productionCostPerUnit: number;
@@ -44,7 +46,15 @@ export interface IProduction extends IBaseEntity {
   isNewProduct: boolean;
 }
 
-export interface IProductionFilter extends IBaseFilter {}
+export interface IProductionUpdate {
+  otherCost?: number;
+  quantity?: number;
+  status?: 'pending' | 'approved';
+}
+
+export interface IProductionFilter extends IBaseFilter {
+  status?: 'pending' | 'approved' | 'all';
+}
 
 export interface IProductionResponse extends IBaseResponse {
   data: IProduction[];

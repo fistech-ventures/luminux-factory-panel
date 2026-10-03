@@ -29,7 +29,7 @@ const SuppliersDetails: React.FC<IProps> = ({ id }) => {
           {
             key: 'createdAt',
             label: 'Created At',
-            children: supplier?.createdAt ? dayjs(supplier.createdAt).format('YYYY-MM-DD HH:mm') : 'N/A',
+            children: supplier?.createdAt ? dayjs(supplier.createdAt).format('DD/MM/YYYY HH:mm') : 'N/A',
           },
         ]}
       />

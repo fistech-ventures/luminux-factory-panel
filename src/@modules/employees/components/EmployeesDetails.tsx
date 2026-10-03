@@ -47,7 +47,7 @@ const EmployeesDetails: React.FC<IProps> = ({ id }) => {
           {
             key: 'createdAt',
             label: 'Created At',
-            children: employee?.createdAt ? dayjs(employee.createdAt).format('YYYY-MM-DD HH:mm') : 'N/A',
+            children: employee?.createdAt ? dayjs(employee.createdAt).format('DD/MM/YYYY HH:mm') : 'N/A',
           },
         ]}
       />

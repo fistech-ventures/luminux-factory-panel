@@ -57,6 +57,7 @@ const FloatDatePicker: React.FC<IProps> = ({
     >
       <DatePicker
         {...rest}
+        format="DD/MM/YYYY"
         className={className}
         style={style}
         onFocus={handleFocusFn}

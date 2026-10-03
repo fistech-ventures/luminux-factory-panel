@@ -30,6 +30,11 @@ export const Paths = {
         toId: (id: TId) => `/admin/role-manager/roles/${id}`,
       },
     },
+    inventory: {
+      root: '/admin/inventory',
+      products: '/admin/products/inventory',
+      rawMaterials: '/admin/raw-materials/inventory',
+    },
     products: {
       root: '/admin/products',
       list: '/admin/products/list',
@@ -38,6 +43,7 @@ export const Paths = {
     rawMaterials: {
       root: '/admin/raw-materials',
       list: '/admin/raw-materials/list',
+      inventory: '/admin/raw-materials/inventory',
     },
     production: {
       root: '/admin/production',

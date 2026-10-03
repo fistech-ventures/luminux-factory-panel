@@ -17,11 +17,13 @@ import { GrUserAdmin } from "react-icons/gr";
 import { RiUserStarFill } from "react-icons/ri";
 import {
   MdAccountBalance,
+  MdConstruction,
   MdDashboard,
   MdOutlineAccountBalanceWallet,
   MdOutlineAttachMoney,
   MdOutlineCategory,
   MdOutlineHandshake,
+  MdOutlineInventory,
   MdOutlineInventory2,
   MdOutlineLayers,
   MdOutlinePeopleOutline,
@@ -192,16 +194,8 @@ const AdminMenu: React.FC<IProps> = ({
               }),
               getContentAccess({
                 content: {
-                  key: Paths.admin.products.inventory,
-                  icon: <MdOutlineInventory2 />,
-                  label: link(Paths.admin.products.inventory, "Inventory"),
-                },
-                allowedAccess: [Permissions.PRODUCTS_READ],
-              }),
-              getContentAccess({
-                content: {
                   key: Paths.admin.rawMaterials.list,
-                  icon: <MdOutlineInventory2 />,
+                  icon: <MdOutlineInventory />,
                   label: link(Paths.admin.rawMaterials.list, "Raw Materials"),
                 },
                 allowedAccess: [Permissions.PRODUCTS_READ],
@@ -209,7 +203,7 @@ const AdminMenu: React.FC<IProps> = ({
               getContentAccess({
                 content: {
                   key: Paths.admin.production.list,
-                  icon: <MdOutlineInventory2 />,
+                  icon: <MdConstruction />,
                   label: link(Paths.admin.production.list, "Production"),
                 },
                 allowedAccess: [Permissions.PRODUCTS_READ],
@@ -240,6 +234,38 @@ const AdminMenu: React.FC<IProps> = ({
             Permissions.VARIANTS_READ,
             Permissions.PRODUCT_VARIANT_OPTIONS_READ,
           ],
+        }),
+        getContentAccess({
+          content: {
+            key: "inventory",
+            icon: <MdOutlineInventory2 />,
+            label: "Inventory",
+            children: [
+              getContentAccess({
+                content: {
+                  key: Paths.admin.inventory.products,
+                  icon: <MdOutlineInventory2 />,
+                  label: link(
+                    Paths.admin.inventory.products,
+                    "Products",
+                  ),
+                },
+                allowedAccess: [Permissions.PRODUCTS_READ],
+              }),
+              getContentAccess({
+                content: {
+                  key: Paths.admin.inventory.rawMaterials,
+                  icon: <MdOutlineInventory />,
+                  label: link(
+                    Paths.admin.inventory.rawMaterials,
+                    "Raw Material",
+                  ),
+                },
+                allowedAccess: [Permissions.PRODUCTS_READ],
+              }),
+            ],
+          },
+          allowedAccess: [Permissions.PRODUCTS_READ],
         }),
         getContentAccess({
           content: {

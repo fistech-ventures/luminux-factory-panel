@@ -26,7 +26,7 @@ const LedgerDetails: React.FC<IProps> = ({ id, onViewReference }) => {
           {
             key: 'transactionDate',
             label: 'Transaction Date',
-            children: ledger?.transactionDate ? dayjs(ledger.transactionDate).format('YYYY-MM-DD HH:mm') : 'N/A',
+            children: ledger?.transactionDate ? dayjs(ledger.transactionDate).format('DD/MM/YYYY HH:mm') : 'N/A',
           },
           {
             key: 'entityType',
@@ -68,7 +68,7 @@ const LedgerDetails: React.FC<IProps> = ({ id, onViewReference }) => {
           {
             key: 'createdAt',
             label: 'Created At',
-            children: ledger?.createdAt ? dayjs(ledger.createdAt).format('YYYY-MM-DD HH:mm') : 'N/A',
+            children: ledger?.createdAt ? dayjs(ledger.createdAt).format('DD/MM/YYYY HH:mm') : 'N/A',
           },
         ]}
       />

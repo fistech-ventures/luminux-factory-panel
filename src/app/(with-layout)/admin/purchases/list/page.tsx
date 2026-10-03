@@ -60,7 +60,13 @@ const PurchasesPage = () => {
         tags={[<Tag key={1}>Total: {purchasesQuery.data?.meta?.total || 0}</Tag>]}
         extra={
           <Authorization allowedAccess={['purchases:write']}>
-            <Button type="primary" onClick={() => setDrawerOpen(true)}>
+            <Button
+              type="primary"
+              onClick={() => {
+                formInstance.resetFields();
+                setDrawerOpen(true);
+              }}
+            >
               Create
             </Button>
           </Authorization>
@@ -109,7 +115,15 @@ const PurchasesPage = () => {
           },
         }}
       />
-      <Drawer width={860} title="Create a new purchase" open={isDrawerOpen} onClose={() => setDrawerOpen(false)}>
+      <Drawer
+        width={860}
+        title="Create a new purchase"
+        open={isDrawerOpen}
+        onClose={() => {
+          setDrawerOpen(false);
+          formInstance.resetFields();
+        }}
+      >
         <PurchasesForm
           form={formInstance}
           initialValues={{

@@ -60,7 +60,7 @@ const SalesDetails: React.FC<IProps> = ({ id }) => {
         size="small"
         column={{ xs: 1, sm: 2 }}
         items={[
-          { key: 'date', label: 'Date', children: sale?.date ? dayjs(sale.date).format('YYYY-MM-DD') : 'N/A' },
+          { key: 'date', label: 'Date', children: sale?.date ? dayjs(sale.date).format('DD/MM/YYYY') : 'N/A' },
           { key: 'invoiceNo', label: 'Invoice No', children: sale?.invoiceNo || 'N/A' },
           { key: 'customer', label: 'Customer', children: sale?.customer?.name || 'N/A' },
           {
@@ -79,7 +79,7 @@ const SalesDetails: React.FC<IProps> = ({ id }) => {
           {
             key: 'createdAt',
             label: 'Created At',
-            children: sale?.createdAt ? dayjs(sale.createdAt).format('YYYY-MM-DD HH:mm') : 'N/A',
+            children: sale?.createdAt ? dayjs(sale.createdAt).format('DD/MM/YYYY HH:mm') : 'N/A',
           },
         ]}
       />

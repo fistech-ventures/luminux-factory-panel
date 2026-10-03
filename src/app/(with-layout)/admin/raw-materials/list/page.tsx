@@ -1,14 +1,18 @@
 'use client';
 
 import BaseSearch from '@base/components/BaseSearch';
+import ActionMenu from '@base/components/ActionMenu';
+import ConfirmationDialog from '@base/components/ConfirmationDialog';
 import CustomUploader from '@base/components/CustomUploader';
 import PageHeader from '@base/components/PageHeader';
+import RecordDetailsModal from '@base/components/RecordDetailsModal';
 import Authorization from '@modules/auth/components/Authorization';
 import WithAuthorization from '@modules/auth/components/WithAuthorization';
 import { RawMaterialsHooks } from '@modules/raw-materials/lib/hooks';
 import { IRawMaterial, IRawMaterialCreate, IRawMaterialsFilter } from '@modules/raw-materials/lib/interfaces';
 import { Button, Col, Drawer, Form, Image, Input, InputNumber, Row, Space, Table, Tag, message } from 'antd';
 import type { TableColumnsType } from 'antd';
+import { AiFillDelete, AiFillEdit, AiOutlineEye } from 'react-icons/ai';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useState } from 'react';
 import { Toolbox } from '@lib/utils';
@@ -20,7 +24,14 @@ const RawMaterialsPage = () => {
   const [form] = Form.useForm<IRawMaterialCreate>();
   const combinations = Form.useWatch('combinations', form) ?? [];
   const [editing, setEditing] = useState<IRawMaterial | null>(null);
+  const [detailsItem, setDetailsItem] = useState<IRawMaterial | null>(null);
   const [open, setOpen] = useState(false);
+  const [confirmationDialog, setConfirmationDialog] = useState<{
+    open: boolean;
+    title: string;
+    content: string;
+    onConfirm: () => void;
+  }>({ open: false, title: '', content: '', onConfirm: () => {} });
   const { page = 1, limit = 20, ...filters } = Toolbox.parseQueryParams<IRawMaterialsFilter>(`?${searchParams.toString()}`);
   const query = RawMaterialsHooks.useFind({ options: { ...filters, page, limit } });
 
@@ -57,46 +68,73 @@ const RawMaterialsPage = () => {
     { title: 'Image', dataIndex: 'image', render: (image: string) => image ? <Image src={image} alt="Raw material" width={48} height={48} className="object-cover" /> : 'N/A' },
     { title: 'Title', dataIndex: 'title' },
     { title: 'Unit', dataIndex: 'unit', render: (unit) => unit || 'N/A' },
-    { title: 'Stock', dataIndex: 'stock', render: (stock, record) => `${Number(stock ?? 0)} ${record.unit ?? ''}` },
+    { title: 'Warranty', dataIndex: 'warranty', render: (warranty) => warranty || 'N/A' },
     {
       title: 'Combinations',
       dataIndex: 'combinations',
-      render: (combinations: IRawMaterial['combinations']) =>
-        combinations?.length ? combinations.map((combination) => combination.title).join(', ') : 'N/A',
+      render: (combinations: IRawMaterial['combinations']) => combinations?.length ?? 0,
     },
-    { title: 'Sourcing price', dataIndex: 'sourcingPrice', render: (value) => Number(value ?? 0).toFixed(2) },
-    { title: 'Selling price', dataIndex: 'sellingPrice', render: (value) => Number(value ?? 0).toFixed(2) },
+    { title: 'Stock', dataIndex: 'stock', render: (stock, record) => `${Number(stock ?? 0)} ${record.unit ?? ''}` },
+    { title: 'Sold', dataIndex: 'saleQuantity', render: (saleQuantity) => saleQuantity ?? 0 },
     {
       title: 'Actions',
       render: (_, record) => (
-        <Authorization allowedAccess={['products:write']}>
-          <Space>
-            <Button onClick={() => {
-              setEditing(record);
-              form.setFieldsValue({
-                title: record.title,
-                description: record.description,
-                unit: record.unit,
-                warranty: record.warranty,
-                sourcingPrice: record.sourcingPrice,
-                sellingPrice: record.sellingPrice,
-                image: record.image,
-                stock: record.stock,
-                combinations: record.combinations?.map((combination) => ({
-                  id: combination.id,
-                  title: combination.title,
-                  code: combination.code,
-                  unit: combination.unit,
-                  sourcingPrice: combination.sourcingPrice,
-                  sellingPrice: combination.sellingPrice,
-                  stock: combination.stock,
-                })) ?? [],
-              });
-              setOpen(true);
-            }}>Edit</Button>
-            <Button danger onClick={() => remove.mutate(record.id)}>Delete</Button>
-          </Space>
-        </Authorization>
+        <ActionMenu
+          content={
+            <div className="flex flex-col gap-1">
+              <Authorization allowedAccess={['products:read']}>
+                <Button title="View details" onClick={() => setDetailsItem(record)}>
+                  <AiOutlineEye />
+                </Button>
+              </Authorization>
+              <Authorization allowedAccess={['products:write']}>
+                <Button
+                  title="Edit raw material"
+                  onClick={() => {
+                    setEditing(record);
+                    form.setFieldsValue({
+                      title: record.title,
+                      description: record.description,
+                      unit: record.unit,
+                      warranty: record.warranty,
+                      sourcingPrice: record.sourcingPrice,
+                      sellingPrice: record.sellingPrice,
+                      image: record.image,
+                      stock: record.stock,
+                      combinations: record.combinations?.map((combination) => ({
+                        id: combination.id,
+                        title: combination.title,
+                        code: combination.code,
+                        unit: combination.unit,
+                        sourcingPrice: combination.sourcingPrice,
+                        sellingPrice: combination.sellingPrice,
+                        stock: combination.stock,
+                      })) ?? [],
+                    });
+                    setOpen(true);
+                  }}
+                >
+                  <AiFillEdit />
+                </Button>
+                <Button
+                  title="Delete raw material"
+                  danger
+                  onClick={() => setConfirmationDialog({
+                    open: true,
+                    title: 'Delete Raw Material',
+                    content: `Are you sure you want to delete "${record.title}"?`,
+                    onConfirm: () => {
+                      remove.mutate(record.id);
+                      setConfirmationDialog({ open: false, title: '', content: '', onConfirm: () => {} });
+                    },
+                  })}
+                >
+                  <AiFillDelete />
+                </Button>
+              </Authorization>
+            </div>
+          }
+        />
       ),
     },
   ];
@@ -126,6 +164,20 @@ const RawMaterialsPage = () => {
             router.push(`?${new URLSearchParams(params).toString()}`);
           },
         }}
+      />
+      <RecordDetailsModal
+        open={!!detailsItem?.id}
+        onClose={() => setDetailsItem(null)}
+        resource="rawMaterial"
+        id={detailsItem?.id}
+        title={`Raw Material Details - ${detailsItem?.title ?? ''}`}
+      />
+      <ConfirmationDialog
+        open={confirmationDialog.open}
+        title={confirmationDialog.title}
+        content={confirmationDialog.content}
+        onConfirm={confirmationDialog.onConfirm}
+        onCancel={() => setConfirmationDialog({ open: false, title: '', content: '', onConfirm: () => {} })}
       />
       <Drawer width={560} title={editing ? `Update ${editing.title}` : 'Add raw material'} open={open} onClose={closeDrawer}>
         <Form

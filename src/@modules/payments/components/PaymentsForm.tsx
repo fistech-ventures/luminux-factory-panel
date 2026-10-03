@@ -159,7 +159,7 @@ const PaymentsForm: React.FC<IProps> = ({ form, initialValues, isLoading, onFini
       </Form.Item>
 
       <Form.Item name="paymentDate" label="Payment Date" rules={[{ required: true, message: "Please select payment date" }]}>
-        <DatePicker style={{ width: "100%" }} />
+        <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
       </Form.Item>
 
       {entityType !== "employee" && (

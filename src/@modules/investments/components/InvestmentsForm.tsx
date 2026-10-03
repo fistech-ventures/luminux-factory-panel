@@ -62,7 +62,7 @@ const InvestmentsForm: React.FC<IProps> = ({
         <Row gutter={[16, 16]}>
           <Col xs={24}>
             <Form.Item name="date" rules={[{ required: true, message: 'Date is required!' }]} className="mb-0!">
-              <DatePicker className="w-full" placeholder="Investment Date" />
+              <DatePicker className="w-full" placeholder="Investment Date" format="DD/MM/YYYY" />
             </Form.Item>
           </Col>
           <Col xs={24}>

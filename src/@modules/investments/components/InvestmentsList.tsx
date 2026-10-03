@@ -6,6 +6,7 @@ import { getAccess } from '@modules/auth/lib/utils/client';
 import type { PaginationProps, TableColumnsType } from 'antd';
 import { Button, Drawer, Form, Table, message } from 'antd';
 import React, { useState } from 'react';
+import dayjs from 'dayjs';
 import { AiFillDelete, AiFillEdit, AiOutlineEye } from 'react-icons/ai';
 import { InvestmentsHooks } from '../lib/hooks';
 import { IInvestment } from '../lib/interfaces';
@@ -48,7 +49,7 @@ const InvestmentsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
   });
 
   const columns: TableColumnsType<IInvestment> = [
-    { key: 'date', dataIndex: 'date', title: 'Date', render: (date) => date || 'N/A' },
+    { key: 'date', dataIndex: 'date', title: 'Date', render: (date) => (date ? dayjs(date).format('DD/MM/YYYY') : 'N/A') },
     { key: 'title', dataIndex: 'title', title: 'Title' },
     { key: 'investor', title: 'Investor', render: (_, item) => item.investor?.name || 'N/A' },
     { key: 'amount', dataIndex: 'amount', title: 'Amount', render: (amount) => Number(amount ?? 0).toFixed(2) },

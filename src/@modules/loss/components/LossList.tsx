@@ -31,7 +31,7 @@ const LossList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       key: 'date',
       dataIndex: 'date',
       title: 'Date',
-      render: (date) => (date ? dayjs(date).format('YYYY-MM-DD') : 'N/A'),
+      render: (date) => (date ? dayjs(date).format('DD/MM/YYYY') : 'N/A'),
     },
     {
       key: 'customerName',

@@ -70,6 +70,7 @@ const InfiniteScrollSelect = <D = any,>({
           if (!rest.mode) {
             setSearchTerm('');
             onChangeSearchTerm(null);
+            setOpen(false);
           }
           // Close dropdown after selection in multi-select mode
           if (rest.mode === 'multiple') {
@@ -112,6 +113,8 @@ const InfiniteScrollSelect = <D = any,>({
   return (
     <Select
       {...rest}
+      open={open}
+      onOpenChange={setOpen}
       filterOption={false}
       onSearch={(value) => {
         setSearchTerm(value);
@@ -127,6 +130,10 @@ const InfiniteScrollSelect = <D = any,>({
         if (!rest.mode) {
           setSearchTerm('');
           onChangeSearchTerm(null);
+          setOpen(false);
+        }
+        if (rest.mode === 'multiple') {
+          setOpen(false);
         }
       }}
       loading={query.isLoading}

@@ -136,7 +136,7 @@ const LedgerForm: React.FC<IProps> = ({ isLoading, form, formType = 'create', in
           </Col>
           <Col xs={24}>
             <Form.Item name="transactionDate" rules={[{ required: true, message: 'Transaction date is required!' }]} className="!mb-0">
-              <DatePicker className="w-full" placeholder="Transaction Date" />
+              <DatePicker className="w-full" placeholder="Transaction Date" format="DD/MM/YYYY" />
             </Form.Item>
           </Col>
           <Col xs={24}>

@@ -58,7 +58,7 @@ const BaseFilter: React.FC<IProps> = ({
 
     delete values.dateRange;
 
-    onChange(Toolbox.toCleanObject(values));
+    onChange(Toolbox.toCleanObject({ ...values, page: 1 }));
     setDrawerOpen(false);
   };
 
@@ -67,10 +67,9 @@ const BaseFilter: React.FC<IProps> = ({
     formInstance.resetFields();
 
     const params = Toolbox.toCleanObject({
-      ...Object.fromEntries(searchParams.entries()),
-      ...formInstance.getFieldsValue(),
-      startDate: null,
-      endDate: null,
+      searchTerm: searchParams.get('searchTerm'),
+      limit: searchParams.get('limit'),
+      page: 1,
     });
     const queryString = new URLSearchParams(params).toString();
 
@@ -86,7 +85,7 @@ const BaseFilter: React.FC<IProps> = ({
         <Form form={formInstance} onFinish={handleSubmitFn} className="flex flex-col gap-3">
           {showDateRange && (
             <Form.Item name="dateRange" className="!mb-0">
-              <DatePicker.RangePicker className="w-full" />
+              <DatePicker.RangePicker className="w-full" format="DD/MM/YYYY" />
             </Form.Item>
           )}
           {showIsActive && (

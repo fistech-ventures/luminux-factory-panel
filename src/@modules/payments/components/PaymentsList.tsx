@@ -33,7 +33,7 @@ const PaymentsList: React.FC<IProps> = ({ isLoading, data, pagination }) => {
       key: 'paymentDate',
       dataIndex: 'paymentDate',
       title: 'Date',
-      render: (date) => (date ? dayjs(date).format('YYYY-MM-DD') : 'N/A'),
+      render: (date) => (date ? dayjs(date).format('DD/MM/YYYY') : 'N/A'),
     },
     {
       key: 'entityType',

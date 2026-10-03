@@ -63,12 +63,12 @@ const DashboardPage = () => {
   const recentSales = dashboardStats?.recentSales ?? [];
 
   const salesChartData = (dashboardStats?.salesChart ?? []).map((point) => ({
-    date: dayjs(point?.date).format("MMM D"),
+    date: dayjs(point?.date).format("DD/MM/YYYY"),
     amount: point?.amount ?? 0,
   }));
 
   const profitChartData = (dashboardStats?.profitChart ?? []).map((point) => ({
-    date: dayjs(point?.date).format("MMM D"),
+    date: dayjs(point?.date).format("DD/MM/YYYY"),
     profit: point?.profit ?? 0,
   }));
 
@@ -149,6 +149,7 @@ const DashboardPage = () => {
             <span className="text-sm text-gray-500">Custom dates:</span>
             <RangePicker
               value={dateRange}
+              format="DD/MM/YYYY"
               onChange={(values) =>
                 setDateRange(values as [Dayjs, Dayjs] | null)
               }

@@ -26,7 +26,7 @@ const ExpensesDetails: React.FC<IProps> = ({ id }) => {
         size="small"
         column={{ xs: 1, sm: 2 }}
         items={[
-          { key: 'date', label: 'Date', children: expense?.date ? dayjs(expense.date).format('YYYY-MM-DD') : 'N/A' },
+          { key: 'date', label: 'Date', children: expense?.date ? dayjs(expense.date).format('DD/MM/YYYY') : 'N/A' },
           { key: 'purpose', label: 'Purpose', children: expense?.purpose || 'N/A' },
           { key: 'amountSpent', label: 'Amount Spent', children: Number(expense?.amountSpent || 0).toFixed(2) },
           { key: 'paymentMethod', label: 'Payment Method', children: expense?.paymentMethod || 'N/A' },
@@ -42,12 +42,12 @@ const ExpensesDetails: React.FC<IProps> = ({ id }) => {
           {
             key: 'createdAt',
             label: 'Created At',
-            children: expense?.createdAt ? dayjs(expense.createdAt).format('YYYY-MM-DD HH:mm') : 'N/A',
+            children: expense?.createdAt ? dayjs(expense.createdAt).format('DD/MM/YYYY HH:mm') : 'N/A',
           },
           {
             key: 'updatedAt',
             label: 'Updated At',
-            children: expense?.updatedAt ? dayjs(expense.updatedAt).format('YYYY-MM-DD HH:mm') : 'N/A',
+            children: expense?.updatedAt ? dayjs(expense.updatedAt).format('DD/MM/YYYY HH:mm') : 'N/A',
           },
         ]}
       />

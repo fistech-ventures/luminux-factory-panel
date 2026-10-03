@@ -208,7 +208,7 @@ const SalesForm: React.FC<IProps> = ({
               rules={[{ required: true, message: "Date is required!" }]}
               className="mb-0!"
             >
-              <DatePicker className="w-full" placeholder="Date" />
+              <DatePicker className="w-full" placeholder="Date" format="DD/MM/YYYY" />
             </Form.Item>
           </Col>
           <Col xs={24} md={12}>

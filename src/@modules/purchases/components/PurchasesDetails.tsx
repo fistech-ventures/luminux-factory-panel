@@ -84,7 +84,7 @@ const PurchasesDetails: React.FC<IProps> = ({ id }) => {
           {
             key: 'purchaseDate',
             label: 'Purchase Date',
-            children: purchase?.purchaseDate ? dayjs(purchase.purchaseDate).format('YYYY-MM-DD') : 'N/A',
+            children: purchase?.purchaseDate ? dayjs(purchase.purchaseDate).format('DD/MM/YYYY') : 'N/A',
           },
           { key: 'purchaseType', label: 'Purchase Type', children: purchase?.purchaseType || 'N/A' },
           { key: 'supplier', label: 'Supplier', children: purchase?.supplier?.companyName || 'N/A' },
@@ -107,7 +107,7 @@ const PurchasesDetails: React.FC<IProps> = ({ id }) => {
           {
             key: 'createdAt',
             label: 'Created At',
-            children: purchase?.createdAt ? dayjs(purchase.createdAt).format('YYYY-MM-DD HH:mm') : 'N/A',
+            children: purchase?.createdAt ? dayjs(purchase.createdAt).format('DD/MM/YYYY HH:mm') : 'N/A',
           },
         ]}
       />

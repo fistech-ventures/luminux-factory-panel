@@ -13,9 +13,29 @@ const END_POINT = '/raw-materials';
 export const RawMaterialsServices = {
   NAME: END_POINT,
 
+  findById: async (id: TId): Promise<IBaseResponse<IRawMaterial>> => {
+    try {
+      const response = await AxiosSecureInstance.get(`${END_POINT}/${id}`);
+      return response.data;
+    } catch (error) {
+      throw responseHandlerFn(error);
+    }
+  },
+
   find: async (options: IRawMaterialsFilter): Promise<IRawMaterialsResponse> => {
     try {
       const response = await AxiosSecureInstance.get(`${END_POINT}?${Toolbox.queryNormalizer(options)}`);
+      return response.data;
+    } catch (error) {
+      throw responseHandlerFn(error);
+    }
+  },
+
+  findInventory: async (options: IRawMaterialsFilter): Promise<IRawMaterialsResponse> => {
+    try {
+      const response = await AxiosSecureInstance.get(
+        `${END_POINT}/inventory?${Toolbox.queryNormalizer(options)}`,
+      );
       return response.data;
     } catch (error) {
       throw responseHandlerFn(error);

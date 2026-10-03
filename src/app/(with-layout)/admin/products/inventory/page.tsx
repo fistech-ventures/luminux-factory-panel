@@ -27,7 +27,7 @@ const InventoryPage = () => {
   return (
     <React.Fragment>
       <PageHeader
-        title="Inventory"
+        title="Product Inventory"
         subTitle={<BaseSearch />}
         tags={[
           <Tag key="total">
